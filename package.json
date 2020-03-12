@@ -1,0 +1,29 @@
+{
+  "name": "@strivve/strivve-sdk",
+  "version": "2.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "mocha --reporter spec"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/markbudos/Strivve-SDK.git"
+  },
+  "author": "Strivve <mbudos@strivve.com> (https://www.strivve.com/)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/markbudos/Strivve-SDK/issues"
+  },
+  "homepage": "https://github.com/markbudos/Strivve-SDK#readme",
+  "engines": {
+    "node": ">=8.0.0"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "mocha": "^7.1.0"
+  }
+}
