@@ -1,14 +1,17 @@
 {
   "name": "@strivve/strivve-sdk",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "",
-  "main": "index.js",
+  "main": "src/index.js",
   "directories": {
-    "lib": "lib",
+    "src": "src",
     "test": "test"
   },
   "scripts": {
-    "test": "mocha --reporter spec"
+    "test": "mocha --reporter spec",
+    "dev": "webpack --display-error-details --mode development",
+    "prod": "webpack --mode production",
+    "build": "tsc"
   },
   "repository": {
     "type": "git",
@@ -24,7 +27,18 @@
     "node": ">=8.0.0"
   },
   "devDependencies": {
+    "@types/node": "^12.12.31",
     "chai": "^4.2.0",
     "mocha": "^7.1.0"
+  },
+  "dependencies": {
+    "@types/axios": "^0.14.0",
+    "@types/lodash": "^4.14.149",
+    "axios": "^0.19.2",
+    "lodash": "^4.17.15",
+    "ts-loader": "^6.2.2",
+    "typescript": "^3.8.3",
+    "webpack": "^4.42.1",
+    "webpack-cli": "^3.3.11"
   }
 }
