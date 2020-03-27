@@ -125,7 +125,6 @@ export class CardsavrSession {
         return new CardsavrSessionResponse(response.status, response.statusText, response.headers, response.data);
     }
     catch (err) {
-        console.log(err);
         if (err.response) {
             err.response.data = await CardsavrCrypto.Encryption.decryptResponse(this.sessionData.sessionKey, err.response.data);
             throw new CardsavrSessionResponse(err.response.status, err.response.statusText, err.response.headers, err.response.data);
