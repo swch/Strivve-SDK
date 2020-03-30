@@ -2,10 +2,10 @@ const helper_functions = require("@strivve/strivve-sdk/lib/cardsavr/CardsavrHelp
 
 async function splitStart() {
 
-  const app_name = "Hopenware";
-  const app_key = "TwPdMV4EN4stSaRGIw1sNBaOJ+aBF2wuinDzyB36Wac=";
-  const app_username = "hopenware";
-  const app_password = "93oWf^N0fH%q";
+  const app_name = "<redacted>";
+  const app_key = "<redacted>";
+  const app_username = "<redacted>";
+  const app_password = "<redacted>";
   const cardsavr_server = "https://api.staging.cardsavr.io";
 
   const cardholder_data = require("./cardholder.json");
