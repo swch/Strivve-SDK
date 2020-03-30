@@ -86,7 +86,9 @@ typings/
 
 # Nuxt.js build / generate output
 .nuxt
-dist
+
+#webpack distribution
+#dist
 
 # Gatsby files
 .cache/

@@ -1,0 +1,15 @@
+{
+  "name": "strivve-sdk-demo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Strivve <mbudos@strivve.com> (https://www.strivve.com/)",
+  "license": "ISC",
+  "dependencies": {
+    "@strivve/strivve-sdk": "^2.0.17",
+    "axios": "^0.19.2"
+  }
+}

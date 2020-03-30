@@ -1,0 +1,9 @@
+{
+    "is_primary" : "true",
+    "address1" : "1234 1st ave",
+    "address2" : "APT 202",
+    "city" : "Seattle",
+    "state" : "WA",
+    "zip" : "98104",
+    "country" : "USA"
+}
