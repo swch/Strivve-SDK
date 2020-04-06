@@ -2,6 +2,7 @@
 
 import { CardsavrSession } from "./CardsavrJSLibrary-2.0";
 import { generateRandomPar } from "./CardsavrSessionUtilities";
+import * as crypto from 'crypto';
 
 export async function createAccount(
     app_name: string, app_key: string, app_username: string, app_password: string, cardsavr_server: string, 
@@ -12,13 +13,14 @@ export async function createAccount(
     try {
         await session.init();
         cardholder_data.username = generate_alphanumeric_string(40);
-        cardholder_data.cardholder_safe_key = generate_alphanumeric_string(44); //eventually this just gets saved in cardsavr
+        cardholder_data.cardholder_safe_key =  crypto.randomBytes(32).toString("base64"); //eventually this just gets saved in cardsavr
         cardholder_data.role = "cardholder";
 
         //set the missing settings for cardupdatr model
         if (!cardholder_data.first_name) cardholder_data.first_name = card_data.first_name;
         if (!cardholder_data.last_name) cardholder_data.last_name = card_data.last_name;
         if (!card_data.name_on_card) card_data.name_on_card = card_data.first_name + card_data.last_name;
+
         const cardholder_response = await session.createUser(cardholder_data);
         const cardholder_id = cardholder_response.body.id;
         const grant_response = await session.getCredentialGrant(cardholder_id);
@@ -26,12 +28,12 @@ export async function createAccount(
 
         //Theorietically, this user should be looking up the bins, creating the address, and adding the card.
         //But then we need to create a new grant in here somewhere.
-        //const session_user = new CardsavrSession(cardsavr_server, app_key, app_name, cardholder_data.username, undefined, grant);
-        //await session_user.init();
+        const session_user = new CardsavrSession(cardsavr_server, app_key, app_name, cardholder_data.username, undefined, grant);
+        const resp = await session_user.init();
 
         /* let's run the address creation and bin lookup together */
         const [ address_response, bin_id ] = await Promise.all([
-            session.createAddress(address_data),
+            session_user.createAddress(address_data),
             lookupBin(session, card_data.pan.substring(0, 6))]);
 
         card_data.bin_id = bin_id;
@@ -39,9 +41,13 @@ export async function createAccount(
         card_data.address_id = address_response.body.id;
         card_data.user_id = cardholder_id;
         card_data.par = generateRandomPar(card_data.pan, card_data.expiration_month, card_data.expiration_year, cardholder_data.username);
-        const card_response = await session.createCard(card_data, cardholder_data.cardholder_safe_key);
+        const card_response = await session_user.createCard(card_data, cardholder_data.cardholder_safe_key);
 
-        return { grant: grant, username: cardholder_data.username, card_id: card_response.body.id} ;
+        //eventually these will be one time grants
+        const grant_response_handoff = await session.getCredentialGrant(cardholder_id);
+        const grant_handoff = grant_response_handoff.body.user_credential_grant;
+
+        return { grant: grant_handoff, username: cardholder_data.username, card_id: card_response.body.id } ;
 
     } catch(err) {
         if (err.body && err.body._errors) {
@@ -90,6 +96,8 @@ async function lookupBin(session: any, bin: string) {
             console.log("no _errors, exception stack below:");
             console.log(err.stack);
         }
+    }
+    if (!bin_data || !bin_data.body || bin_data.body.length === 0) {
         bin_data = await session.createBin({ bank_identification_number: bin });
     }
     return bin_data.body.shift().id;

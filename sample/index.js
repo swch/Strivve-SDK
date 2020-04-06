@@ -1,12 +1,15 @@
 const helper_functions = require("@strivve/strivve-sdk/lib/cardsavr/CardsavrHelperFunctions");
 
-async function splitStart() {
+async function provisionUser() {
 
-  const app_name = "<redacted>";
-  const app_key = "<redacted>";
-  const app_username = "<redacted>";
-  const app_password = "<redacted>";
-  const cardsavr_server = "https://api.staging.cardsavr.io";
+  const app_name = "CardUpdatr Demo";
+  const app_key = "oqLSC5V/R4w42crQT7x0HjcM5NnS2tiyTzWSxnOVZdU=";
+  //const app_key = "TGSEjt4TuK0j55TeF7x1cao88Bc1j8nyHeaBHueT5gQ=";
+  const app_username = "cardupdatr_demo";
+  
+  const app_password = "eyYhGC#n!89r";
+  //const app_password = "uLa64$#Rf8bh";
+  const cardsavr_server = "https://api.localhost.cardsavr.io";
 
   const cardholder_data = require("./cardholder.json");
   const address_data = require("./address.json");
@@ -16,10 +19,11 @@ async function splitStart() {
     app_name, app_key, app_username, app_password, cardsavr_server, 
     cardholder_data, address_data, card_data);
   
-  console.dir(response)
+  const queryString = Object.keys(response).map(key => key + '=' + encodeURIComponent(response[key])).join('&');
+  console.log(queryString);
 
-  helper_functions.deleteAccount(app_name, app_key, app_username, app_password, cardsavr_server);
+  //helper_functions.deleteAccount(app_name, app_key, app_username, app_password, cardsavr_server);
 }
 
-splitStart();
+provisionUser();
 

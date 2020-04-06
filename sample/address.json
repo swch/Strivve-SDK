@@ -3,6 +3,8 @@
     "address1" : "1234 1st ave",
     "address2" : "APT 202",
     "city" : "Seattle",
+    "subnational" : "WA",
+    "postal_code" : "98104",
     "state" : "WA",
     "zip" : "98104",
     "country" : "USA"

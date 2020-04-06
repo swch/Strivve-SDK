@@ -2,13 +2,80 @@
 <html>
   <head>
     <title>Getting Started</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.0.0/crypto-js.js"></script>
+    <script src="strivve-sdk.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
   </head>
   <body>
-    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.15/lodash.min.js"></script>
-    <script src="strivve-sdk.js"></script>
+    <form id="site_job">
+      <div>
+        <label for="merchant_hostname">Site:</label>
+      </div>
+      <div>
+        <input type="text" id="merchant_hostname">
+      </div>
+      <div>
+        <label for="username">Username:</label>
+      </div>
+      <div>
+        <input type="email" id="username">
+      </div>
+      <div>
+        <label for="password">Password:</label>
+      </div>
+      <div>
+        <input type="password" id="password"></textarea>
+      </div>
+      <div>
+        <input type="submit" id="submit"></textarea>
+      </div>
+    </form>
+
     <script>
-        console.log(webpackNumbers.wordToNum("Two"));
-        console.log(webpackNumbers.numToWord(2));
+
+      async function test_sdk() {
+
+        var app_name = "CardUpdatr Demo";
+        var app_key = "oqLSC5V/R4w42crQT7x0HjcM5NnS2tiyTzWSxnOVZdU="
+        //var app_key = "TGSEjt4TuK0j55TeF7x1cao88Bc1j8nyHeaBHueT5gQ=";
+        var cardsavr_server = "https://api.localhost.cardsavr.io";
+        //var cardsavr_server = "https://api.staging.cardsavr.io";
+
+        result = get_hash_key_values();
+        var session = new strivvesdk.CardsavrSession(cardsavr_server, app_key, app_name, result.username, null, result.grant);
+        var user = await session.init();
+        if (user.body) {
+          var safe_key = user.body.user.cardholder_safe_key;
+          var user_id = user.body.user.id;
+        }
+      }
+
+      function post_job(element) {
+        element.preventDefault();
+        console.log(element);        
+      }
+ 
+      function get_hash_key_values() {
+        var hash = window.location.hash ? window.location.hash.substring(1) : "";
+        return hash.split('&').reduce(function (result, item) {
+          var parts = item.split('='); result[parts[0]] = decodeURIComponent(parts[1]); return result;
+        }, {});
+      }
+
+      window.onload = function() {
+        var form = document.querySelector("#site_job");
+        if(form.addEventListener){
+          form.addEventListener("submit", post_job, false);  //Modern browsers      
+        }
+      }
+
+      function laod_sites() {
+        sites = axios.get('https://swch-site-images-mgmt.s3-us-west-2.amazonaws.com/branding/sites.json');
+        return sites;
+      }
+
+      test_sdk();
     </script>
   </body>
 </html>
