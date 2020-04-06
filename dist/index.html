@@ -47,6 +47,7 @@
         var user = await session.init();
         if (user.body) {
           var safe_key = user.body.user.cardholder_safe_key;
+          console.dir(safe_key);
           var user_id = user.body.user.id;
         }
       }

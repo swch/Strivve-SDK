@@ -13,7 +13,7 @@ export async function createAccount(
     try {
         await session.init();
         cardholder_data.username = generate_alphanumeric_string(40);
-        cardholder_data.cardholder_safe_key =  crypto.randomBytes(32).toString("base64"); //eventually this just gets saved in cardsavr
+        cardholder_data.cardholder_safe_key =  crypto.randomBytes(32).toString("base64"); 
         cardholder_data.role = "cardholder";
 
         //set the missing settings for cardupdatr model
