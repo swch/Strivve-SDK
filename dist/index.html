@@ -31,32 +31,9 @@
         <input type="submit" id="submit"></textarea>
       </div>
     </form>
-
+    <div id="site_job_message" style="display:none"></div>
     <script>
 
-      async function test_sdk() {
-
-        var app_name = "CardUpdatr Demo";
-        var app_key = "oqLSC5V/R4w42crQT7x0HjcM5NnS2tiyTzWSxnOVZdU="
-        //var app_key = "TGSEjt4TuK0j55TeF7x1cao88Bc1j8nyHeaBHueT5gQ=";
-        var cardsavr_server = "https://api.localhost.cardsavr.io";
-        //var cardsavr_server = "https://api.staging.cardsavr.io";
-
-        result = get_hash_key_values();
-        var session = new strivvesdk.CardsavrSession(cardsavr_server, app_key, app_name, result.username, null, result.grant);
-        var user = await session.init();
-        if (user.body) {
-          var safe_key = user.body.user.cardholder_safe_key;
-          console.dir(safe_key);
-          var user_id = user.body.user.id;
-        }
-      }
-
-      function post_job(element) {
-        element.preventDefault();
-        console.log(element);        
-      }
- 
       function get_hash_key_values() {
         var hash = window.location.hash ? window.location.hash.substring(1) : "";
         return hash.split('&').reduce(function (result, item) {
@@ -64,6 +41,50 @@
         }, {});
       }
 
+      async function post_job(event) {
+        event.preventDefault();
+        form = document.querySelector("#site_job");
+        form.style.display = "none";
+        var username = event.srcElement.elements['username'].value;
+        var password = event.srcElement.elements['password'].value;
+        var site_name = event.srcElement.elements['merchant_hostname'].value;
+
+        var app_name = "CardUpdatr Demo";
+        var app_key = "oqLSC5V/R4w42crQT7x0HjcM5NnS2tiyTzWSxnOVZdU="
+        var cardsavr_server = "https://api.localhost.cardsavr.io";
+        //var app_key = "TGSEjt4TuK0j55TeF7x1cao88Bc1j8nyHeaBHueT5gQ=";
+        //var cardsavr_server = "https://api.mbudos.cardsavr.io";
+
+        result = get_hash_key_values();
+        var session = new strivvesdk.CardsavrSession(cardsavr_server, app_key, app_name, result.username, null, result.grant);
+        var user = await session.init();
+        if (user.body) {
+          var cardsavr_user = user.body.user;
+          var [account, cards] = await Promise.all(
+            [session.createAccount(
+              {cardholder_id: cardsavr_user.id,
+              username: username, 
+              password: password, 
+              site_hostname: site_name}, cardsavr_user.cardholder_safe_key ),
+            session.getCards()]
+          );
+          if (account.body && cards.body.length == 1) {
+            var params = {
+              user_id: cardsavr_user.id,
+              card_id: cards.body[0].id,
+              account_id: account.body.id,
+              site_hostname: site_name,
+              billed_brand: "staging",
+              requesting_brand: "staging",
+              user_is_present: true
+            };
+            console.dir(params);
+            var ret = await session.createSingleSiteJob(params, cardsavr_user.cardholder_safe_key);
+            console.dir(ret);
+          }
+        }
+      }
+ 
       window.onload = function() {
         var form = document.querySelector("#site_job");
         if(form.addEventListener){
@@ -76,7 +97,6 @@
         return sites;
       }
 
-      test_sdk();
     </script>
   </body>
 </html>

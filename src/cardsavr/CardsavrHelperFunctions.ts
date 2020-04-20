@@ -32,11 +32,9 @@ export async function createAccount(
         const resp = await session_user.init();
 
         /* let's run the address creation and bin lookup together */
-        const [ address_response, bin_id ] = await Promise.all([
-            session_user.createAddress(address_data),
-            lookupBin(session, card_data.pan.substring(0, 6))]);
+        const address_response = await session_user.createAddress(address_data);
 
-        card_data.bin_id = bin_id;
+        card_data.bin_id = 1
         card_data.cardholder_id = cardholder_id;
         card_data.address_id = address_response.body.id;
         card_data.user_id = cardholder_id;
@@ -83,26 +81,6 @@ export async function deleteAccount (
         }
     }
 }
-
-async function lookupBin(session: any, bin: string) {
-    let bin_data = null;
-    try {
-        bin_data = await session.getBins( { bank_identification_numbers: bin} );
-    } catch(err) {
-        if (err.body && err.body._errors) {
-            console.log("Errors returned from REST API");
-            err.body._errors.map((item: any) => console.log(item));
-        } else {
-            console.log("no _errors, exception stack below:");
-            console.log(err.stack);
-        }
-    }
-    if (!bin_data || !bin_data.body || bin_data.body.length === 0) {
-        bin_data = await session.createBin({ bank_identification_number: bin });
-    }
-    return bin_data.body.shift().id;
-}
-  
   
 function generate_alphanumeric_string(length: number, current: string = ""): string {
     const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
