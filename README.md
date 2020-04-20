@@ -6,17 +6,21 @@ Please note: most methods in this library are asynchronous and therefore return 
 
 ## Quick Start Guide
 
-The Strivve Javascript SDK library is built around a class, CardsavrSession. To start using the library, you must instantiate a new CardsavrSession object and pass in your base URL, initial shared secret key, app name, username, and password.
+The Strivve Javascript SDK library is built around a class, CardsavrSession. To start using the library, you must instantiate a new CardsavrSession object.  This requires the following items:
 
-        var app_name = "CardUpdatr Demo";
-        var app_key = "oqLSC5V/R4w42crQT7x0HjcM5NnS2tiyTzWSxnOVZdU="
-        var cardsavr_server = "https://api.localhost.cardsavr.io";
-        //var app_key = "TGSEjt4TuK0j55TeF7x1cao88Bc1j8nyHeaBHueT5gQ=";
-        //var cardsavr_server = "https://api.mbudos.cardsavr.io";
+1. API url (e.g. api.acmebank.cardsavr.io)
+1. App name (app_name) and integrator key (app_key) - these can be obtained by contacting developer-support@strivve.com
+1. App username and password - also obtained from a CardSavr administrator.  Simple applications (like the quick start) require a cardholder agent, while more complex applications may require a customer agent.
 
-        result = get_hash_key_values();
-        var session = new strivvesdk.CardsavrSession(cardsavr_server, app_key, app_name, result.username, null, result.grant);
-        var user = await session.init();
+```javascript
+var app_name = "CardUpdatr Demo"; //This can be anything
+var app_key = "oqLSC5V/R4w42crQT7x0HjcM5NnS2tiyTzWSxnOVZdU=". //from administrator
+var cardsavr_server = "https://api.acmebank.cardsavr.io";  //please use acmebank for demonstration purposes 
+
+result = get_hash_key_values();
+var session = new strivvesdk.CardsavrSession(cardsavr_server, app_key, app_name, result.username, null, result.grant);
+var user = await session.init();
+```
 
 To start a session and log in to CardSavr, call .init on your CardsavrSession instance.
 
