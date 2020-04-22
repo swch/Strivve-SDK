@@ -57,7 +57,11 @@
 
         result = get_hash_key_values();
         var session = new strivvesdk.CardsavrSession(cardsavr_server, app_key, app_name, result.username, null, result.grant);
+        
+        //session.setSessionHeaders({"swch-persistent-trace": JSON.stringify({caid: app_name})});
+        
         var user = await session.init();
+        console.log(user);
         if (user.body) {
           var cardsavr_user = user.body.user;
           var [account, cards] = await Promise.all(
@@ -76,10 +80,11 @@
               site_hostname: site_name,
               billed_brand: "staging",
               requesting_brand: "staging",
+              queue_name: "vbs_queue",
               user_is_present: true
             };
-            console.dir(params);
-            var ret = await session.createSingleSiteJob(params, cardsavr_user.cardholder_safe_key);
+            var ret = await session.createSingleSiteJob(params, cardsavr_user.cardholder_safe_key, 
+              { "swch-persistent-trace": "{}"} );
             console.dir(ret);
           }
         }

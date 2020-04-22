@@ -21,7 +21,7 @@ export async function createAccount(
         if (!cardholder_data.last_name) cardholder_data.last_name = card_data.last_name;
         if (!card_data.name_on_card) card_data.name_on_card = card_data.first_name + card_data.last_name;
 
-        const cardholder_response = await session.createUser(cardholder_data);
+        const cardholder_response = await session.createUser(cardholder_data, cardholder_data.cardholder_safe_key);
         const cardholder_id = cardholder_response.body.id;
         const grant_response = await session.getCredentialGrant(cardholder_id);
         const grant = grant_response.body.user_credential_grant;

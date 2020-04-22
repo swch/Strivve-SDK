@@ -33,11 +33,5 @@ module.exports = {
             amd: 'axios',
             root: 'axios',
         },
-        https: {
-            commonjs: 'https',
-            commonjs2: 'https',
-            amd: 'https',
-            root: 'https',
-        },
     },
 };

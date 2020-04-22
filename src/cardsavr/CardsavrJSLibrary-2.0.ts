@@ -57,9 +57,8 @@ export class CardsavrSession {
     }
   };
 
-  private _makeSafeKeyHeader = (safeKey: string) : any => {
-
-    return {'cardholder-safe-key': safeKey};
+  private _makeSafeKeyHeader = (safeKey: string, newKey = false) : any => {
+    return newKey ? {'new-cardholder-safe-key' : safeKey} : {'cardholder-safe-key': safeKey};
   };
 
   sendRequest = async (path: string, method: "get" | "GET" | "delete" | "DELETE" | "head" | "HEAD" | "options" | "OPTIONS" | "post" | "POST" | "put" | "PUT" | "patch" | "PATCH" | undefined, requestBody?: any, headersToAdd = {}, cookiesEnforced = true) : Promise<any> => {
@@ -270,22 +269,6 @@ export class CardsavrSession {
     return await this.delete(`/cardsavr_addresses`, id, headersToAdd);
   };
 
-  getBins = async (filter: any, headersToAdd = {}) : Promise<any> => {
-    return await this.get('/cardsavr_bins', filter, headersToAdd);
-  };
-
-  createBin = async (body: any, headersToAdd = {}) : Promise<any> => {
-    return await this.post(`/cardsavr_bins`, body, headersToAdd);
-  };
-
-  updateBin = async (id: number, body: any, headersToAdd = {}) : Promise<any> => {
-    return await this.put(`/cardsavr_bins`, id, body, headersToAdd);
-  };
-
-  deleteBin = async (id: number, headersToAdd = {}) : Promise<any> => {
-    return await this.delete(`/cardsavr_bins`, id, headersToAdd)
-  };
-
   getCards = async (filter: any, headersToAdd = {}) : Promise<any> => {
     return await this.get('/cardsavr_cards', filter, headersToAdd);
   };
@@ -326,26 +309,37 @@ export class CardsavrSession {
     return await this.delete(`/integrators`, id, headersToAdd);
   };
 
-  getMerchantSites = async (filter: any, headersToAdd = {}) : Promise<any> => {
-    return await this.get('/sites', filter, headersToAdd);
+  getSites = async () : Promise<any> => {
+
+    var requestConfig : AxiosRequestConfig = {
+      baseURL: 'https://swch-site-images-mgmt.s3-us-west-2.amazonaws.com/branding/sites.json',
+      timeout: 10000,
+      method: "GET",
+      withCredentials: true
+    };
+
+    var response = await axios.request(requestConfig);
+    let response_data = response.status == 200 ? response.data.sites : null;
+    
+    return new CardsavrSessionResponse(response.status, response.statusText, response.headers, response_data);
   };
 
   registerForJobStatusUpdates = async (jobId: number, headersToAdd = {}) : Promise<any> => {
-    return await this.post(`/messages/place_card_on_single_site_jobs/${jobId}/vbs_status_updates/registrations`, {job_id: jobId}, headersToAdd);
+    return await this.post(`/messages/place_card_on_single_site_jobs/${jobId}/broadcasts/registrations`, {job_id: jobId}, headersToAdd);
   };
 
   getJobStatusUpdate = async (jobId: number, cardsavrMessagingAccessKey: string, headersToAdd = {}) : Promise<any> => {
     headersToAdd = Object.assign({'cardsavr-messaging-access-key': cardsavrMessagingAccessKey}, headersToAdd);
-    return await this.get(`/messages/place_card_on_single_site_jobs/${jobId}/vbs_status_updates`, null, headersToAdd);
+    return await this.get(`/messages/place_card_on_single_site_jobs/${jobId}/broadcasts`, null, headersToAdd);
   };
 
   getJobInformationRequest = async (jobId: number, headersToAdd = {}) : Promise<any> => {
-    return await this.get(`/messages/place_card_on_single_site_jobs/${jobId}/vbs_requests`, null, headersToAdd);
+    return await this.get(`/messages/place_card_on_single_site_jobs/${jobId}/credential_requests`, null, headersToAdd);
   };
 
   sendJobInformation = async (jobId: number, envelope_id: string, type: string, message: string, headersToAdd = {}) : Promise<any> => {
     let body = {envelope_id, type, message};
-    return await this.post(`/messages/place_card_on_single_site_jobs/${jobId}/client_responses`, body, headersToAdd);
+    return await this.post(`/messages/place_card_on_single_site_jobs/${jobId}/credential_responses`, body, headersToAdd);
   };
 
   getUsers = async (filter: any, headersToAdd = {}) : Promise<any> => {
@@ -356,11 +350,14 @@ export class CardsavrSession {
     return await this.get(`/cardsavr_users/${id}/credential_grant/`, null, headersToAdd);
   };
 
-  createUser = async (body: any, headersToAdd = {}) : Promise<any> => {
+  createUser = async (body: any, newSafeKey: string, headersToAdd = {}) : Promise<any> => {
+    Object.assign(headersToAdd, this._makeSafeKeyHeader(newSafeKey, true));
     return await this.post(`/cardsavr_users`, body, headersToAdd);
   };
 
-  updateUser = async (id: number, body: any, headersToAdd = {}) : Promise<any> => {
+  updateUser = async (id: number, body: any, newSafeKey: string, safeKey: string, headersToAdd = {}) : Promise<any> => {
+    Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+    Object.assign(headersToAdd, this._makeSafeKeyHeader(newSafeKey, true));
     return await this.put(`/cardsavr_users`, id, body, headersToAdd);
   };
 
@@ -377,7 +374,6 @@ export class CardsavrSession {
   };
 
   createMultipleSitesJob = async (body: any, safeKey: string, headersToAdd = {}) : Promise<any> => {
-    
     Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
     return await this.post(`/place_card_on_multiple_sites_jobs`, body, headersToAdd);
   };
@@ -387,7 +383,6 @@ export class CardsavrSession {
   };
 
   createSingleSiteJob = async (body: any, safeKey: string, headersToAdd = {}) : Promise<any> => {
-    
     Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
     return await this.post(`/place_card_on_single_site_jobs`, body, headersToAdd);
   };
