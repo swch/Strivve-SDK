@@ -3,103 +3,114 @@
   <head>
     <title>Getting Started</title>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.0.0/crypto-js.js"></script>
     <script src="strivve-sdk.js"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
   </head>
   <body>
-    <form id="site_job">
-      <div>
-        <label for="merchant_hostname">Site:</label>
-      </div>
-      <div>
-        <input type="text" id="merchant_hostname">
-      </div>
-      <div>
-        <label for="username">Username:</label>
-      </div>
-      <div>
-        <input type="email" id="username">
-      </div>
-      <div>
-        <label for="password">Password:</label>
-      </div>
-      <div>
-        <input type="password" id="password"></textarea>
-      </div>
-      <div>
-        <input type="submit" id="submit"></textarea>
-      </div>
+    <form id="job_form">
+      <div><label for="site_hostname" id="site_hostname_label">Site:</label></div>
+      <div><input type="text" id="site_hostname" value="synthetic-1-step.herokuapp.com"></div>
+      <div><label for="username" id="username_label">Username:</label></div>
+      <div><input type="text" id="username" value="bad_email"></div>
+      <div><label for="password" id="password_label">Password:</label></div>
+      <div><input type="password" id="password" value="no_tfa"></div>
+      <div><label for="tfa" id="tfa_label" style="display:none">TFA code:</label></div>
+      <div><input type="text" id="tfa" value="1234" style="display:none"></div>
+      <input type="hidden" id="job_id">
+      <input type="hidden" id="envelope_id">
+      <input type="hidden" id="submit_type" value="post_job">
+      <div><input type="submit" id="submit_job"></div>
     </form>
-    <div id="site_job_message" style="display:none"></div>
+    <span id="site_job_site"></span>: <span id="site_job_message"></span>
     <script>
+
+      var app_name = "CardUpdatr Demo";
+      var app_key = "oqLSC5V/R4w42crQT7x0HjcM5NnS2tiyTzWSxnOVZdU="
+      var cardsavr_server = "https://api.localhost.cardsavr.io";
+      //var app_key = "TGSEjt4TuK0j55TeF7x1cao88Bc1j8nyHeaBHueT5gQ=";
+      //var cardsavr_server = "https://api.mbudos.cardsavr.io";
+
+      async function post_job(event) {
+
+        toggle_element(["username", "password", "site_hostname"], "none");
+
+        creds = {username: getFormValue(event, 'username'), 
+                 password: getFormValue(event, 'password'), 
+                 site_hostname: getFormValue(event, 'site_hostname')}
+
+        document.getElementById("site_job_site").innerHTML = getFormValue(event, "site_hostname");
+        document.getElementById("site_job_message").innerHTML = "job_started";
+
+        var helper = strivvesdk.CardsavrHelper.getInstance();
+        helper.setAppSettings(cardsavr_server, app_name, app_key);
+        
+        result = get_hash_key_values();
+        await helper.placeCardOnSite(result.username, result.grant, creds, (message) => {
+          if (message.type == 'job_update') { //status updates
+            status.innerHTML = message.message.state_name;
+          } else if (message.type == 'job_complete') {  //only one on job complete
+            status.innerHTML = message.message.final_state_status;
+            document.getElementById('job_form').style.display = "none";
+          } else {
+            document.getElementById("job_id").value = message.job_id;
+            document.getElementById("envelope_id").value = message.envelope_id;
+            if (message.type == '2FA') {
+              document.getElementById("submit_type").value = "post_tfa";
+              toggle_element(["tfa"], "block"); //show TFA box
+            } else if (message.type == 'credential_resubmission') {
+              document.getElementById("submit_type").value = "post_new_creds";
+              toggle_element(["username", "password"], "block"); //show credential boxes
+            }
+          }
+        });
+      }
+ 
+      async function post_tfa(event) {
+        result = get_hash_key_values();
+        var helper = strivvesdk.CardsavrHelper.getInstance();
+        await helper.postTFA(result.username, getFormValue(event, 'tfa'), 
+                                              getFormValue(event, 'job_id'), 
+                                              getFormValue(event, 'envelope_id'));
+        toggle_element(["tfa"], "none");
+      }
+
+      async function post_new_creds(event) {
+        creds = {username: getFormValue(event, 'username'), 
+                 password: getFormValue(event, 'password')} //can't update site_hostname
+
+        var helper = strivvesdk.CardsavrHelper.getInstance();
+        await helper.postCreds(get_hash_key_values().username, creds, getFormValue(event, 'job_id'), 
+                                                                      getFormValue(event, 'envelope_id'));
+        toggle_element(["username", "password"], "none");
+      }
+
+      window.onload = function() {
+        var form = document.querySelector('#job_form');
+        if(form.addEventListener){
+          form.addEventListener("submit", function(evt) {
+            evt.preventDefault();
+            window[document.getElementById("submit_type").value](evt);  
+          }, false);  //Modern browsers      
+        }
+      }
+
+      function toggle_element(names, display) {
+        names.forEach(name => {
+          document.getElementById(name).style.display = display;
+          document.getElementById(name + "_label").style.display = display;
+          document.getElementById("submit_job").style.display = display;
+        });
+      }
+
+      function getFormValue(event, id) {
+        return event.srcElement.elements[id].value;
+      }
 
       function get_hash_key_values() {
         var hash = window.location.hash ? window.location.hash.substring(1) : "";
         return hash.split('&').reduce(function (result, item) {
           var parts = item.split('='); result[parts[0]] = decodeURIComponent(parts[1]); return result;
         }, {});
-      }
-
-      async function post_job(event) {
-        event.preventDefault();
-        form = document.querySelector("#site_job");
-        form.style.display = "none";
-        var username = event.srcElement.elements['username'].value;
-        var password = event.srcElement.elements['password'].value;
-        var site_name = event.srcElement.elements['merchant_hostname'].value;
-
-        var app_name = "CardUpdatr Demo";
-        var app_key = "oqLSC5V/R4w42crQT7x0HjcM5NnS2tiyTzWSxnOVZdU="
-        var cardsavr_server = "https://api.localhost.cardsavr.io";
-        //var app_key = "TGSEjt4TuK0j55TeF7x1cao88Bc1j8nyHeaBHueT5gQ=";
-        //var cardsavr_server = "https://api.mbudos.cardsavr.io";
-
-        result = get_hash_key_values();
-        var session = new strivvesdk.CardsavrSession(cardsavr_server, app_key, app_name, result.username, null, result.grant);
-        
-        //session.setSessionHeaders({"swch-persistent-trace": JSON.stringify({caid: app_name})});
-        
-        var user = await session.init();
-        console.log(user);
-        if (user.body) {
-          var cardsavr_user = user.body.user;
-          var [account, cards] = await Promise.all(
-            [session.createAccount(
-              {cardholder_id: cardsavr_user.id,
-              username: username, 
-              password: password, 
-              site_hostname: site_name}, cardsavr_user.cardholder_safe_key ),
-            session.getCards()]
-          );
-          if (account.body && cards.body.length == 1) {
-            var params = {
-              user_id: cardsavr_user.id,
-              card_id: cards.body[0].id,
-              account_id: account.body.id,
-              site_hostname: site_name,
-              billed_brand: "staging",
-              requesting_brand: "staging",
-              queue_name: "vbs_queue",
-              user_is_present: true
-            };
-            var ret = await session.createSingleSiteJob(params, cardsavr_user.cardholder_safe_key, 
-              { "swch-persistent-trace": "{}"} );
-            console.dir(ret);
-          }
-        }
-      }
- 
-      window.onload = function() {
-        var form = document.querySelector("#site_job");
-        if(form.addEventListener){
-          form.addEventListener("submit", post_job, false);  //Modern browsers      
-        }
-      }
-
-      function laod_sites() {
-        sites = axios.get('https://swch-site-images-mgmt.s3-us-west-2.amazonaws.com/branding/sites.json');
-        return sites;
       }
 
     </script>

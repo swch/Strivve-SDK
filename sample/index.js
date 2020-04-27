@@ -1,4 +1,4 @@
-const helper_functions = require("@strivve/strivve-sdk/lib/cardsavr/CardsavrHelperFunctions");
+const { CardsavrHelper } = require("@strivve/strivve-sdk/lib/cardsavr/CardsavrHelper");
 
 async function provisionUser() {
 
@@ -15,10 +15,9 @@ async function provisionUser() {
   const cardholder_data = require("./cardholder.json");
   const address_data = require("./address.json");
   const card_data = require("./card.json");
-
-  response = await helper_functions.createAccount(
-    app_name, app_key, app_username, app_password, cardsavr_server, 
-    cardholder_data, address_data, card_data);
+  
+  CardsavrHelper.getInstance().setAppSettings(cardsavr_server, app_name, app_key);
+  response = await CardsavrHelper.getInstance().createCard(app_username, app_password, cardholder_data, address_data, card_data);
   
   const queryString = Object.keys(response).map(key => key + '=' + encodeURIComponent(response[key])).join('&');
   console.log(queryString);

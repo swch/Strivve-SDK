@@ -1,7 +1,7 @@
 const path = require('path');
 
 module.exports = {
-    entry: './src/cardsavr/CardsavrJSLibrary-2.0.ts',
+    entry: './src/cardsavr/CardsavrHelper.ts',
     module: {
         rules: [
             {
