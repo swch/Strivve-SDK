@@ -86,10 +86,6 @@ export const generateRandomPar = (pan: string, exp_month: any, exp_year: any, sa
     var exp_year_string = exp_year.toString();
     salt = salt.toString();
 
-    if (pan.length !== 15 && pan.length !== 16) {
-        validationErrors.push("Invalid PAN length (PAN must be 15 or 16 integers), received length of: " + pan.length);
-    }
-
     if ((exp_month_string.length != 2) || isNaN(exp_month) || (exp_month > 12)) {
         validationErrors.push("Invalid expiration month received: " + exp_month);
     }
