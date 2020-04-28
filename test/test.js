@@ -1,5 +1,6 @@
 'use strict';
 
+/*
 var expect = require('chai').expect;
 var { numToWord, wordToNum } = require('../lib/index');
 
@@ -31,3 +32,4 @@ describe('#numFormatter', function() {
     });
 
 });
+*/
