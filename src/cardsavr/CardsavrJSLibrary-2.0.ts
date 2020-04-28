@@ -363,14 +363,11 @@ export class CardsavrSession {
     return await this.get(`/cardsavr_users/${id}/credential_grant/`, null, headersToAdd);
   };
 
-  createUser = async (body: any, newSafeKey: string, headersToAdd = {}) : Promise<any> => {
-    Object.assign(headersToAdd, this._makeSafeKeyHeader(newSafeKey, true));
+  createUser = async (body: any, headersToAdd = {}) : Promise<any> => {
     return await this.post(`/cardsavr_users`, body, headersToAdd);
   };
 
-  updateUser = async (id: number, body: any, newSafeKey: string, safeKey: string, headersToAdd = {}) : Promise<any> => {
-    Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
-    Object.assign(headersToAdd, this._makeSafeKeyHeader(newSafeKey, true));
+  updateUser = async (id: number, body: any, headersToAdd = {}) : Promise<any> => {
     return await this.put(`/cardsavr_users`, id, body, headersToAdd);
   };
 

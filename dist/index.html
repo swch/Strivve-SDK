@@ -39,7 +39,8 @@
                  site_hostname: getFormValue(event, 'site_hostname')}
 
         document.getElementById("site_job_site").innerHTML = getFormValue(event, "site_hostname");
-        document.getElementById("site_job_message").innerHTML = "job_started";
+        var status = document.getElementById("site_job_message");
+        status.innerHTML = "job_started";
 
         var helper = strivvesdk.CardsavrHelper.getInstance();
         helper.setAppSettings(cardsavr_server, app_name, app_key);
