@@ -46,25 +46,19 @@ var app_username = "cardholder_demo";  //an integrator "cardholder_agent" that h
 var app_password = "[REDACTED]";  //integrator's password
 ```
 
-In the provisioning application (/sample/index.js), you'll see where these settings need to be filled in.  Once they are provided, tbe application can be run:
+The application is a simple web application (/sample/webserver.js).  The initial call to /create_user simply provisions the user, and hands off a grant and a username to a frontend webform that manages the interaction with the user.  Both create_user and the web page (/dist/index.html) require that these credentials be filled in.
 
-```bash
-node index.js
-```
-
-The provisioning application will log delimited key values that are required by the clinet application.  a one-use grant, and the username of the provisioned cardholder.  These are a short-lived user, and their information is deleted after the card is placed, or after 15 minutes if there is no activity.  When the user is deleted, their cards and merchant credentials are deleted along with it.
-
-From the sample directory, you can also run a small express web server:
+From the sample directory, you can also run the express web server:
 
 ```bash
 node webserver.js
 ```
 
-This is just a simple static webserver that demonstrates how the web application works.  In the dist/index.html file, there is a simple application that uses a webpack bundle of the sdk (strivve-sdk.js) to manage the user's merchant credentials and job.  By passing the grant and username into the url of the web application:
+This is just a simple api call and static webserver that demonstrates how the web application works.  In the dist/index.html file, there is a simple application that uses a webpack bundle of the sdk (strivve-sdk.js) to manage the user's merchant credentials and job.  By passing the grant and username into the url of the web application, it can attain a sesssion for that user:
 
 http://localhost:3000/#grant=[GRANT]&username=[USERNAME]
 
-Now the web application can re-establish the session using the grant and username provided by the original provisioning application.  The cardholder will be presented with a simple form for the merchant credentials of the site to place their card.  Once the form is submitted, the web application authenticates the user with the username and grant, and then posts the job as that user.  There is a messaging system the posts messages to the UI to show status, progress, and the success or failure of the job.  The form will also present additional fields to collect a new password or a two-factor authentication code.
+Now the web application can re-establish the session using the grant and username provided by the original provisioning call.  The cardholder will be presented with a simple form for the merchant credentials of the site to place their card.  Once the form is submitted, the web application authenticates the user with the username and grant, and then posts the job as that user.  There is a messaging system the posts messages to the UI to show status, progress, and the success or failure of the job.  The form will also present additional fields to collect a new password or a two-factor authentication code.
 
 
 
