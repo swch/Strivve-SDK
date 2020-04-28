@@ -7,8 +7,8 @@ app.get('/create_user', function (req, res) {
     const app_name = "CardUpdatr Demo";
     const app_username = "cardupdatr_demo";
   
-    const app_key = "[REDAXCTED]";
-    const app_password = "[REDAXCTED]";
+    const app_key = "[REDACTED]";
+    const app_password = "[REDACTED]";
     const cardsavr_server = "https://api.localhost.cardsavr.io";
   
     const cardholder_data = require("./cardholder.json");
