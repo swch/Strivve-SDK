@@ -1,6 +1,6 @@
 {
   "name": "@strivve/strivve-sdk",
-  "version": "2.0.17",
+  "version": "2.0.18",
   "description": "",
   "main": "src/index.js",
   "directories": {
@@ -15,14 +15,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/markbudos/Strivve-SDK.git"
+    "url": "git+ssh://git@github.com/swch/Strivve-SDK.git"
   },
   "author": "Strivve <mbudos@strivve.com> (https://www.strivve.com/)",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/markbudos/Strivve-SDK/issues"
+    "url": "https://github.com/swch/Strivve-SDK/issues"
   },
-  "homepage": "https://github.com/markbudos/Strivve-SDK#readme",
+  "homepage": "https://github.com/swch/Strivve-SDK#readme",
   "engines": {
     "node": ">=8.0.0"
   },
