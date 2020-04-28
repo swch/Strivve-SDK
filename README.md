@@ -14,12 +14,8 @@ The Strivve Javascript SDK library is built around a class, CardsavrSession. To 
 
 ```javascript
 var app_name = "CardUpdatr Demo"; //This can be anything
-var app_key = "oqLSC5V/R4w42crQT7x0HjcM5NnS2tiyTzWSxnOVZdU=". //from administrator
-var cardsavr_server = "https://api.acmebank.cardsavr.io";  //please use acmebank for demonstration purposes 
-
-result = get_hash_key_values();
-var session = new strivvesdk.CardsavrSession(cardsavr_server, app_key, app_name, result.username, null, result.grant);
-var user = await session.init();
+var app_key = "[REDACTED]". //from administrator
+var cardsavr_server = "[REDACTED]";  //please use acmebank for demonstration purposes 
 ```
 
 To start a session and log in to CardSavr, call .init on your CardsavrSession instance.
