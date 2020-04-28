@@ -57,7 +57,7 @@ export class CardsavrSession {
     }
   };
 
-  private _makeSafeKeyHeader = (safeKey: string, newKey = false) : any => {
+  private _makeSafeKeyHeader = (safeKey: string, newKey: boolean = false) : any => {
     return newKey ? {'new-cardholder-safe-key' : safeKey} : {'cardholder-safe-key': safeKey};
   };
 
@@ -65,6 +65,19 @@ export class CardsavrSession {
 
     var headers = Object.assign({}, this.sessionData.headers, headersToAdd);
     if (this.sessionData.encryptionOn) {
+
+        // Encrypt the cardholder-safe-header(s) if they are in this request
+
+        const new_cardholder_safe_key = headers['new-cardholder-safe-key'];
+        if (typeof(new_cardholder_safe_key) !== "undefined") {
+          headers['new-cardholder-safe-key'] = CardsavrCrypto.Encryption.encryptSafeKey(new_cardholder_safe_key, this.sessionData.sessionKey);
+        }
+
+        const cardholder_safe_key = headers['cardholder-safe-key'];
+        if (typeof(cardholder_safe_key) !== "undefined") {
+          headers['cardholder-safe-key'] = CardsavrCrypto.Encryption.encryptSafeKey(cardholder_safe_key, this.sessionData.sessionKey);
+        }
+
         if (requestBody) {
             requestBody = await CardsavrCrypto.Encryption.encryptRequest(this.sessionData.sessionKey, requestBody);
         }
@@ -88,9 +101,9 @@ export class CardsavrSession {
     }
 
     var requestConfig : AxiosRequestConfig = {
-      //httpsAgent: new HTTPSAgent({
-      //  rejectUnauthorized: false
-      //}),
+      httpsAgent: new HTTPSAgent({
+        rejectUnauthorized: false
+      }),
       baseURL: this.sessionData.baseUrl,
       url: path,
       timeout: 10000,
@@ -249,7 +262,7 @@ export class CardsavrSession {
 
   deleteAccount = async (id: number, safeKey: string, headersToAdd = {}) : Promise<any> => {
 
-    Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+    Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));   
     return await this.delete(`/cardsavr_accounts`, id, headersToAdd);
   };
 

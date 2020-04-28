@@ -47,6 +47,25 @@ export namespace WebConversions {
 }
 
 export namespace Encryption {
+
+        export const encryptSafeKey = (clearText: string, b64Key: string) => {
+
+            const binaryEncryptionKey = Buffer.alloc(32);
+            binaryEncryptionKey.write(b64Key, "base64");
+
+            //  Create an Initialization Vector (IV) for encryption
+            const IV = crypto.randomBytes(16);
+
+            // Create buffer out of clear text for use in encryption
+            const bufferJSON = Buffer.from(clearText,"utf8");
+
+            // Encrypt body using shared secret key and IV
+            const encryptor = crypto.createCipheriv("aes-256-cbc", binaryEncryptionKey, IV);
+
+            const encryptedSafeKey = Buffer.concat([encryptor.update(bufferJSON), encryptor.final()]);
+
+            return(encryptedSafeKey.toString("base64") + '$' + IV.toString("base64"));
+        }
     
         export const encryptRequest = async (key: string, body: Object) => {
   
