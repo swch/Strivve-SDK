@@ -8,6 +8,6 @@
         "esModuleInterop": true,  
         "strict": true
     },
-    "include": ["src", "index.ts"],
+    "include": ["src/cardsavr/CardsavrHelper.ts"],
     "exclude": ["node_modules", "**/__tests__/*"]
 }

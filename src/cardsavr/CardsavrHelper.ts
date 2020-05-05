@@ -42,7 +42,7 @@ export class CardsavrHelper {
         try {
             const session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, username, password, grant);
             session.setIdentificationHeader(this.app_name);
-            session.setSessionHeaders(session.makeTraceHeader({caid: this.app_name}));
+            session.setSessionHeaders(session.makeTraceHeader({caid: username}));
 
             const login_data = await session.init();
             this.sessions[username] = { session: session, user_id: login_data.body.user_id, cardholder_safe_key: login_data.body.cardholder_safe_key, account_map: {} }; 
@@ -88,7 +88,7 @@ export class CardsavrHelper {
             if (!card_data.name_on_card) card_data.name_on_card = card_data.first_name + card_data.last_name;
     
             const agent_session = this.getSession(agent_username);
-            const cardholder_response = await agent_session.createUser(cardholder_data, {"new-cardholder-safe-key": cardholder_data.cardholder_safe_key});
+            const cardholder_response = await agent_session.createUser(cardholder_data, cardholder_data.cardholder_safe_key);
             const cardholder_id = cardholder_response.body.id;
             const grant_response = await agent_session.getCredentialGrant(cardholder_id);
             const grant = grant_response.body.user_credential_grant;

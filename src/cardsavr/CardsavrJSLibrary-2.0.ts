@@ -30,14 +30,14 @@ export class CardsavrSession {
 
   makeTraceHeader = (traceHeaderObject: any) => {
     let stringifiedTrace = JSON.stringify(traceHeaderObject);
-    return {"swch-persistent-trace": stringifiedTrace}
+    return { trace : stringifiedTrace}
   };
 
   setIdentificationHeader = (idString: string) => {
     if(typeof idString != "string"){
       throw new JSLibraryError(null, "Identification header value must be a string.");
     }
-    this.setSessionHeaders({"swch-client-application": idString});
+    this.setSessionHeaders({"client-application": idString});
   };
 
   removeSessionHeader = (...headerKeys: string[]) => {
@@ -67,16 +67,7 @@ export class CardsavrSession {
     if (this.sessionData.encryptionOn) {
 
         // Encrypt the cardholder-safe-header(s) if they are in this request
-
-        const new_cardholder_safe_key = headers['new-cardholder-safe-key'];
-        if (typeof(new_cardholder_safe_key) !== "undefined") {
-          headers['new-cardholder-safe-key'] = CardsavrCrypto.Encryption.encryptSafeKey(new_cardholder_safe_key, this.sessionData.sessionKey);
-        }
-
-        const cardholder_safe_key = headers['cardholder-safe-key'];
-        if (typeof(cardholder_safe_key) !== "undefined") {
-          headers['cardholder-safe-key'] = CardsavrCrypto.Encryption.encryptSafeKey(cardholder_safe_key, this.sessionData.sessionKey);
-        }
+        CardsavrCrypto.Encryption.encryptSafeKeys(headers, this.sessionData.sessionKey);
 
         if (requestBody) {
             requestBody = await CardsavrCrypto.Encryption.encryptRequest(this.sessionData.sessionKey, requestBody);
@@ -101,9 +92,9 @@ export class CardsavrSession {
     }
 
     var requestConfig : AxiosRequestConfig = {
-      httpsAgent: new HTTPSAgent({
-        rejectUnauthorized: false
-      }),
+      //httpsAgent: new HTTPSAgent({
+      //  rejectUnauthorized: false
+      //}),
       baseURL: this.sessionData.baseUrl,
       url: path,
       timeout: 10000,
@@ -363,11 +354,18 @@ export class CardsavrSession {
     return await this.get(`/cardsavr_users/${id}/credential_grant/`, null, headersToAdd);
   };
 
-  createUser = async (body: any, headersToAdd = {}) : Promise<any> => {
+  createUser = async (body: any, newSafeKey: string, headersToAdd = {}) : Promise<any> => {
+    Object.assign(headersToAdd, this._makeSafeKeyHeader(newSafeKey, true));
     return await this.post(`/cardsavr_users`, body, headersToAdd);
   };
 
-  updateUser = async (id: number, body: any, headersToAdd = {}) : Promise<any> => {
+  updateUser = async (id: number, body: any, newSafeKey: string | null = null, safeKey: string | null = null, headersToAdd = {}) : Promise<any> => {
+    if (newSafeKey != null) {
+      Object.assign(headersToAdd, this._makeSafeKeyHeader(newSafeKey, true));
+    }
+    if (safeKey != null) {
+      Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey, false));
+    }
     return await this.put(`/cardsavr_users`, id, body, headersToAdd);
   };
 
