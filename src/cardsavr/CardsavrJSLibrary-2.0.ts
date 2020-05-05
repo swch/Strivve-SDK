@@ -30,7 +30,7 @@ export class CardsavrSession {
 
   makeTraceHeader = (traceHeaderObject: any) => {
     let stringifiedTrace = JSON.stringify(traceHeaderObject);
-    return { trace : stringifiedTrace}
+    return { trace : stringifiedTrace }
   };
 
   setIdentificationHeader = (idString: string) => {

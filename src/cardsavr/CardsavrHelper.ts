@@ -34,16 +34,17 @@ export class CardsavrHelper {
     
     public async loginAndCreateSession(username: string, 
                                        password?: string,
-                                       grant?: string) {
+                                       grant?: string,
+                                       trace?: any) {
         if (this.sessions[username]) {
             console.log(null, "Session alrady created for " + username + ", use getSession() instead of loginAndCreateSession()");
             return this.sessions[username];
         }
         try {
+            trace = (trace ? trace : username);
             const session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, username, password, grant);
             session.setIdentificationHeader(this.app_name);
-            session.setSessionHeaders(session.makeTraceHeader({caid: username}));
-
+            session.setSessionHeaders(session.makeTraceHeader({key: trace}));
             const login_data = await session.init();
             this.sessions[username] = { session: session, user_id: login_data.body.user_id, cardholder_safe_key: login_data.body.cardholder_safe_key, account_map: {} }; 
             return this.sessions[username];
@@ -76,9 +77,10 @@ export class CardsavrHelper {
     
         try {
             //don't need the login data
-            await this.loginAndCreateSession(agent_username, agent_password);
-
             cardholder_data.username = this.generate_alphanumeric_string(40);
+
+            await this.loginAndCreateSession(agent_username, agent_password, undefined, cardholder_data.username);
+
             cardholder_data.cardholder_safe_key =  crypto.randomBytes(32).toString("base64"); 
             cardholder_data.role = "cardholder";
     

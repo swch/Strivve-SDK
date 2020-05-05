@@ -9,7 +9,7 @@
   "author": "Strivve <mbudos@strivve.com> (https://www.strivve.com/)",
   "license": "ISC",
   "dependencies": {
-    "@strivve/strivve-sdk": "^2.0.17",
+    "@strivve/strivve-sdk": "^2.0.19",
     "axios": "^0.19.2"
   }
 }
