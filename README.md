@@ -22,6 +22,7 @@ To build a webpack binary, run:
 
 ```bash
 npm run dev (debug)
+```
 
 ```bash
 npm run prod (slightly smaller)
@@ -36,7 +37,6 @@ To build the commonjs version:
 npm run build
 ```
 
-
 As the npm module is in typescript, the lib directory is not checked into source control.  Upon making changes, the version number can be incremented and uploaded to npmjs.org
 
 ```bash
@@ -44,3 +44,5 @@ npm publish --access public
 ```
 
 (You will need access to publish the npm module)
+
+See [The sample setup](sample/) for a way to set up a sample backend server and client application using the webpack bundle.  
