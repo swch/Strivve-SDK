@@ -5,7 +5,7 @@ const { CardsavrHelper } = require("@strivve/strivve-sdk/lib/cardsavr/CardsavrHe
 
 app.get('/create_user', function (req, res) {
  
-    const {app_name, app_key, app_username, app_password, cardsavr_server } = require("./strivve_creds.json");
+    const {app_name, app_key, app_username, app_password, cardsavr_server } = require("./strivve_creds_mark.json");
     const cardholder_data = require("./cardholder.json");
     const address_data = require("./address.json");
     const card_data = require("./card.json");
