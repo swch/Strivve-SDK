@@ -4,26 +4,30 @@ const port = 3000
 const { CardsavrHelper } = require("@strivve/strivve-sdk/lib/cardsavr/CardsavrHelper");
 
 app.get('/create_user', function (req, res) {
-    const app_name = "CardUpdatr Demo";
-    const app_username = "cardupdatr_demo";
-  
-    const app_key = "[REDACTED]";
-    const app_password = "[REDACTED]";
-    const cardsavr_server = "https://api.localhost.cardsavr.io";
-  
+ 
+    const {app_name, app_key, app_username, app_password, cardsavr_server } = require("./strivve_creds.json");
     const cardholder_data = require("./cardholder.json");
     const address_data = require("./address.json");
     const card_data = require("./card.json");
     
-    CardsavrHelper.getInstance().setAppSettings(cardsavr_server, app_name, app_key);
+    (async() => {
 
-    CardsavrHelper.getInstance().createCard(app_username, app_password, cardholder_data, address_data, card_data)
-        .then(response => {
-            const queryString = Object.keys(response).map(key => key + '=' + encodeURIComponent(response[key])).join('&');
-            console.log(queryString);
+        try {
+            const ch = CardsavrHelper.getInstance();
+            ch.setAppSettings(cardsavr_server, app_name, app_key);
+
+            await ch.loginAndCreateSession(app_username, app_password);
+            const handoff = await ch.createCard(app_username, cardholder_data, address_data, card_data);
+
+            const queryString = Object.keys(handoff).map(key => key + '=' + encodeURIComponent(handoff[key])).join('&');
             res.redirect("/#" + queryString);
-        }).catch(err => console.log(err));
 
+        } catch (err) {
+            console.log(err);
+        }
+            
+    })();
+      
 })
 
 app.use(express.static('../dist'))

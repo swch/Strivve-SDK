@@ -25,9 +25,10 @@
     <script>
 
       var app_name = "CardUpdatr Demo";
-      var app_key = "[REDACTED]";
-      var app_password = "[REDACTED]";
-      var cardsavr_server = "https://api.localhost.cardsavr.io";
+      //var app_key = "oqLSC5V/R4w42crQT7x0HjcM5NnS2tiyTzWSxnOVZdU="
+      //var cardsavr_server = "https://api.localhost.cardsavr.io";
+      var app_key = "TGSEjt4TuK0j55TeF7x1cao88Bc1j8nyHeaBHueT5gQ=";
+      var cardsavr_server = "https://api.mbudos.cardsavr.io";
 
       async function post_job(event) {
 
@@ -45,7 +46,9 @@
         helper.setAppSettings(cardsavr_server, app_name, app_key);
         
         result = get_hash_key_values();
-        await helper.placeCardOnSite(result.username, result.grant, creds, (message) => {
+        await helper.loginAndCreateSession(result.username, undefined, result.grant);
+        
+        await helper.placeCardOnSite(result.username, creds, (message) => {
           if (message.type == 'job_update') { //status updates
             status.innerHTML = message.message.state_name;
           } else if (message.type == 'job_complete') {  //only one on job complete

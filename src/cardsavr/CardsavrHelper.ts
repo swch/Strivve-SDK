@@ -66,6 +66,13 @@ export class CardsavrHelper {
         return this.sessions[username].session;
     }
 
+    public getCardholderSafeKey(username: string) : string {
+        if (!this.sessions[username]) {
+            throw new JSLibraryError(null, "Must login and create session before accessing safe key.")
+        }
+        return this.sessions[username].cardholder_safe_key;
+    }
+
     public static getInstance(): CardsavrHelper {
         if (!CardsavrHelper.instance) {
             CardsavrHelper.instance = new CardsavrHelper();
@@ -73,13 +80,14 @@ export class CardsavrHelper {
         return CardsavrHelper.instance;
     }
 
-    public async createCard(agent_username: string, agent_password: string, cardholder_data: any, address_data: any, card_data: any) {
+    public async createCard(agent_username: string, cardholder_data: any, address_data: any, card_data: any) {
     
         try {
             //don't need the login data
             cardholder_data.username = this.generate_alphanumeric_string(40);
 
-            await this.loginAndCreateSession(agent_username, agent_password, undefined, cardholder_data.username);
+            await this.getSession(agent_username);
+            //await this.loginAndCreateSession(agent_username, agent_password, undefined, cardholder_data.username);
 
             cardholder_data.cardholder_safe_key =  crypto.randomBytes(32).toString("base64"); 
             cardholder_data.role = "cardholder";
@@ -125,11 +133,12 @@ export class CardsavrHelper {
         }
     }
 
-    public async placeCardOnSite(username: string, grant: string, merchant_creds: any, callback: any, interval: number = 5000) {
+    public async placeCardOnSite(username: string, merchant_creds: any, callback: any, interval: number = 5000) {
     
         try {
-            const login = await this.loginAndCreateSession(username, undefined, grant);
+            //const login = await this.loginAndCreateSession(username, undefined, grant);
             const session = this.getSession(username);
+            const login = this.sessions[username];
 
             if (login) {
                 //create the account and get all the users cards
