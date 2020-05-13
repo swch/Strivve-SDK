@@ -53,8 +53,9 @@
         await helper.loginAndCreateSession(result.username, undefined, result.grant);
         
         await helper.placeCardOnSite(result.username, creds, (message) => {
+          console.log(message);
           if (message.type == 'job_update') { //status updates
-            status.innerHTML = message.message.state_name;
+            status.innerHTML = message.message.status + ": " + message.message.percent_complete + "%";
           } else if (message.type == 'job_complete') {  //only one on job complete
             status.innerHTML = message.message.final_state_status;
             document.getElementById('job_form').style.display = "none";

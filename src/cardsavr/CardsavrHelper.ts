@@ -174,13 +174,14 @@ export class CardsavrHelper {
                     var broadcast_probe = setInterval(async (message) => { 
                         var update = await session.getJobStatusUpdate(job_data.body.id, subscription.body.access_key);
                         if (update.body) {
-                            callback({job_id: update.body.id, type: update.body.type, message: update.body.message});  //should be in update
-                            if (update.body.type == "job_complete") {
+                            callback({job_id: update.body.id, type: update.body.type, message: update.body.message});  
+                            if (update.body.type == "job_complete" &&
+                                update.body.message.status == "COMPLETED") {
                                 clearInterval(broadcast_probe);
                                 clearInterval(request_probe);
                             }
-                            if (update.body.type == "job_update" &&   //this will have to change eventually
-                                update.body.message.state_name == "verify_authentication" && 
+                            if (update.body.type == "job_update" && //should be job_status
+                                update.body.message.status == "UPDATING" && 
                                 update.body.message.state_error == false) {
                                 clearInterval(request_probe);
                             }
