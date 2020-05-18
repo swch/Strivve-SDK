@@ -29,6 +29,7 @@
   "devDependencies": {
     "@types/node": "^12.12.31",
     "chai": "^4.2.0",
+    "express": "^4.17.1",
     "mocha": "^7.1.2",
     "ts-loader": "^6.2.2",
     "typescript": "^3.8.3",
