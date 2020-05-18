@@ -63,6 +63,10 @@ export class CardsavrSession {
 
   sendRequest = async (path: string, method: "get" | "GET" | "delete" | "DELETE" | "head" | "HEAD" | "options" | "OPTIONS" | "post" | "POST" | "put" | "PUT" | "patch" | "PATCH" | undefined, requestBody?: any, headersToAdd = {}, cookiesEnforced = true) : Promise<any> => {
 
+    if(!this.sessionData.headers.trace){
+      this.setSessionHeaders({trace: JSON.stringify({key: this.sessionData.userName})});
+    }
+    
     var headers = Object.assign({}, this.sessionData.headers, headersToAdd);
     if (this.sessionData.encryptionOn) {
 
