@@ -11,5 +11,8 @@
   "dependencies": {
     "@strivve/strivve-sdk": "^2.0.19",
     "axios": "^0.19.2"
+  },
+  "devDependencies": {
+    "express": "^4.17.1"
   }
 }
