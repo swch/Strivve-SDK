@@ -30,7 +30,7 @@ export class CardsavrSession {
 
   makeTraceHeader = (traceHeaderObject: any) => {
     let stringifiedTrace = JSON.stringify(traceHeaderObject);
-    return { trace : stringifiedTrace }
+    return { trace : stringifiedTrace}
   };
 
   setIdentificationHeader = (idString: string) => {
@@ -393,6 +393,12 @@ export class CardsavrSession {
   createSingleSiteJob = async (body: any, safeKey: string, headersToAdd = {}) : Promise<any> => {
     Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
     return await this.post(`/place_card_on_single_site_jobs`, body, headersToAdd);
+  };
+
+  updateSingleSiteJob = async (id: number, body: any, safeKey: string, headersToAdd = {}) : Promise<any> => {
+    
+    Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+    return await this.put(`/place_card_on_single_site_jobs`, id, body, headersToAdd);
   };
 
 };
