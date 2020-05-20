@@ -37,7 +37,6 @@ export class CardsavrHelper {
                                        grant?: string,
                                        trace?: any) {
         if (this.sessions[username]) {
-            console.log(null, "Session already created for " + username + ", use getSession() instead of loginAndCreateSession()");
             return this.sessions[username];
         }
         try {
