@@ -37,7 +37,7 @@ export class CardsavrHelper {
                                        grant?: string,
                                        trace?: any) {
         if (this.sessions[username]) {
-            console.log(null, "Session alrady created for " + username + ", use getSession() instead of loginAndCreateSession()");
+            console.log(null, "Session already created for " + username + ", use getSession() instead of loginAndCreateSession()");
             return this.sessions[username];
         }
         try {
@@ -175,14 +175,13 @@ export class CardsavrHelper {
                         var update = await session.getJobStatusUpdate(job_data.body.id, subscription.body.access_key);
                         if (update.body) {
                             callback({job_id: update.body.id, type: update.body.type, message: update.body.message});  
-                            if (update.body.type == "job_complete" &&
+                            if (update.body.type == "job_status" &&
                                 update.body.message.status == "COMPLETED") {
                                 clearInterval(broadcast_probe);
                                 clearInterval(request_probe);
                             }
-                            if (update.body.type == "job_update" && //should be job_status
-                                update.body.message.status == "UPDATING" && 
-                                update.body.message.state_error == false) {
+                            if (update.body.type == "job_status" && 
+                                update.body.message.status == "UPDATING") {
                                 clearInterval(request_probe);
                             }
                         }
@@ -204,7 +203,7 @@ export class CardsavrHelper {
     
         try {
             const session = this.getSession(username); //session should already be loaded
-            session.sendJobInformation(job_id, envelope_id, "vbs_response", tfa);
+            session.sendJobInformation(job_id, envelope_id, "tfa_response", tfa);
         } catch(err) {
             if (err.body && err.body._errors) {
                 console.log("Errors returned from REST API");
@@ -224,7 +223,7 @@ export class CardsavrHelper {
                 login.account_map[job_id],
                 {username: merchant_creds.username, 
                 password: merchant_creds.password}, login.cardholder_safe_key );
-            session.sendJobInformation(job_id, envelope_id, "vbs_response", JSON.stringify({submitted: true}));
+            session.sendJobInformation(job_id, envelope_id, "credential_response", "submitted");
         } catch(err) {
             if (err.body && err.body._errors) {
                 console.log("Errors returned from REST API");

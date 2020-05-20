@@ -53,19 +53,21 @@
         await helper.loginAndCreateSession(result.username, undefined, result.grant);
         
         await helper.placeCardOnSite(result.username, creds, (message) => {
-          console.log(message);
-          if (message.type == 'job_update') { //status updates
+          if (message.type == 'job_status') { //status updates
+            console.log(message.message);
             status.innerHTML = message.message.status + ": " + message.message.percent_complete + "%";
-          } else if (message.type == 'job_complete') {  //only one on job complete
-            status.innerHTML = message.message.final_state_status;
-            document.getElementById('job_form').style.display = "none";
-          } else {
+            if (message.message.status == 'COMPLETED') {  //only one on job complete
+              status.innerHTML = message.message.final_status;
+              document.getElementById('job_form').style.display = "none";
+            }
+          } else if (message.job_id && message.type.endsWith("_request")) {
+            console.log(message);
             document.getElementById("job_id").value = message.job_id;
             document.getElementById("envelope_id").value = message.envelope_id;
-            if (message.type == '2FA') {
+            if (message.type == 'tfa_request') {
               document.getElementById("submit_type").value = "post_tfa";
               toggle_element(["tfa"], "block"); //show TFA box
-            } else if (message.type == 'credential_resubmission') {
+            } else if (message.type == 'credential_request') {
               document.getElementById("submit_type").value = "post_new_creds";
               toggle_element(["username", "password"], "block"); //show credential boxes
             }
