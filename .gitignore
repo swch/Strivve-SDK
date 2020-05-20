@@ -110,3 +110,5 @@ typings/
 
 # TernJS port file
 .tern-port
+
+*creds_*.json
