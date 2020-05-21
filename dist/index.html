@@ -56,7 +56,7 @@
           if (message.type == 'job_status') { //status updates
             console.log(message.message);
             status.innerHTML = message.message.status + ": " + message.message.percent_complete + "%";
-            if (message.message.status == 'COMPLETED') {  //only one on job complete
+            if (message.message.status == 'COMPLETED' && message.message.percent_complete == 100) {  //only one on job complete
               status.innerHTML = message.message.final_status;
               document.getElementById('job_form').style.display = "none";
             }

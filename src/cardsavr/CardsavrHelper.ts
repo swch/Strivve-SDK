@@ -167,13 +167,13 @@ export class CardsavrHelper {
                     var request_probe = setInterval(async (message) => { 
                         var request = await session.getJobInformationRequest(job_data.body.id);
                         if (request.body) {
-                            callback({job_id: job_id, type: request.body.type, envelope_id: request.body.envelope_id});
+                            callback(request.body);
                         }
                     }, interval < 1000 ? 1000 : interval);
                     var broadcast_probe = setInterval(async (message) => { 
                         var update = await session.getJobStatusUpdate(job_data.body.id, subscription.body.access_key);
                         if (update.body) {
-                            callback({job_id: update.body.id, type: update.body.type, message: update.body.message});  
+                            callback(update.body);  
                             if (update.body.type == "job_status" &&
                                 update.body.message.status == "COMPLETED") {
                                 clearInterval(broadcast_probe);
