@@ -97,11 +97,15 @@ export class CardsavrHelper {
             if (!card_data.name_on_card) card_data.name_on_card = card_data.first_name + card_data.last_name;
     
             const agent_session = this.getSession(agent_username);
-            const cardholder_response = await agent_session.createUser(cardholder_data, cardholder_data.cardholder_safe_key);
+            const cardholder_response = await agent_session.createUser(cardholder_data, cardholder_data.cardholder_safe_key, { 'financial-institution': 'default' });
             const cardholder_id = cardholder_response.body.id;
-            const grant_response = await agent_session.getCredentialGrant(cardholder_id);
-            const grant = grant_response.body.user_credential_grant;
-            await this.loginAndCreateSession(cardholder_data.username, undefined, grant);
+            //eventually these will be one time grants
+            const grant_response_login = await agent_session.getCredentialGrant(cardholder_id);
+            const grant_login = grant_response_login.body.user_credential_grant;
+            const grant_response_handoff = await agent_session.getCredentialGrant(cardholder_id);
+            const grant_handoff = grant_response_handoff.body.user_credential_grant;
+
+            await this.loginAndCreateSession(cardholder_data.username, undefined, grant_login);
             const session_user = this.getSession(cardholder_data.username);
 
             const address_response = await session_user.createAddress(address_data);
@@ -111,10 +115,6 @@ export class CardsavrHelper {
             card_data.user_id = cardholder_id;
             card_data.par = generateRandomPar(card_data.pan, card_data.expiration_month, card_data.expiration_year, cardholder_data.username);
             const card_response = await session_user.createCard(card_data, cardholder_data.cardholder_safe_key);
-    
-            //eventually these will be one time grants
-            const grant_response_handoff = await this.getSession(agent_username).getCredentialGrant(cardholder_id);
-            const grant_handoff = grant_response_handoff.body.user_credential_grant;
     
             return { grant: grant_handoff, username: cardholder_data.username, card_id: card_response.body.id } ;
     
