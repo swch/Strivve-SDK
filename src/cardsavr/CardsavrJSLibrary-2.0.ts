@@ -273,6 +273,22 @@ export class CardsavrSession {
     return await this.delete(`/cardsavr_addresses`, id, headersToAdd);
   };
 
+  getFinancialInstitutions = async (filter: any, headersToAdd = {}) : Promise<any> => {
+    return await this.get('/financial_institutions', filter, headersToAdd);
+  };
+
+  createFinancialInstitution = async (body: any, headersToAdd = {}) : Promise<any> => {
+    return await this.post(`/financial_institutions`, body, headersToAdd);
+  };
+
+  updateFinancialInstitution = async (id: number, body: any, headersToAdd = {}) : Promise<any> => {
+    return await this.put(`/financial_institutions`, id, body, headersToAdd);
+  };
+
+  deleteFinancialInstitution = async (id: number, headersToAdd = {}) : Promise<any> => {
+    return await this.delete(`/financial_institutions`, id, headersToAdd);
+  };
+
   getCards = async (filter: any, headersToAdd = {}) : Promise<any> => {
     return await this.get('/cardsavr_cards', filter, headersToAdd);
   };
@@ -354,8 +370,9 @@ export class CardsavrSession {
     return await this.get(`/cardsavr_users/${id}/credential_grant/`, null, headersToAdd);
   };
 
-  createUser = async (body: any, newSafeKey: string, headersToAdd = {}) : Promise<any> => {
+  createUser = async (body: any, newSafeKey: string, financial_institution: string = "default", headersToAdd = {}) : Promise<any> => {
     Object.assign(headersToAdd, this._makeSafeKeyHeader(newSafeKey, true));
+    Object.assign(headersToAdd, { "financial-institution": financial_institution});
     return await this.post(`/cardsavr_users`, body, headersToAdd);
   };
 
