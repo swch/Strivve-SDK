@@ -132,8 +132,7 @@ export class CardsavrHelper {
         }
     }
 
-    public async placeCardOnSite(username: string, merchant_creds: any, callback: any, interval: number = 5000) {
-    
+    public async placeCardOnSite(username: string, merchant_creds: any) {
         try {
             //const login = await this.loginAndCreateSession(username, undefined, grant);
             const session = this.getSession(username);
@@ -163,30 +162,62 @@ export class CardsavrHelper {
                     var job_data = await session.createSingleSiteJob(job_params, login.cardholder_safe_key);
                     var job_id = job_data.body.id;
                     login.account_map[job_id] = account.body.id;
-                    var subscription = await session.registerForJobStatusUpdates(job_id);
-                    var request_probe = setInterval(async (message) => { 
-                        var request = await session.getJobInformationRequest(job_data.body.id);
-                        if (request.body) {
-                            callback(request.body);
-                        }
-                    }, interval < 1000 ? 1000 : interval);
-                    var broadcast_probe = setInterval(async (message) => { 
-                        var update = await session.getJobStatusUpdate(job_data.body.id, subscription.body.access_key);
-                        if (update.body) {
-                            callback(update.body);  
-                            if (update.body.type == "job_status" &&
-                                update.body.message.status == "COMPLETED") {
-                                clearInterval(broadcast_probe);
-                                clearInterval(request_probe);
-                            }
-                            if (update.body.type == "job_status" && 
-                                update.body.message.status == "UPDATING") {
-                                clearInterval(request_probe);
-                            }
-                        }
-                    }, interval < 1000 ? 1000 : interval);
+                    return job_data;
                 }
             }
+        } catch(err) {
+            if (err.body && err.body._errors) {
+                console.log("Errors returned from REST API");
+                err.body._errors.map((item: string) => console.log(item));
+            } else {
+                console.log("no _errors, exception stack below:");
+                console.log(err.stack);
+            }
+        }
+    }
+
+    public async pollOnJob(username: string, job_id: number, callback: any, interval: number = 5000) {
+        try {
+            const session = this.getSession(username);
+            const login = this.sessions[username];
+
+            var subscription = await session.registerForJobStatusUpdates(job_id);
+            var request_probe = setInterval(async (message) => { 
+                var request = await session.getJobInformationRequest(job_id);
+                if (request.body) {
+                    callback(request.body);
+                }
+            }, interval < 1000 ? 1000 : interval);
+            var broadcast_probe = setInterval(async (message) => { 
+                var update = await session.getJobStatusUpdate(job_id, subscription.body.access_key);
+                if (update.body) {
+                    callback(update.body);  
+                    if (update.body.type == "job_status" &&
+                        update.body.message.status == "COMPLETED") {
+                        clearInterval(broadcast_probe);
+                        clearInterval(request_probe);
+                    }
+                    if (update.body.type == "job_status" && 
+                        update.body.message.status == "UPDATING") {
+                        clearInterval(request_probe);
+                    }
+                }
+            }, interval < 1000 ? 1000 : interval);
+        } catch(err) {
+            if (err.body && err.body._errors) {
+                console.log("Errors returned from REST API");
+                err.body._errors.map((item: string) => console.log(item));
+            } else {
+                console.log("no _errors, exception stack below:");
+                console.log(err.stack);
+            }
+        }
+    }
+
+    public async placeCardOnSiteAndPoll(username: string, merchant_creds: any, callback: any, interval: number = 5000) {
+        try {
+            const job_data = await this.placeCardOnSite(username, merchant_creds);
+            await this.pollOnJob(username, job_data.body.id, callback, interval);
         } catch(err) {
             if (err.body && err.body._errors) {
                 console.log("Errors returned from REST API");
