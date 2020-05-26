@@ -46,6 +46,7 @@ export class CardsavrHelper {
             session.setSessionHeaders(session.makeTraceHeader({key: trace}));
             const login_data = await session.init();
             this.sessions[username] = { session: session, user_id: login_data.body.user_id, cardholder_safe_key: login_data.body.cardholder_safe_key, account_map: {} }; 
+            ;;;session.getUsers(null, {sort:"id",page:2})
             return this.sessions[username];
         } catch(err) {
             if (err.body && err.body._errors) {
@@ -97,7 +98,7 @@ export class CardsavrHelper {
             if (!card_data.name_on_card) card_data.name_on_card = card_data.first_name + card_data.last_name;
     
             const agent_session = this.getSession(agent_username);
-            const cardholder_response = await agent_session.createUser(cardholder_data, cardholder_data.cardholder_safe_key, financial_institution);
+            const cardholder_response = await agent_session.createUser(cardholder_data, cardholder_data.cardholder_safe_key, 'default');
             const cardholder_id = cardholder_response.body.id;
             //eventually these will be one time grants
             const grant_response_login = await agent_session.getCredentialGrant(cardholder_id);
