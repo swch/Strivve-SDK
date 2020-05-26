@@ -17,7 +17,7 @@ app.get('/create_user', function (req, res) {
             ch.setAppSettings(cardsavr_server, app_name, app_key);
 
             await ch.loginAndCreateSession(app_username, app_password);
-            const handoff = await ch.createCard(app_username, cardholder_data, address_data, card_data);
+            const handoff = await ch.createCard(app_username, 'default', cardholder_data, address_data, card_data);
 
             const queryString = Object.keys(handoff).map(key => key + '=' + encodeURIComponent(handoff[key])).join('&');
             res.redirect("/#" + queryString);

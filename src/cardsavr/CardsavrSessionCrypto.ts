@@ -1,6 +1,6 @@
 import * as crypto from 'crypto';
 
-const isNode = true;
+const isNode = typeof window === 'undefined' ? true : false;
 
 export namespace WebConversions {
     
@@ -31,9 +31,9 @@ export namespace WebConversions {
 
     export const stringToArrayBuffer = (string: string) => {
 
-    //   if (window.TextEncoder) {
-    //     return new TextEncoder('utf-8').encode(string);
-    //   }
+        if (window.TextEncoder) {
+        return new TextEncoder().encode(string);
+        }
 
         var utf8String = unescape(encodeURIComponent(string));
         var result = new Uint8Array(utf8String.length);
@@ -47,61 +47,87 @@ export namespace WebConversions {
 }
 
 export namespace Encryption {
-
-        export const encryptSafeKeys = (headers: any, b64Key: string) => {
-            const safe_key_headers = ["new-cardholder-safe-key", "cardholder-safe-key"];
-
-            safe_key_headers.map(safe_key_header => {
-                if (headers[safe_key_header]) {
-        
-                    // Create a buffer out of the encrypting key
-                    const binaryEncryptionKey = Buffer.alloc(32);
-                    binaryEncryptionKey.write(b64Key, "base64");
-        
-                    //  Create an Initialization Vector (IV) for encryption
-                    const IV = crypto.randomBytes(16);
-        
-                    // Create buffer out of plain text for use in encryption
-                    const bufferJSON = Buffer.from(headers[safe_key_header],"utf8");
-        
-                    // Encrypt body using shared secret key and IV
-                    const encryptor = crypto.createCipheriv("aes-256-cbc", binaryEncryptionKey, IV);
-        
-                    const encryptedSafeKey = Buffer.concat([encryptor.update(bufferJSON), encryptor.final()]);
-            
-                    headers[safe_key_header] = encryptedSafeKey.toString("base64") + "$" + IV.toString("base64");
-                }
-            });
-            return;
-        }
     
         export const encryptRequest = async (key: string, body: Object) => {
   
           return await encryptAES256(key, JSON.stringify(body));
+
         }
   
-        export const encryptAES256 = (b64Key: string, clearText: string) => {
-          let binaryEncryptionKey = Buffer.alloc(32);
-          binaryEncryptionKey.write(b64Key, 'base64');
+        export const encryptAES256 = async (b64Key: string, clearText: string) => {
 
-          //  Create an Initialization Vector (IV) for encryption
-          let IV = crypto.randomBytes(16);
+          if(isNode){
 
-          // Create buffer out of clear text for use in encryption
-          //let bufferJSON = Buffer.alloc(clearText.length);
-          //bufferJSON.write(clearText, 'utf8');
-          const bufferJSON = Buffer.from(clearText,'utf8');
+            let binaryEncryptionKey = Buffer.alloc(32);
+            binaryEncryptionKey.write(b64Key, 'base64');
+  
+            //  Create an Initialization Vector (IV) for encryption
+            let IV = crypto.randomBytes(16);
+  
+            // Create buffer out of clear text for use in encryption
+            //let bufferJSON = Buffer.alloc(clearText.length);
+            //bufferJSON.write(clearText, 'utf8');
+            const bufferJSON = Buffer.from(clearText,'utf8');
+  
+            // Encrypt body using shared secret key and IV
+            let encryptor = crypto.createCipheriv('aes-256-cbc', binaryEncryptionKey, IV);
+  
+            let encryptedJSON = Buffer.concat([encryptor.update(bufferJSON), encryptor.final()]);
+  
+            // Create new body to be placed in request payload (with $IV appended for additional uniqueness)
+            let newBody = {
+                'encryptedBody' : encryptedJSON.toString('base64') + '$' + IV.toString('base64')
+            }
 
-          // Encrypt body using shared secret key and IV
-          let encryptor = crypto.createCipheriv('aes-256-cbc', binaryEncryptionKey, IV);
-
-          let encryptedJSON = Buffer.concat([encryptor.update(bufferJSON), encryptor.final()]);
-
-          // Create new body to be placed in request payload (with $IV appended for additional uniqueness)
-          let newBody = {
-              'encryptedBody' : encryptedJSON.toString('base64') + '$' + IV.toString('base64')
+            return newBody;
           }
-          return newBody;
+          else{
+
+            // Generate an Initialization Vector
+            let iv = new Uint8Array(16);
+            window.crypto.getRandomValues(iv);
+
+            // Convert the encryption key from base64 and import it
+            let encryptionKey = await window.crypto.subtle.importKey(
+                "raw",
+                WebConversions.base64ToArrayBuffer(b64Key),
+                "AES-CBC",
+                false, // Not extractable
+                ["encrypt"]
+            );
+
+            // Encrypt the password key using the secret key
+            let encryptedKey = await window.crypto.subtle.encrypt(
+                {
+                    name: 'AES-CBC', iv: iv
+                },
+                encryptionKey,
+                WebConversions.stringToArrayBuffer(clearText)
+            )
+            
+            // Create new body to be placed in request payload (with $IV appended for additional uniqueness)
+            let newBody = {
+                'encryptedBody' : WebConversions.arrayBufferToBase64(encryptedKey) + '$' + WebConversions.arrayBufferToBase64(iv)
+            }
+
+            return newBody;
+
+            }
+            
+          }
+
+          export const encryptSafeKeys = (headers: any, b64Key: string) => {
+
+            const safe_key_headers = ["new-cardholder-safe-key", "cardholder-safe-key"];
+            safe_key_headers.map(async (safe_key_header) => {
+                if (headers[safe_key_header]) {
+
+                    let encryptedObj = await encryptAES256(b64Key, headers[safe_key_header]);
+                    headers[safe_key_header] = encryptedObj.encryptedBody
+                    
+                }
+            });
+            return;
         }
   
         export const decryptResponse = async (key: string, body: any) => {
@@ -121,9 +147,9 @@ export namespace Encryption {
           return await decryptAES256(stringParts[0], stringParts[1], key);
         }
   
-        export const decryptAES256 = (b64cipherText: string, b64IV: string, b64Key: string) => {
+        export const decryptAES256 = async (b64cipherText: string, b64IV: string, b64Key: string) => {
   
-        //   if (isNode) {
+          if (isNode) {
   
             let binaryEncryptionKey = Buffer.alloc(32);
             binaryEncryptionKey.write(b64Key, 'base64');
@@ -144,45 +170,45 @@ export namespace Encryption {
             let decryptedString = decryptedJSON.toString("utf8");
   
             return JSON.parse(decryptedString);
-        //   }
-        //   else {
+          }
+          else {
   
-        //       let decryptKey = await subtleCrypto.importKey(
-        //           "raw",
-        //           parentObject.webConversions.base64ToArrayBuffer(b64Key),
-        //           { "name": "AES-CBC" },
-        //           false,
-        //           ["decrypt"]
-        //         )
+            let decryptKey = await window.crypto.subtle.importKey(
+                "raw",
+                WebConversions.base64ToArrayBuffer(b64Key),
+                "AES-CBC",
+                false,
+                ["decrypt"]
+            )
           
-        //         let clearTextBuffer = await subtleCrypto.decrypt(
-        //           {
-        //             name: "AES-CBC",
-        //             iv: parentObject.webConversions.base64ToArrayBuffer(b64IV)
-        //           },
-        //           decryptKey,
-        //           parentObject.webConversions.base64ToArrayBuffer(b64cipherText)
-        //         );
-      
-        //         let clearText = new TextDecoder().decode(clearTextBuffer);
-        //         return JSON.parse(clearText);
-        //   }
+            let clearTextBuffer = await window.crypto.subtle.decrypt(
+                {
+                name: "AES-CBC",
+                iv: WebConversions.base64ToArrayBuffer(b64IV)
+                },
+                decryptKey,
+                WebConversions.base64ToArrayBuffer(b64cipherText)
+            );
+    
+            let clearText = new TextDecoder().decode(clearTextBuffer);
+            return JSON.parse(clearText);
+          }
         }
-    }
+}
 
 export namespace Signing {
 
-    export const sha256Hash = (inputString: string) => {
+    export const sha256Hash = async (inputString: string) => {
 
-    //   if (isNode) {
+      if (isNode) {
         let hashMethods = crypto.createHash('sha256');
         hashMethods.update(inputString);
 
         return hashMethods.digest();
-    //   }
-    //   else {
-    //     return subtleCrypto.digest('SHA-256', parentObject.webConversions.stringToArrayBuffer(inputString));
-    //   }
+      }
+      else {
+        return await window.crypto.subtle.digest('SHA-256', WebConversions.stringToArrayBuffer(inputString));
+      }
     }
 
     export const signRequest = async (path: string, appName: string, sessionKey: string, body?: any) => {
@@ -215,7 +241,7 @@ export namespace Signing {
 
     export const hmacSign = async (inputString: any, b64Key: string, b64InputString = false) => {
 
-    //   if (isNode) {
+      if (isNode) {
 
         var stringToSign;
 
@@ -234,35 +260,35 @@ export namespace Signing {
         hmac.update(stringToSign);
 
         return hmac.digest('base64');
-    //   }
-    //   else {
+      }
+      else {
 
-    //     var stringToSign = isSalt ? parentObject.webConversions.base64ToArrayBuffer(inputString) : parentObject.webConversions.stringToArrayBuffer(inputString);
+        var stringToSign : any = b64InputString ? WebConversions.base64ToArrayBuffer(inputString) : WebConversions.stringToArrayBuffer(inputString);
 
-    //     let signingKey = await subtleCrypto.importKey(
-    //       "raw",
-    //       parentObject.webConversions.base64ToArrayBuffer(b64Key),
-    //       {
-    //         "name": "HMAC",
-    //         hash: { name: "SHA-256" },
-    //       },
-    //       false,
-    //       ["sign"]
-    //     );
+        let signingKey = await window.crypto.subtle.importKey(
+          "raw",
+          WebConversions.base64ToArrayBuffer(b64Key),
+          {
+            "name": "HMAC",
+            hash: { name: "SHA-256" },
+          },
+          false,
+          ["sign"]
+        );
 
-    //     let signature = await subtleCrypto.sign(
-    //       { "name": "HMAC" },
-    //       signingKey,
-    //       stringToSign
-    //     );
+        let signature = await window.crypto.subtle.sign(
+          "HMAC",
+          signingKey,
+          stringToSign
+        );
 
-    //     return parentObject.webConversions.arrayBufferToBase64(signature);
-    //   }
+        return WebConversions.arrayBufferToBase64(signature);
+      }
     }
 
     export const hmacVerify = async (inputString: string, b64Key: string, verificationSignature: string) => {
 
-    //   if (isNode) {
+      if (isNode) {
 
         let binaryKey = Buffer.alloc(32);
         binaryKey.write(b64Key, 'base64');
@@ -272,27 +298,27 @@ export namespace Signing {
         let signature = hmac.digest('base64');
 
         return signature === verificationSignature;
-    //   }
-    //   else {
+      }
+      else {
 
-    //     let signingKey = await subtleCrypto.importKey(
-    //       "raw",
-    //       parentObject.webConversions.base64ToArrayBuffer(b64Key),
-    //       {
-    //         "name": "HMAC",
-    //         hash: { name: "SHA-256" },
-    //       },
-    //       false,
-    //       ["verify"]
-    //     );
+        let signingKey = await window.crypto.subtle.importKey(
+          "raw",
+          WebConversions.base64ToArrayBuffer(b64Key),
+          {
+            "name": "HMAC",
+            hash: { name: "SHA-256" },
+          },
+          false,
+          ["verify"]
+        );
 
-    //     return await subtleCrypto.verify(
-    //       { "name": "HMAC" },
-    //       signingKey,
-    //       parentObject.webConversions.base64ToArrayBuffer(verificationSignature),
-    //       parentObject.webConversions.stringToArrayBuffer(inputString)
-    //     );
-    //   }
+        return await window.crypto.subtle.verify(
+          "HMAC",
+          signingKey,
+          WebConversions.base64ToArrayBuffer(verificationSignature),
+          WebConversions.stringToArrayBuffer(inputString)
+        );
+      }
     }
 }
 
@@ -303,143 +329,142 @@ export namespace Keys {
         let salt = await Signing.sha256Hash(userName);
         let key = await sha256pbkdf2(clearTextPassword, salt, 5000);
 
-        return isNode ? key.toString('base64') : WebConversions.arrayBufferToBase64(key);
+        return isNode ? (key as Buffer).toString('base64') : WebConversions.arrayBufferToBase64(key);
     }
 
-    export const generateCardholderSafeKey = (username: string) => {
+    export const generateCardholderSafeKey = async(username: string) => {
 
-    //   if (isNode) {
+      if (isNode) {
 
         let saltedCardholderSafeKey = crypto.pbkdf2Sync(crypto.randomBytes(32), username, 5000, 32, 'sha256');
         return saltedCardholderSafeKey.toString('base64');
-    //   }
-    //   else {
+      }
+      else {
 
-    //     let binaryCardholderSafeKey = new Uint8Array(32);
-    //     crypto.getRandomValues(binaryCardholderSafeKey);
+        let binaryCardholderSafeKey = new Uint8Array(32);
+        window.crypto.getRandomValues(binaryCardholderSafeKey);
 
-    //     let baseKey = await subtleCrypto.importKey("raw", binaryCardholderSafeKey, { "name": "PBKDF2" }, false, ["deriveBits", "deriveKey"]);
+        let baseKey = await window.crypto.subtle.importKey("raw", binaryCardholderSafeKey, "PBKDF2", false, ["deriveBits", "deriveKey"]);
 
-    //     let aesKey = await subtleCrypto.deriveKey(
-    //       {
-    //         "name": "PBKDF2",
-    //         "salt": this.webConversions.stringToArrayBuffer(username),
-    //         "iterations": 5000,
-    //         "hash": "SHA-256"
-    //       },
-    //       baseKey,
-    //       {
-    //         "name": "AES-CBC",
-    //         "length": 256
-    //       },
-    //       true,
-    //       ["encrypt", "decrypt"]
-    //     );
+        let aesKey = await window.crypto.subtle.deriveKey(
+          {
+            "name": "PBKDF2",
+            "salt": WebConversions.stringToArrayBuffer(username),
+            "iterations": 5000,
+            "hash": "SHA-256"
+          },
+          baseKey,
+          {
+            "name": "AES-CBC",
+            "length": 256
+          },
+          true,
+          ["encrypt", "decrypt"]
+        );
 
-    //     let rawKey = await subtleCrypto.exportKey("raw", aesKey);
-    //     return parentObject.webConversions.arrayBufferToBase64(rawKey);
-    //   }
+        let rawKey = await window.crypto.subtle.exportKey("raw", aesKey);
+        return WebConversions.arrayBufferToBase64(rawKey);
+      }
     }
 
-    export const makeECDHkeyPair = () => {
+    export const makeECDHkeyPair = async () => {
 
-    //   if (isNode) {
+      if (isNode) {
 
         let keyPair = crypto.createECDH('prime256v1');
         keyPair.generateKeys();
         return keyPair;
-    //   }
-    //   else {
+      }
+      else {
 
-    //     return await subtleCrypto.generateKey(
-    //       {
-    //         name: "ECDH",
-    //         namedCurve: "P-256"
-    //       },
-    //       true,
-    //       ["deriveKey", "deriveBits"]
-    //     )
-    //   }
+        return await window.crypto.subtle.generateKey(
+          {
+            name: "ECDH",
+            namedCurve: "P-256"
+          },
+          true,
+          ["deriveKey", "deriveBits"]
+        )
+      }
     }
 
-    export const makeECDHPublicKey = (myKeyPair: any) => {
+    export const makeECDHPublicKey = async (myKeyPair: any) => {
 
-    //   if (isNode) {
+      if (isNode) {
         return myKeyPair.getPublicKey('base64', 'uncompressed');
-    //   }
-    //   else {
+      }
+      else {
 
-    //     let publicKey = await subtleCrypto.exportKey("raw", myKeyPair.publicKey);
-    //     return parentObject.webConversions.arrayBufferToBase64(publicKey);
-    //   }
+        let publicKey = await window.crypto.subtle.exportKey("raw", myKeyPair.publicKey);
+        return WebConversions.arrayBufferToBase64(publicKey);
+      }
     }
 
-    export const makeECDHSecretKey = (b64serverPublicKey: any, myKeyPair: any) => {
+    export const makeECDHSecretKey = async (b64serverPublicKey: any, myKeyPair: any) => {
 
-    //   if (isNode) {
+      if (isNode) {
         return myKeyPair.computeSecret(b64serverPublicKey, 'base64', 'base64');
-    //   }
-    //   else {
+      }
+      else {
 
-    //     let key = parentObject.webConversions.base64ToArrayBuffer(b64serverPublicKey)
+        let key = WebConversions.base64ToArrayBuffer(b64serverPublicKey)
 
-    //     let importedServerKey = await subtleCrypto.importKey(
-    //       "raw",
-    //       key,
-    //       {
-    //         name: "ECDH",
-    //         namedCurve: "P-256"
-    //       },
-    //       true,
-    //       []
-    //     );
+        let importedServerKey = await window.crypto.subtle.importKey(
+          "raw",
+          key,
+          {
+            name: "ECDH",
+            namedCurve: "P-256"
+          },
+          true,
+          []
+        );
 
-    //     let binaryPublicKey = await subtleCrypto.deriveBits(
-    //       {
-    //         name: "ECDH",
-    //         namedCurve: "P-256",
-    //         public: importedServerKey
-    //       },
-    //       myKeyPair.privateKey,
-    //       256
-    //     );
+        let binaryPublicKey = await window.crypto.subtle.deriveBits(
+          {
+            name: "ECDH",
+            public: importedServerKey
+          },
+          myKeyPair.privateKey,
+          256
+        );
 
-    //     return parentObject.webConversions.arrayBufferToBase64(binaryPublicKey);
-    //   }
+        return WebConversions.arrayBufferToBase64(binaryPublicKey);
+      }
     };
 
-    export const sha256pbkdf2 = (clearTextPassword: string, salt: any, rounds: number) => {
+    export const sha256pbkdf2 = async (clearTextPassword: string, salt: any, rounds: number) => {
 
-    //   if (isNode) {
+      if (isNode) {
         return crypto.pbkdf2Sync(clearTextPassword, salt, rounds, 32, 'sha256');
-    //   }
-    //   else {
+      }
+      else {
 
-    //     let baseKey = await subtleCrypto.importKey(
-    //       "raw",
-    //       parentObject.webConversions.stringToArrayBuffer(clearTextPassword),
-    //       { "name": "PBKDF2" },
-    //       false,
-    //       ["deriveBits", "deriveKey"]
-    //     );
+        let baseKey = await window.crypto.subtle.importKey(
+          "raw",
+          WebConversions.stringToArrayBuffer(clearTextPassword),
+          "PBKDF2",
+          false,
+          ["deriveBits", "deriveKey"]
+        );
 
-    //     let aesKey = await subtleCrypto.deriveKey(
-    //       {
-    //         "name": "PBKDF2",
-    //         "salt": salt,
-    //         "iterations": rounds,
-    //         "hash": "SHA-256"
-    //       },
-    //       baseKey,
-    //       {
-    //         "name": "AES-CBC",
-    //         "length": 256
-    //       },
-    //       true,
-    //       ["encrypt", "decrypt"]
-    //     );
+        let aesKey = await window.crypto.subtle.deriveKey(
+          {
+            "name": "PBKDF2",
+            "salt": salt,
+            "iterations": rounds,
+            "hash": "SHA-256"
+          },
+          baseKey,
+          {
+            "name": "AES-CBC",
+            "length": 256
+          },
+          true,
+          ["encrypt", "decrypt"]
+        );
 
-    //     return await subtleCrypto.exportKey("raw", aesKey);
-    //   }
+        return await window.crypto.subtle.exportKey("raw", aesKey);
+      }
     }
 }
