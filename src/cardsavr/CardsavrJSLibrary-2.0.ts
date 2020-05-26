@@ -21,7 +21,7 @@ export class CardsavrSession {
 
     var userAuthenticator = password ? {password} : {userCredentialGrant};
 
-    this.sessionData = { baseUrl, sessionKey, appName, userName, userAuthenticator, cookies: null, encryptionOn: true, headers: {}};
+    this.sessionData = { baseUrl, sessionKey, appName, userName, userAuthenticator, cookies: null, headers: {}};
   }
 
   setSessionHeaders = (headersObject: any) => {
@@ -64,17 +64,15 @@ export class CardsavrSession {
   sendRequest = async (path: string, method: "get" | "GET" | "delete" | "DELETE" | "head" | "HEAD" | "options" | "OPTIONS" | "post" | "POST" | "put" | "PUT" | "patch" | "PATCH" | undefined, requestBody?: any, headersToAdd = {}, cookiesEnforced = true) : Promise<any> => {
 
     var headers = Object.assign({}, this.sessionData.headers, headersToAdd);
-    if (this.sessionData.encryptionOn) {
 
-        // Encrypt the cardholder-safe-header(s) if they are in this request
-        CardsavrCrypto.Encryption.encryptSafeKeys(headers, this.sessionData.sessionKey);
+    // Encrypt the cardholder-safe-header(s) if they are in this request
+    CardsavrCrypto.Encryption.encryptSafeKeys(headers, this.sessionData.sessionKey);
 
-        if (requestBody) {
-            requestBody = await CardsavrCrypto.Encryption.encryptRequest(this.sessionData.sessionKey, requestBody);
-        }
-        let authHeaders = await CardsavrCrypto.Signing.signRequest(path, this.sessionData.appName, this.sessionData.sessionKey, requestBody);
-        Object.assign(headers, authHeaders);
+    if (requestBody) {
+        requestBody = await CardsavrCrypto.Encryption.encryptRequest(this.sessionData.sessionKey, requestBody);
     }
+    let authHeaders = await CardsavrCrypto.Signing.signRequest(path, this.sessionData.appName, this.sessionData.sessionKey, requestBody);
+    Object.assign(headers, authHeaders);
 
     if(typeof window === "undefined" && cookiesEnforced){
       if (this.sessionData.cookies && Object.keys(this.sessionData.cookies).length > 0) {
@@ -174,7 +172,6 @@ export class CardsavrSession {
     this.sessionData.cookies = {};
 
     let startResponse = await this.get('/session/start', null, headers, false);
-    this.sessionData.encryptionOn = startResponse.body.encryptionOn;
 
     return startResponse;
   };
@@ -188,45 +185,24 @@ export class CardsavrSession {
       userName: string
     }
 
-    interface UnencryptedLoginBody {
-      password?: string, 
-      userCredentialGrant?: string, 
-      userName: string
+    var encryptedLoginBody : EncryptedLoginBody ;
+
+    var keyPair = await CardsavrCrypto.Keys.makeECDHkeyPair();
+    var clientPublicKey = await CardsavrCrypto.Keys.makeECDHPublicKey(keyPair);
+
+    encryptedLoginBody = {userName: this.sessionData.userName, clientPublicKey};
+
+    if(this.sessionData.userAuthenticator.hasOwnProperty('password')){
+      var passwordKey = await CardsavrCrypto.Keys.generatePasswordKey(this.sessionData.userName, this.sessionData.userAuthenticator.password);
+      encryptedLoginBody['signedSalt'] = await CardsavrCrypto.Signing.signSaltWithPasswordKey(sessionSalt, passwordKey);
+    }
+    else {
+        encryptedLoginBody['userCredentialGrant'] = this.sessionData.userAuthenticator.userCredentialGrant;
     }
 
-    if (this.sessionData.encryptionOn) {
-
-      var encryptedLoginBody : EncryptedLoginBody ;
-
-      var keyPair = await CardsavrCrypto.Keys.makeECDHkeyPair();
-      var clientPublicKey = await CardsavrCrypto.Keys.makeECDHPublicKey(keyPair);
-
-      encryptedLoginBody = {userName: this.sessionData.userName, clientPublicKey};
-
-      if(this.sessionData.userAuthenticator.hasOwnProperty('password')){
-        var passwordKey = await CardsavrCrypto.Keys.generatePasswordKey(this.sessionData.userName, this.sessionData.userAuthenticator.password);
-        encryptedLoginBody['signedSalt'] = await CardsavrCrypto.Signing.signSaltWithPasswordKey(sessionSalt, passwordKey);
-      }
-      else {
-          encryptedLoginBody['userCredentialGrant'] = this.sessionData.userAuthenticator.userCredentialGrant;
-      }
-
-      let loginResponse = await this.sendRequest('/session/login', 'post', encryptedLoginBody, headersToAdd);
-      this.sessionData.sessionKey = await CardsavrCrypto.Keys.makeECDHSecretKey(loginResponse.body.serverPublicKey,keyPair);
-      return loginResponse;
-    }
-    else{
-
-      var unencryptedLoginBody : UnencryptedLoginBody ;
-      unencryptedLoginBody = {userName: this.sessionData.userName};
-
-      if(this.sessionData.userAuthenticator.hasOwnProperty('password')){
-        unencryptedLoginBody.password = this.sessionData.userAuthenticator.password;
-      }
-      else{
-        unencryptedLoginBody.userCredentialGrant = this.sessionData.userAuthenticator.userCredentialGrant;
-      }
-    }
+    let loginResponse = await this.sendRequest('/session/login', 'post', encryptedLoginBody, headersToAdd);
+    this.sessionData.sessionKey = await CardsavrCrypto.Keys.makeECDHSecretKey(loginResponse.body.serverPublicKey,keyPair);
+    return loginResponse;
   };
 
   init = async (headersToAdd = {}) : Promise<any> => {
