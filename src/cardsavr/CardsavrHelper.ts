@@ -46,7 +46,6 @@ export class CardsavrHelper {
             session.setSessionHeaders(session.makeTraceHeader({key: trace}));
             const login_data = await session.init();
             this.sessions[username] = { session: session, user_id: login_data.body.user_id, cardholder_safe_key: login_data.body.cardholder_safe_key, account_map: {} }; 
-            ;;;session.getUsers(null, {sort:"id",page:2})
             return this.sessions[username];
         } catch(err) {
             if (err.body && err.body._errors) {
