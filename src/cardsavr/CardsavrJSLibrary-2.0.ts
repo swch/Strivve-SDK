@@ -207,6 +207,11 @@ export class CardsavrSession {
     return await this._login(startResponse.body.sessionSalt, headersToAdd);
   };
 
+  end = async (headersToAdd = {}) : Promise<any> => {
+
+    return await this.get(`/session/end`, null, headersToAdd);
+  };
+
   getAccounts = async (filter: any, pagingHeader = {}, headersToAdd = {}) : Promise<any> => {
     if(Object.keys(pagingHeader).length>0){
       pagingHeader = {paging: JSON.stringify(pagingHeader)};
