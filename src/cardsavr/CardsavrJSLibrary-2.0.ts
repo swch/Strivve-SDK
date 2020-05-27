@@ -21,7 +21,7 @@ export class CardsavrSession {
 
     var userAuthenticator = password ? {password} : {userCredentialGrant};
 
-    const headers = this.makeTraceHeader( {key: userName} );
+    const headers = this.makeTraceHeader( trace ? trace : {key: userName} );
 
     this.sessionData = { baseUrl, sessionKey, appName, userName, userAuthenticator, cookies: null, headers};
 
