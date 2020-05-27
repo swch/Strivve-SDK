@@ -22,12 +22,11 @@ export class CardsavrSession {
                          cookies: null, 
                          headers: {}, 
                          cardsavrCert };
+                         
+    //if the user doesn't supply a trace (likely) or doesn't supply a trace key, just use the username
+    if (!trace) { trace = {} }
+    if (!trace.key) { trace.key = userName }
 
-    if (trace && !trace.key) {
-      trace.key = userName;
-    } else if (!trace) {
-      trace = {key: userName};
-    }
     this.setSessionHeaders( { 'trace': JSON.stringify(trace) });
     this.setSessionHeaders( { 'client-application': appName });
   }
