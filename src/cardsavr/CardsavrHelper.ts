@@ -2,8 +2,9 @@
 
 import { CardsavrSession } from "./CardsavrJSLibrary-2.0";
 import { generateRandomPar } from "./CardsavrSessionUtilities";
-import * as crypto from 'crypto';
 import JSLibraryError from "./JSLibraryError";
+import * as CardsavrCrypto from "./CardsavrSessionCrypto";
+
 
 interface SessionLogin {
     session: CardsavrSession, 
@@ -40,10 +41,7 @@ export class CardsavrHelper {
             return this.sessions[username];
         }
         try {
-            trace = (trace ? trace : username);
-            const session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, username, password, grant);
-            session.setIdentificationHeader(this.app_name);
-            session.setSessionHeaders(session.makeTraceHeader({key: trace}));
+            const session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, username, password, grant, undefined, trace);
             const login_data = await session.init();
             this.sessions[username] = { session: session, user_id: login_data.body.user_id, cardholder_safe_key: login_data.body.cardholder_safe_key, account_map: {} }; 
             return this.sessions[username];
@@ -83,18 +81,16 @@ export class CardsavrHelper {
     
         try {
             //don't need the login data
-            cardholder_data.username = this.generate_alphanumeric_string(40);
-
             await this.getSession(agent_username);
             //await this.loginAndCreateSession(agent_username, agent_password, undefined, cardholder_data.username);
 
-            cardholder_data.cardholder_safe_key =  crypto.randomBytes(32).toString("base64"); 
             cardholder_data.role = "cardholder";
     
             //set the missing settings for cardupdatr model
             if (!cardholder_data.first_name) cardholder_data.first_name = card_data.first_name;
             if (!cardholder_data.last_name) cardholder_data.last_name = card_data.last_name;
             if (!card_data.name_on_card) card_data.name_on_card = card_data.first_name + card_data.last_name;
+            cardholder_data.cardholder_safe_key =  await CardsavrCrypto.Keys.generateCardholderSafeKey(card_data.name_on_card); 
     
             const agent_session = this.getSession(agent_username);
             const cardholder_response = await agent_session.createUser(cardholder_data, cardholder_data.cardholder_safe_key, financial_institution);
@@ -281,16 +277,6 @@ export class CardsavrHelper {
                 console.log(err.stack);
             }
         }
-    }
-      
-    private generate_alphanumeric_string(length: number, current: string = ""): string {
-
-        const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        if (current.length == length) {
-            return current;
-        }
-        current += characters.charAt(Math.floor(Math.random() * characters.length));
-        return this.generate_alphanumeric_string(length, current);
     }
     
 } 

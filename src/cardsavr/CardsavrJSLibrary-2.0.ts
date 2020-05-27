@@ -10,34 +10,29 @@ import axios, {AxiosRequestConfig} from "axios";
 export class CardsavrSession { 
 
   sessionData : any;
-  cardsavrCert?: string;
 
-  constructor(baseUrl: string, sessionKey: string, appName: string, userName: string, password?: string, userCredentialGrant?: string, cardsavrCert?: string){
-    this.cardsavrCert = cardsavrCert;
+  constructor(baseUrl: string, sessionKey: string, appName: string, userName: string, password?: string, userCredentialGrant?: string, cardsavrCert?: string, trace?: any){
 
-    if(!password && !userCredentialGrant){
-      throw new JSLibraryError(null, "Must include either password or user credential grant to initialize session.");
-    }
+    this.sessionData = { baseUrl, 
+                         sessionKey, 
+                         appName, 
+                         userName, 
+                         password, 
+                         userCredentialGrant, 
+                         cookies: null, 
+                         headers: {}, 
+                         cardsavrCert };
+                         
+    //if the user doesn't supply a trace (likely) or doesn't supply a trace key, just use the username
+    if (!trace) { trace = {} }
+    if (!trace.key) { trace.key = userName }
 
-    var userAuthenticator = password ? {password} : {userCredentialGrant};
-
-    this.sessionData = { baseUrl, sessionKey, appName, userName, userAuthenticator, cookies: null, headers: {}};
+    this.setSessionHeaders( { 'trace': JSON.stringify(trace) });
+    this.setSessionHeaders( { 'client-application': appName });
   }
 
-  setSessionHeaders = (headersObject: any) => {
+  setSessionHeaders = (headersObject: { [key:string]:string; } ) => {
     Object.assign(this.sessionData.headers, headersObject);
-  };
-
-  makeTraceHeader = (traceHeaderObject: any) => {
-    let stringifiedTrace = JSON.stringify(traceHeaderObject);
-    return { trace : stringifiedTrace}
-  };
-
-  setIdentificationHeader = (idString: string) => {
-    if(typeof idString != "string"){
-      throw new JSLibraryError(null, "Identification header value must be a string.");
-    }
-    this.setSessionHeaders({"client-application": idString});
   };
 
   removeSessionHeader = (...headerKeys: string[]) => {
@@ -103,8 +98,8 @@ export class CardsavrSession {
     };
 
     // Trust the shared cardsavr cert
-    if (this.cardsavrCert) {
-      requestConfig.httpsAgent = new HTTPSAgent( { ca : this.cardsavrCert } );
+    if (this.sessionData.cardsavrCert) {
+      requestConfig.httpsAgent = new HTTPSAgent( { ca : this.sessionData.cardsavrCert } );
     }
 
     try {
@@ -192,12 +187,13 @@ export class CardsavrSession {
 
     encryptedLoginBody = {userName: this.sessionData.userName, clientPublicKey};
 
-    if(this.sessionData.userAuthenticator.hasOwnProperty('password')){
-      var passwordKey = await CardsavrCrypto.Keys.generatePasswordKey(this.sessionData.userName, this.sessionData.userAuthenticator.password);
+    if(this.sessionData.password){
+      var passwordKey = await CardsavrCrypto.Keys.generatePasswordKey(this.sessionData.userName, this.sessionData.password);
       encryptedLoginBody['signedSalt'] = await CardsavrCrypto.Signing.signSaltWithPasswordKey(sessionSalt, passwordKey);
-    }
-    else {
-        encryptedLoginBody['userCredentialGrant'] = this.sessionData.userAuthenticator.userCredentialGrant;
+    } else if(this.sessionData.userCredentialGrant){
+      encryptedLoginBody['userCredentialGrant'] = this.sessionData.userCredentialGrant;
+    } else { 
+      throw new JSLibraryError(null, "Must include either password or user credential grant to initialize session.");
     }
 
     let loginResponse = await this.sendRequest('/session/login', 'post', encryptedLoginBody, headersToAdd);
@@ -376,6 +372,11 @@ export class CardsavrSession {
   };
 
   createUser = async (body: any, newSafeKey: string, financial_institution: string = "default", headersToAdd = {}) : Promise<any> => {
+
+    if (body.role == "cardholder" && !body.username) {
+      const length: number = 20;
+      body.username = [...Array(length)].map(i=>(~~(Math.random()*36)).toString(36)).join('')
+    }
     Object.assign(headersToAdd, this._makeSafeKeyHeader(newSafeKey, true));
     Object.assign(headersToAdd, { "financial-institution": financial_institution});
     return await this.post(`/cardsavr_users`, body, headersToAdd);
