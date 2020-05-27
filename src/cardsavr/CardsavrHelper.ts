@@ -42,7 +42,6 @@ export class CardsavrHelper {
         }
         try {
             const session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, username, password, grant, undefined, trace);
-            session.setIdentificationHeader(this.app_name);
             const login_data = await session.init();
             this.sessions[username] = { session: session, user_id: login_data.body.user_id, cardholder_safe_key: login_data.body.cardholder_safe_key, account_map: {} }; 
             return this.sessions[username];
