@@ -12,7 +12,7 @@ export class CardsavrSession {
   sessionData : any;
   cardsavrCert?: string;
 
-  constructor(baseUrl: string, sessionKey: string, appName: string, userName: string, password?: string, userCredentialGrant?: string, cardsavrCert?: string){
+  constructor(baseUrl: string, sessionKey: string, appName: string, userName: string, password?: string, userCredentialGrant?: string, cardsavrCert?: string, trace?: string){
     this.cardsavrCert = cardsavrCert;
 
     if(!password && !userCredentialGrant){
@@ -21,7 +21,10 @@ export class CardsavrSession {
 
     var userAuthenticator = password ? {password} : {userCredentialGrant};
 
-    this.sessionData = { baseUrl, sessionKey, appName, userName, userAuthenticator, cookies: null, headers: {}};
+    const headers = this.makeTraceHeader( {key: userName} );
+
+    this.sessionData = { baseUrl, sessionKey, appName, userName, userAuthenticator, cookies: null, headers};
+
   }
 
   setSessionHeaders = (headersObject: any) => {
@@ -30,7 +33,7 @@ export class CardsavrSession {
 
   makeTraceHeader = (traceHeaderObject: any) => {
     let stringifiedTrace = JSON.stringify(traceHeaderObject);
-    return { trace : stringifiedTrace}
+    return { 'trace' : stringifiedTrace }
   };
 
   setIdentificationHeader = (idString: string) => {
@@ -347,6 +350,11 @@ export class CardsavrSession {
   };
 
   createUser = async (body: any, newSafeKey: string, financial_institution: string = "default", headersToAdd = {}) : Promise<any> => {
+
+    if (body.role == "cardholder" && !body.username) {
+      const length: number = 20;
+      body.username = [...Array(length)].map(i=>(~~(Math.random()*36)).toString(36)).join('')
+    }
     Object.assign(headersToAdd, this._makeSafeKeyHeader(newSafeKey, true));
     Object.assign(headersToAdd, { "financial-institution": financial_institution});
     return await this.post(`/cardsavr_users`, body, headersToAdd);
