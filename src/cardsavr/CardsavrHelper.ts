@@ -83,17 +83,18 @@ export class CardsavrHelper {
             //don't need the login data
             await this.getSession(agent_username);
             //await this.loginAndCreateSession(agent_username, agent_password, undefined, cardholder_data.username);
-
-            cardholder_data.role = "cardholder";
-    
-            //set the missing settings for cardupdatr model
-            if (!cardholder_data.first_name) cardholder_data.first_name = card_data.first_name;
-            if (!cardholder_data.last_name) cardholder_data.last_name = card_data.last_name;
+            
+            const cardholder_data_copy = { ...cardholder_data };
+            
+            cardholder_data_copy.role = "cardholder";
+            //set the missing settings for model
+            if (!cardholder_data.first_name) cardholder_data_copy.first_name = card_data.first_name;
+            if (!cardholder_data.last_name) cardholder_data_copy.last_name = card_data.last_name;
             if (!card_data.name_on_card) card_data.name_on_card = card_data.first_name + card_data.last_name;
-            cardholder_data.cardholder_safe_key =  await CardsavrCrypto.Keys.generateCardholderSafeKey(card_data.name_on_card); 
+            cardholder_data_copy.cardholder_safe_key =  await CardsavrCrypto.Keys.generateCardholderSafeKey(card_data.name_on_card); 
     
             const agent_session = this.getSession(agent_username);
-            const cardholder_response = await agent_session.createUser(cardholder_data, cardholder_data.cardholder_safe_key, financial_institution);
+            const cardholder_response = await agent_session.createUser(cardholder_data_copy, cardholder_data_copy.cardholder_safe_key, financial_institution);
             const cardholder_id = cardholder_response.body.id;
             //eventually these will be one time grants
             const grant_response_login = await agent_session.getCredentialGrant(cardholder_id);
@@ -101,18 +102,18 @@ export class CardsavrHelper {
             const grant_response_handoff = await agent_session.getCredentialGrant(cardholder_id);
             const grant_handoff = grant_response_handoff.body.user_credential_grant;
 
-            await this.loginAndCreateSession(cardholder_data.username, undefined, grant_login);
-            const session_user = this.getSession(cardholder_data.username);
+            await this.loginAndCreateSession(cardholder_data_copy.username, undefined, grant_login);
+            const session_user = this.getSession(cardholder_data_copy.username);
 
             const address_response = await session_user.createAddress(address_data);
     
             card_data.cardholder_id = cardholder_id;
             card_data.address_id = address_response.body.id;
             card_data.user_id = cardholder_id;
-            card_data.par = generateRandomPar(card_data.pan, card_data.expiration_month, card_data.expiration_year, cardholder_data.username);
-            const card_response = await session_user.createCard(card_data, cardholder_data.cardholder_safe_key);
+            card_data.par = generateRandomPar(card_data.pan, card_data.expiration_month, card_data.expiration_year, cardholder_data_copy.username);
+            const card_response = await session_user.createCard(card_data, cardholder_data_copy.cardholder_safe_key);
     
-            return { grant: grant_handoff, username: cardholder_data.username, card_id: card_response.body.id } ;
+            return { grant: grant_handoff, username: cardholder_data_copy.username, card_id: card_response.body.id } ;
     
         } catch(err) {
             if (err.body && err.body._errors) {
