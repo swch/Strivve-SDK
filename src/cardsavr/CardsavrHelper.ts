@@ -81,9 +81,6 @@ export class CardsavrHelper {
     
         try {
             //don't need the login data
-            await this.getSession(agent_username);
-            //await this.loginAndCreateSession(agent_username, agent_password, undefined, cardholder_data.username);
-            
             const cardholder_data_copy = { ...cardholder_data };
             
             cardholder_data_copy.role = "cardholder";
@@ -91,7 +88,7 @@ export class CardsavrHelper {
             if (!cardholder_data.first_name) cardholder_data_copy.first_name = card_data.first_name;
             if (!cardholder_data.last_name) cardholder_data_copy.last_name = card_data.last_name;
             if (!card_data.name_on_card) card_data.name_on_card = card_data.first_name + card_data.last_name;
-            cardholder_data_copy.cardholder_safe_key =  await CardsavrCrypto.Keys.generateCardholderSafeKey(card_data.name_on_card); 
+            cardholder_data_copy.cardholder_safe_key =  await CardsavrCrypto.Keys.generateCardholderSafeKey(cardholder_data.email + card_data.name_on_card); 
     
             const agent_session = this.getSession(agent_username);
             const cardholder_response = await agent_session.createUser(cardholder_data_copy, cardholder_data_copy.cardholder_safe_key, financial_institution);
@@ -109,7 +106,6 @@ export class CardsavrHelper {
     
             card_data.cardholder_id = cardholder_id;
             card_data.address_id = address_response.body.id;
-            card_data.user_id = cardholder_id;
             card_data.par = generateRandomPar(card_data.pan, card_data.expiration_month, card_data.expiration_year, cardholder_data_copy.username);
             const card_response = await session_user.createCard(card_data, cardholder_data_copy.cardholder_safe_key);
     
