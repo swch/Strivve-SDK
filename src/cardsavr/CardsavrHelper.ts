@@ -138,7 +138,7 @@ export class CardsavrHelper {
                         {cardholder_id: login.user_id,
                         username: merchant_creds.username, 
                         password: merchant_creds.password, 
-                        site_hostname: merchant_creds.site_hostname}, login.cardholder_safe_key ),
+                        merchant_site_id: merchant_creds.merchant_site_id}, login.cardholder_safe_key ),
                     session.getCards({})]
                 );
                 //use the first card the user has (we only created one)
