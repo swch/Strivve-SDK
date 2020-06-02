@@ -147,7 +147,7 @@ export class CardsavrHelper {
                         user_id: login.user_id,
                         card_id: cards.body[0].id,
                         account_id: account.body.id,
-                        site_hostname: merchant_creds.site_hostname,
+                        merchant_site_id: merchant_creds.merchant_site_id,
                         requesting_brand: "staging",
                         //queue_name: "vbs_queue", //garbage
                         user_is_present: true
