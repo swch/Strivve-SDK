@@ -52,7 +52,10 @@
         result = get_hash_key_values();
         await helper.loginAndCreateSession(result.username, undefined, result.grant);
         
-        await helper.placeCardOnSiteAndPoll(result.username, creds, (message) => {
+        //not used, but could be used to pick a site
+        const sites = await (await helper.getSession(result.username)).getSites({ "tags": "prod" }, { page_length : 200, sort: "name" });
+
+        helper.placeCardOnSiteAndPoll(result.username, creds, (message) => {
           if (message.type == 'job_status') { //status updates
             console.log(message.message);
             status.innerHTML = message.message.status + ": " + message.message.percent_complete + "%";

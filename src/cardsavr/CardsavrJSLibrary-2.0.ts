@@ -121,12 +121,12 @@ export class CardsavrSession {
            });
          }
         response.data = await CardsavrCrypto.Encryption.decryptResponse(this.sessionData.sessionKey, response.data);
-        return new CardsavrSessionResponse(response.status, response.statusText, response.headers, response.data);
+        return new CardsavrSessionResponse(response.status, response.statusText, response.headers, response.data, path);
     }
     catch (err) {
         if (err.response) {
             err.response.data = await CardsavrCrypto.Encryption.decryptResponse(this.sessionData.sessionKey, err.response.data);
-            throw new CardsavrSessionResponse(err.response.status, err.response.statusText, err.response.headers, err.response.data);
+            throw new CardsavrSessionResponse(err.response.status, err.response.statusText, err.response.headers, err.response.data, path);
         }
         else {
             throw new Error(err.message);
@@ -330,20 +330,13 @@ export class CardsavrSession {
     return await this.delete(`/integrators`, id, headersToAdd);
   };
 
-  getSites = async () : Promise<any> => {
-
-    var requestConfig : AxiosRequestConfig = {
-      baseURL: 'https://swch-site-images-mgmt.s3-us-west-2.amazonaws.com/branding/sites.json',
-      timeout: 10000,
-      method: "GET",
-      withCredentials: true
-    };
-
-    var response = await axios.request(requestConfig);
-    let response_data = response.status == 200 ? response.data.sites : null;
-    
-    return new CardsavrSessionResponse(response.status, response.statusText, response.headers, response_data);
-  };
+  getSites = async (filter: any, pagingHeader = {}, headersToAdd = {}) : Promise<any> => {
+    if(Object.keys(pagingHeader).length>0){
+      pagingHeader = {paging: JSON.stringify(pagingHeader)};
+      Object.assign(headersToAdd, pagingHeader);
+    }
+    return await this.get(`/merchant_sites`, filter, headersToAdd);
+  }
 
   registerForJobStatusUpdates = async (jobId: number, headersToAdd = {}) : Promise<any> => {
     return await this.post(`/messages/place_card_on_single_site_jobs/${jobId}/broadcasts/registrations`, {job_id: jobId}, headersToAdd);

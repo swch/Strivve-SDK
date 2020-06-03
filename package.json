@@ -1,6 +1,6 @@
 {
   "name": "@strivve/strivve-sdk",
-  "version": "2.1.2",
+  "version": "2.1.3",
   "description": "",
   "main": "src/sample/index.js",
   "directories": {

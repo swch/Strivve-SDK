@@ -1,13 +1,12 @@
-export default class JSLibraryError {
+export default class JSLibraryError extends Error {
 
-    validationErrors: any;
-    otherErrors: any;
-  
-    constructor(validationErrors: any, otherErrors: any){
-  
-      this.validationErrors = validationErrors;
+  validationErrors: any;
+  otherErrors: any;
 
-      this.otherErrors = otherErrors;
+  constructor(validationErrors: any, otherErrors: any, message: string = "JS Library Error") {
+    super(message); 
+    this.validationErrors = validationErrors;
+    this.otherErrors = otherErrors;
+  }
 
-    }
 };

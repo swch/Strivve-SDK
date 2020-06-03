@@ -1,6 +1,7 @@
 "use strict";
 
 import { CardsavrSession } from "./CardsavrJSLibrary-2.0";
+import CardsavrSessionResponse from "./CardsavrSessionResponse";
 import { generateRandomPar } from "./CardsavrSessionUtilities";
 import JSLibraryError from "./JSLibraryError";
 import * as CardsavrCrypto from "./CardsavrSessionCrypto";
@@ -46,13 +47,7 @@ export class CardsavrHelper {
             this.sessions[username] = { session: session, user_id: login_data.body.user_id, cardholder_safe_key: login_data.body.cardholder_safe_key, account_map: {} }; 
             return this.sessions[username];
         } catch(err) {
-            if (err.body && err.body._errors) {
-                console.log("Errors returned from REST API");
-                err.body._errors.map((item: string) => console.log(item));
-            } else {
-                console.log("no _errors, exception stack below:");
-                console.log(err.stack);
-            }
+            this.handleError(err);
         }
     }
 
@@ -112,42 +107,67 @@ export class CardsavrHelper {
             return { grant: grant_handoff, username: cardholder_data_copy.username, card_id: card_response.body.id } ;
     
         } catch(err) {
-            if (err.body && err.body._errors) {
-                console.log("Errors returned from REST API");
-                err.body._errors.map((item: string) => console.log(item));
-            } else {
-                console.log("no _errors, exception stack below:");
-                console.log(err.stack);
-            }
+            this.handleError(err);
         }
         if (false) {  //this is only for testing
             this.deleteAccount(agent_username, card_data.cardholder_id);
         }
     }
 
-    public async placeCardOnSite(username: string, merchant_creds: any) {
-        try {
-            //const login = await this.loginAndCreateSession(username, undefined, grant);
-            const session = this.getSession(username);
-            const login = this.sessions[username];
+    private handleError(err: any) {
+        if (err.body && err.body._errors) {
+            console.log("Errors returned from REST API : " + err.call);
+            err.body._errors.map((item: string) => console.log(item));
+        } else if (err.body && err.body.message) {
+            console.log("Message returned from REST API: " + err.body.message);
+        } else {
+            console.log("no _errors from REST API, exception stack below:");
+            console.log(err.stack);
+        }
+    }
 
-            if (login) {
+    private async lookupMerchantSite(username: string, host: string) {
+        const session = this.getSession(username);
+
+        const sites: CardsavrSessionResponse = await session.getSites({}, { page_length : 200, sort: "host" } )
+        if (!sites || !sites.body || sites.body.length === 0 ) {
+            return null;
+        }
+        const site : any = sites.body.find((site: any) => site.host === host);
+        if (!site ) {
+            return null;
+        }
+        return site;
+    }
+
+    public async placeCardOnSite(username: string, merchant_creds: any) {
+        //const login = await this.loginAndCreateSession(username, undefined, grant);
+        const login = this.sessions[username];
+        if (login) {
+            try {
+                const session = login.session;
+                let merchant_site_id: number = merchant_creds.merchant_site_id;
+                if (!merchant_site_id && merchant_creds.site_hostname) {
+                    const site: any = await this.lookupMerchantSite(username, merchant_creds.site_hostname);
+                    if (site) {
+                        merchant_site_id = site.id;
+                    }
+                }
                 //create the account and get all the users cards
                 const [account, cards] = await Promise.all(
                     [session.createAccount( 
                         {cardholder_id: login.user_id,
                         username: merchant_creds.username, 
                         password: merchant_creds.password, 
-                        merchant_site_id: merchant_creds.merchant_site_id}, login.cardholder_safe_key ),
+                        merchant_site_id: merchant_site_id}, login.cardholder_safe_key ),
                     session.getCards({})]
                 );
                 //use the first card the user has (we only created one)
-                if (account.body && cards.body.length == 1) {
+                if (account && account.body && cards && cards.body && cards.body.length == 1) {
                     var job_params = {
                         user_id: login.user_id,
                         card_id: cards.body[0].id,
                         account_id: account.body.id,
-                        site_hostname: merchant_creds.site_hostname,
                         requesting_brand: "staging",
                         //queue_name: "vbs_queue", //garbage
                         user_is_present: true
@@ -157,16 +177,18 @@ export class CardsavrHelper {
                     login.account_map[job_id] = account.body.id;
                     return job_data;
                 }
+            } catch(err) {
+                this.handleError(err);
             }
-        } catch(err) {
-            if (err.body && err.body._errors) {
-                console.log("Errors returned from REST API");
-                err.body._errors.map((item: string) => console.log(item));
-            } else {
-                console.log("no _errors, exception stack below:");
-                console.log(err.stack);
-            }
+        } else {
+            throw new JSLibraryError(null, "No session established for: " + username + ".  Need to call loginAndCreateSession?");
         }
+    }
+
+    public async endSession(username: string) {
+        const session = this.getSession(username);
+        session.end();
+        delete this.sessions[username];
     }
 
     public async pollOnJob(username: string, job_id: number, callback: any, interval: number = 5000) {
@@ -189,6 +211,7 @@ export class CardsavrHelper {
                         update.body.message.status == "COMPLETED") {
                         clearInterval(broadcast_probe);
                         clearInterval(request_probe);
+                        await this.endSession(username);
                     }
                     if (update.body.type == "job_status" && 
                         update.body.message.status == "UPDATING") {
@@ -197,28 +220,18 @@ export class CardsavrHelper {
                 }
             }, interval < 1000 ? 1000 : interval);
         } catch(err) {
-            if (err.body && err.body._errors) {
-                console.log("Errors returned from REST API");
-                err.body._errors.map((item: string) => console.log(item));
-            } else {
-                console.log("no _errors, exception stack below:");
-                console.log(err.stack);
-            }
+            this.handleError(err);
         }
     }
 
     public async placeCardOnSiteAndPoll(username: string, merchant_creds: any, callback: any, interval: number = 5000) {
         try {
             const job_data = await this.placeCardOnSite(username, merchant_creds);
-            await this.pollOnJob(username, job_data.body.id, callback, interval);
-        } catch(err) {
-            if (err.body && err.body._errors) {
-                console.log("Errors returned from REST API");
-                err.body._errors.map((item: string) => console.log(item));
-            } else {
-                console.log("no _errors, exception stack below:");
-                console.log(err.stack);
+            if (job_data) {
+                this.pollOnJob(username, job_data.body.id, callback, interval);
             }
+        } catch(err) {
+            this.handleError(err);
         }
     }
 
@@ -228,13 +241,7 @@ export class CardsavrHelper {
             const session = this.getSession(username); //session should already be loaded
             session.sendJobInformation(job_id, envelope_id, "tfa_response", tfa);
         } catch(err) {
-            if (err.body && err.body._errors) {
-                console.log("Errors returned from REST API");
-                err.body._errors.map((item: string) => console.log(item));
-            } else {
-                console.log("no _errors, exception stack below:");
-                console.log(err.stack);
-            }
+            this.handleError(err);
         }
     }
 
@@ -248,13 +255,7 @@ export class CardsavrHelper {
                 password: merchant_creds.password}, login.cardholder_safe_key );
             session.sendJobInformation(job_id, envelope_id, "credential_response", "submitted");
         } catch(err) {
-            if (err.body && err.body._errors) {
-                console.log("Errors returned from REST API");
-                err.body._errors.map((item: string) => console.log(item));
-            } else {
-                console.log("no _errors, exception stack below:");
-                console.log(err.stack);
-            }
+            this.handleError(err);
         }
     }
 
@@ -266,13 +267,7 @@ export class CardsavrHelper {
                 session.deleteUser(cardholder_id);
             }
         } catch(err) {
-            if (err.body && err.body._errors) {
-                console.log("Errors returned from REST API");
-                err.body._errors.map((item: string) => console.log(item));
-            } else {
-                console.log("no _errors, exception stack below:");
-                console.log(err.stack);
-            }
+            this.handleError(err);
         }
     }
     
