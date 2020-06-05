@@ -70,7 +70,7 @@ export const formatPath = (path:string, filter:any) => {
     return path;
 };
 
-export const generateRandomPar = (pan: string, exp_month: any, exp_year: any, salt: string) : string => {
+export const generateRandomPar = (pan: string, exp_month: string, exp_year: string, salt: string) : string => {
 
     let paramsArray = [pan, exp_month, exp_year, salt];
     let validationErrors = [];
@@ -81,16 +81,11 @@ export const generateRandomPar = (pan: string, exp_month: any, exp_year: any, sa
         }
     }
 
-    pan = pan.toString();
-    var exp_month_string = exp_month.toString();
-    var exp_year_string = exp_year.toString();
-    salt = salt.toString();
-
-    if ((exp_month_string.length != 2) || isNaN(exp_month) || (exp_month > 12)) {
+    if ((exp_month.length != 2) || isNaN(+exp_month) || (+exp_month > 12)) {
         validationErrors.push("Invalid expiration month received: " + exp_month);
     }
 
-    if ((exp_year_string.length != 2) || isNaN(exp_year)) {
+    if ((exp_year.length != 2) || isNaN(+exp_year)) {
         validationErrors.push("Invalid expiration year received: " + exp_year);
     }
 
@@ -107,8 +102,8 @@ export const generateRandomPar = (pan: string, exp_month: any, exp_year: any, sa
     const hashP = crypto.createHash("md5");
     hashP.update(pan);
     const panHash = hashP.digest();
-    const PARHash = crypto.pbkdf2Sync(panHash, salt_buffer, 5000, 16, "md5");
-    const PAR = "CSAVR" + PARHash.toString('base64');
+    const PARHash = crypto.pbkdf2Sync(panHash.toString("utf8"), salt_buffer, 5000, 20, "sha1");
+    const PAR = "C" + PARHash.toString('base64');
 
     return PAR;
 }
