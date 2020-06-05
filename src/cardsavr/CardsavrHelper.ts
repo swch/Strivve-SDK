@@ -140,7 +140,7 @@ export class CardsavrHelper {
         return site;
     }
 
-    public async placeCardOnSite(username: string, merchant_creds: any, requesting_brand? : string) {
+    public async placeCardOnSite(username: string, merchant_creds: any, requesting_brand : string = "staging") {
         //const login = await this.loginAndCreateSession(username, undefined, grant);
         const login = this.sessions[username];
         if (login) {
@@ -168,7 +168,7 @@ export class CardsavrHelper {
                         user_id: login.user_id,
                         card_id: cards.body[0].id,
                         account_id: account.body.id,
-                        requesting_brand: requesting_brand ? requesting_brand : "staging",
+                        requesting_brand: requesting_brand,
                         //queue_name: "vbs_queue", //garbage
                         user_is_present: true
                     };
@@ -224,9 +224,9 @@ export class CardsavrHelper {
         }
     }
 
-    public async placeCardOnSiteAndPoll(username: string, merchant_creds: any, callback: any, interval: number = 5000) {
+    public async placeCardOnSiteAndPoll(username: string, merchant_creds: any, requesting_brand: string = "staging",callback: any, interval: number = 5000) {
         try {
-            const job_data = await this.placeCardOnSite(username, merchant_creds);
+            const job_data = await this.placeCardOnSite(username, merchant_creds, requesting_brand);
             if (job_data) {
                 this.pollOnJob(username, job_data.body.id, callback, interval);
             }
