@@ -140,7 +140,7 @@ export class CardsavrHelper {
         return site;
     }
 
-    public async placeCardOnSite(username: string, merchant_creds: any) {
+    public async placeCardOnSite(username: string, merchant_creds: any, requesting_brand? : string) {
         //const login = await this.loginAndCreateSession(username, undefined, grant);
         const login = this.sessions[username];
         if (login) {
@@ -168,7 +168,7 @@ export class CardsavrHelper {
                         user_id: login.user_id,
                         card_id: cards.body[0].id,
                         account_id: account.body.id,
-                        requesting_brand: "staging",
+                        requesting_brand: requesting_brand ? requesting_brand : "staging",
                         //queue_name: "vbs_queue", //garbage
                         user_is_present: true
                     };
