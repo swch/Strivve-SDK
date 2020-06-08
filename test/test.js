@@ -14,8 +14,14 @@ describe('#CardsavrHelper', function() {
         expect(result.cardsavr_server).equal("api.localhost.cardsavr.com");
     });
 
+});
+
+describe('#CardsavrSessionUtilities', function() {
+
     it('generateRandomPAR should be consistent', function() {
         var PAR = generateRandomPar("4111111111111111", "12", "24", "markbudos");
         expect(PAR).equal("C1PdrJAa7yl1bcor6cpx59TgXaFc=");
     });
+
 });
+
