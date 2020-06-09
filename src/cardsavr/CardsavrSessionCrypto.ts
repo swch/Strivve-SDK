@@ -1,7 +1,6 @@
 import * as crypto from 'crypto';
 
-//@ts-ignore TS2551
-const browserCrypto = (typeof window === 'undefined') ? false : (window.crypto || window.msCrypto);
+const browserCrypto = (typeof window === 'undefined') ? false : window.crypto;
 
 export namespace WebConversions {
 
