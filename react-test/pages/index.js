@@ -5,7 +5,7 @@ import { CardsavrHelper } from '@strivve/strivve-sdk/lib/cardsavr/CardsavrHelper
 export default function Home() {
 
   var app_name = "CardUpdatr Demo";
-  var app_key = "TGSEjt4TuK0j55TeF7x1cao88Bc1j8nyHeaBHueT5gQ=";
+  var app_key = "";
   var cardsavr_server = "https://api.mbudos.cardsavr.io";
 
   useEffect(() => {
