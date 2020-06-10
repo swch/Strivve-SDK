@@ -47,7 +47,7 @@ export class CardsavrSession {
 
     setSessionHeaders = (headersObject: {
         [key: string]: string;
-    }) => {
+    }) => { 
         Object.assign(this.sessionData.headers, headersObject);
     };
 
@@ -416,7 +416,7 @@ export class CardsavrSession {
 
     createUser = async(body: any, newSafeKey: string, financial_institution: string = "default", headersToAdd = {}): Promise < any > => {
 
-        if (body.role == "cardholder" && !body.username) {
+        if (body && body.role == "cardholder" && !body.username) {
             const length: number = 20;
             body.username = [...Array(length)].map(i => (~~(Math.random() * 36)).toString(36)).join('')
         }

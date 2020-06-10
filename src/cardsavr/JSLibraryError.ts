@@ -7,6 +7,7 @@ export default class JSLibraryError extends Error {
     super(message); 
     this.validationErrors = validationErrors;
     this.otherErrors = otherErrors;
+    Object.setPrototypeOf(this, JSLibraryError.prototype);
   }
 
 };
