@@ -211,7 +211,6 @@ export class CardsavrHelper {
                         update.body.message.status == "COMPLETED") {
                         clearInterval(broadcast_probe);
                         clearInterval(request_probe);
-                        await this.endSession(username);
                     }
                     if (update.body.type == "job_status" && 
                         update.body.message.status == "UPDATING") {
