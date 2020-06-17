@@ -84,7 +84,7 @@ export class CardsavrHelper {
             if (!cardholder_data.last_name) cardholder_data_copy.last_name = card_data.last_name;
             if (!card_data.name_on_card) card_data.name_on_card = card_data.first_name + card_data.last_name;
             const meta_key: string = createMetaKey(card_data, address_data.postal_code);
-            cardholder_data_copy.custom_data = { reporting_id: meta_key, cardsavr_user_data: { meta_key: meta_key } };
+            cardholder_data_copy.custom_data = { reporting_id: meta_key, cardsavr_card_data: { meta_key: meta_key } };
             cardholder_data_copy.cardholder_safe_key =  await CardsavrCrypto.Keys.generateCardholderSafeKey(cardholder_data.email + card_data.name_on_card); 
     
             const agent_session = this.getSession(agent_username);
