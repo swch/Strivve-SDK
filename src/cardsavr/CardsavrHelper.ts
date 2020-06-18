@@ -20,17 +20,19 @@ export class CardsavrHelper {
 
     private sessions: { [key:string]:SessionLogin; } = {};
 
-    private cardsavr_server = "";
-    private app_name = "";
-    private app_key = "";
+    private cardsavr_server: string = "";
+    private app_name: string = "";
+    private app_key: string = "";
+    private cert?: string;
 
     private constructor() { 
     }
 
-    public setAppSettings(cardsavr_server: string, app_name: string, app_key: string) : CardsavrHelper {
+    public setAppSettings(cardsavr_server: string, app_name: string, app_key: string, cert?: string) : CardsavrHelper {
         this.cardsavr_server = cardsavr_server;
         this.app_name = app_name;
         this.app_key = app_key;
+        this.cert = cert;
         return this;
     }
     
@@ -42,7 +44,7 @@ export class CardsavrHelper {
             return this.sessions[username];
         }
         try {
-            const session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, username, password, grant, undefined, trace);
+            const session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, username, password, grant, this.cert, trace);
             const login_data = await session.init();
             this.sessions[username] = { session: session, user_id: login_data.body.user_id, cardholder_safe_key: login_data.body.cardholder_safe_key, account_map: {} }; 
             return this.sessions[username];
