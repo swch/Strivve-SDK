@@ -70,8 +70,19 @@ export const formatPath = (path:string, filter:any) => {
     return path;
 };
 
-export const generateRandomPar = (pan: string, exp_month: string, exp_year: string, salt: string) : string => {
+export const createMetaKey = (card: any, postal_code: string) => {
+    const validationErrors: string[] = [];
+    if (!card.first_name || card.first_name.length === 0) { validationErrors.push("Can't create meta_key, no first name on card"); }
+    if (!card.last_name || card.last_name.length === 0) { validationErrors.push("Can't create meta_key, no last name on card"); }
+    if (!postal_code || postal_code.length < 5) { validationErrors.push("Can't create meta_key, invalid postal code"); }
+    if (!card.pan || card.pan.length === 0) { validationErrors.push("Can't create meta_key, no pan on card"); }
+    if (validationErrors.length > 0) {
+        throw new JSLibraryError(validationErrors, null);
+    }
+    return card.first_name[0] + card.last_name[0] + postal_code.substring(0, 5) + card.pan.slice(-2);
+}
 
+export const generateRandomPar = (pan: string, exp_month: string, exp_year: string, salt: string) : string => {
     let paramsArray = [pan, exp_month, exp_year, salt];
     let validationErrors = [];
 
