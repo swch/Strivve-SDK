@@ -36,4 +36,5 @@ app.get('/create_user', function (req, res) {
 
 app.use(express.static('../dist'))
 
-app.listen(port, () => console.log(`Example app listening at ${port}`))
+app.listen(port, () => console.log(`CardUpdatr Demo app listening at ${port} ${process.env.CARDSAVR_SERVER}`))
+
