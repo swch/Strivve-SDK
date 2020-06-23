@@ -11,7 +11,8 @@
     "test": "mocha --reporter spec",
     "dev": "webpack --display-error-details --mode development",
     "prod": "webpack --mode production",
-    "build": "tsc"
+    "build": "tsc",
+    "start": "node sample/webserver.js"
   },
   "repository": {
     "type": "git",

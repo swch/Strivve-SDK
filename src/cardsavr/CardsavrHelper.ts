@@ -108,7 +108,7 @@ export class CardsavrHelper {
             card_data.par = generateRandomPar(card_data.pan, card_data.expiration_month, card_data.expiration_year, cardholder_data_copy.username);
             const card_response = await session_user.createCard(card_data, cardholder_data_copy.cardholder_safe_key);
     
-            return { grant: grant_handoff, username: cardholder_data_copy.username, card_id: card_response.body.id } ;
+            return { grant: grant_handoff, cardholder: cardholder_response.body, card: card_response.body, address: address_response.body } ;
     
         } catch(err) {
             this.handleError(err);
@@ -212,15 +212,19 @@ export class CardsavrHelper {
             }, interval < 1000 ? 1000 : interval);
             var broadcast_probe = setInterval(async (message) => { 
                 var update = await session.getJobStatusUpdate(job_id, subscription.body.access_key);
-                if (update.body) {
+                if (update.status_code == 401) {
+                    clearInterval(broadcast_probe);
+                    clearInterval(request_probe);
+                } else if (update.body) {
                     callback(update.body);  
-                    if (update.body.type == "job_status" &&
-                        update.body.message.status == "COMPLETED") {
+                    if (update.body.type === "job_status" &&
+                        (update.body.message.status === "COMPLETED" || update.body.message.terminal_type)) {
+                        //COMPLETED is deprecated / prefer terminal_type
                         clearInterval(broadcast_probe);
                         clearInterval(request_probe);
                     }
-                    if (update.body.type == "job_status" && 
-                        update.body.message.status == "UPDATING") {
+                    if (update.body.type === "job_status" && 
+                        (update.body.message.status === "UPDATING" || update.body.message.terminal_type)) {
                         clearInterval(request_probe);
                     }
                 }
