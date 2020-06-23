@@ -10,10 +10,9 @@
   "author": "Strivve <mbudos@strivve.com> (https://www.strivve.com/)",
   "license": "ISC",
   "dependencies": {
-    "@strivve/strivve-sdk": "^2.0.21",
-    "axios": "^0.19.2"
-  },
-  "devDependencies": {
-    "express": "^4.17.1"
+    "@strivve/strivve-sdk": "^2.1.14",
+    "axios": "^0.19.2",
+    "body-parser": "*",
+    "express": "*"
   }
 }
