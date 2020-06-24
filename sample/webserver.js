@@ -5,11 +5,9 @@ const { CardsavrHelper } = require("@strivve/strivve-sdk/lib/cardsavr/CardsavrHe
 
 app.get('/create_user', function (req, res) {
  
-    const {app_name, app_key, app_username, app_password, cardsavr_server } = require("./strivve_creds.json");
-    const cardholder_data = require("./cardholder.json");
-    const address_data = require("./address.json");
-    const card_data = require("./card.json");
-    
+    const cardholder_data = getFromEnv(getFromEnv(require("./cardholder.json"), process.env), req.query);
+    const address_data = getFromEnv(getFromEnv(require("./address.json"), process.env), req.query);
+    const card_data = getFromEnv(getFromEnv(require("./card.json"), process.env), req.query);
     (async() => {
 
         const cu = cardsavr_server.replace("cardsavr.io", "cardupdatr.app").replace("//api.", "//");
@@ -19,22 +17,26 @@ app.get('/create_user', function (req, res) {
             ch.setAppSettings(cardsavr_server, app_name, app_key);
             //Create a session for the application user (cardholder agent)
             if (await ch.loginAndCreateSession(app_username, app_password)) {
-                //Save the card on a behalf of a temporary cardholder - return their username and a grant
+                //Save the card on a behalf of a temporary cardholder - return their username, grant, card par
                 const data = await ch.createCard(app_username, 'default', cardholder_data, address_data, card_data);
                 await ch.endSession(data.cardholder.username);
-                handoff = { grant: data.grant, username: data.cardholder.username, card_id: data.card.id }
+                handoff = { grant: data.grant, username: data.cardholder.username, par: data.card.par }
                 const queryString = Object.keys(handoff).map(key => key + '=' + encodeURIComponent(handoff[key])).join('&');
                 res.redirect(cu + "#select-merchants&" + queryString);
             }
         } catch (err) {
             console.log(err);
         }
-            
-    })();
-      
+    })();      
 })
+
+const {app_name, app_key, app_username, app_password, cardsavr_server } = getFromEnv(require("./strivve_creds.json"), process.env);
+
+function getFromEnv(config, env) {
+    return Object.fromEntries(Object.entries(config).map(([key, value]) => env[key] ? [key, env[key]] : [key, value]));
+}
 
 app.use(express.static('../dist'))
 
-app.listen(port, () => console.log(`CardUpdatr Demo app listening at ${port} ${process.env.CARDSAVR_SERVER}`))
+app.listen(port, () => console.log(`CardUpdatr Demo app listening at ${port}`))
 
