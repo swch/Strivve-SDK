@@ -30,13 +30,15 @@ app.get('/create_user', function (req, res) {
     })();      
 })
 
+app.use(express.static('../dist'))
+
+app.listen(port, () => console.log(`CardUpdatr Demo app listening at ${port}`))
+
 const {app_name, app_key, app_username, app_password, cardsavr_server } = getFromEnv(require("./strivve_creds.json"), process.env);
 
 function getFromEnv(config, env) {
     return Object.fromEntries(Object.entries(config).map(([key, value]) => env[key] ? [key, env[key]] : [key, value]));
 }
 
-app.use(express.static('../dist'))
 
-app.listen(port, () => console.log(`CardUpdatr Demo app listening at ${port}`))
 
