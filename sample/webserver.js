@@ -11,6 +11,7 @@ app.get('/create_user', function (req, res) {
     (async() => {
 
         const cu = cardsavr_server.replace("cardsavr.io", "cardupdatr.app").replace("//api.", "//");
+        //const cu = "/index.html";
         try {
             const ch = CardsavrHelper.getInstance();
             //Setup the settings for the application

@@ -203,30 +203,38 @@ export class CardsavrHelper {
             const session = this.getSession(username);
             const login = this.sessions[username];
 
-            var subscription = await session.registerForJobStatusUpdates(job_id);
-            var request_probe = setInterval(async (message) => { 
-                var request = await session.getJobInformationRequest(job_id);
+            const subscription = await session.registerForJobStatusUpdates(job_id);
+            const request_probe = setInterval(async (message) => { 
+                const request = await session.getJobInformationRequest(job_id);
                 if (request.body) {
                     callback(request.body);
                 }
             }, interval < 1000 ? 1000 : interval);
-            var broadcast_probe = setInterval(async (message) => { 
-                var update = await session.getJobStatusUpdate(job_id, subscription.body.access_key);
+            const broadcast_probe = setInterval(async (message) => { 
+                const update = await session.getJobStatusUpdate(job_id, subscription.body.access_key);
                 if (update.status_code == 401) {
                     clearInterval(broadcast_probe);
                     clearInterval(request_probe);
                 } else if (update.body) {
-                    callback(update.body);  
-                    if (update.body.type === "job_status" &&
-                        (update.body.message.status === "COMPLETED" || update.body.message.terminal_type)) {
-                        //COMPLETED is deprecated / prefer terminal_type
-                        clearInterval(broadcast_probe);
-                        clearInterval(request_probe);
+                    //this is temporary until we can guarantee that messages are arrays
+                    const arr = []; 
+                    if (!Array.isArray(update.body)) {
+                        arr.push(update.body);
+                    } else {
+                        arr.push(...update.body);
                     }
-                    if (update.body.type === "job_status" && 
-                        (update.body.message.status === "UPDATING" || update.body.message.terminal_type)) {
-                        clearInterval(request_probe);
-                    }
+                    arr.map(item => {
+                        console.log(item);
+                        callback(item);
+                        if (update.body.type === "job_status") {
+                            if (update.body.message.terminal_type || update.body.message.status === "COMPLETED") {
+                                clearInterval(broadcast_probe);
+                                clearInterval(request_probe);
+                            } else if (update.body.message.status === "UPDATING") {
+                                clearInterval(request_probe);
+                            }
+                        }
+                    });
                 }
             }, interval < 1000 ? 1000 : interval);
         } catch(err) {
@@ -234,7 +242,7 @@ export class CardsavrHelper {
         }
     }
 
-    public async placeCardOnSiteAndPoll(username: string, merchant_creds: any, requesting_brand: string = "staging",callback: any, interval: number = 5000) {
+    public async placeCardOnSiteAndPoll(username: string, merchant_creds: any, requesting_brand: string = "staging", callback: any, interval: number = 5000) {
         try {
             const job_data = await this.placeCardOnSite(username, merchant_creds, requesting_brand);
             if (job_data) {

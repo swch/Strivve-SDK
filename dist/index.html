@@ -55,12 +55,12 @@
         //not used, but could be used to pick a site
         const sites = await (await helper.getSession(result.username)).getSites({ "tags": "prod" }, { page_length : 200, sort: "name" });
 
-        helper.placeCardOnSiteAndPoll(result.username, creds, (message) => {
+        helper.placeCardOnSiteAndPoll(result.username, creds, "acembank", (message) => {
           if (message.type == 'job_status') { //status updates
             console.log(message.message);
             status.innerHTML = message.message.status + ": " + message.message.percent_complete + "%";
             if (message.message.status == 'COMPLETED' && message.message.percent_complete == 100) {  //only one on job complete
-              status.innerHTML = message.message.final_status;
+              status.innerHTML = message.message.result;
               document.getElementById('job_form').style.display = "none";
             }
           } else if (message.job_id && message.type.endsWith("_request")) {
