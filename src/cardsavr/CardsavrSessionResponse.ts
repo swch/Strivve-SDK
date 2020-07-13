@@ -14,4 +14,4 @@ export default class CardsavrSessionResponse {
       this.body = body;
       this.call = call;
     }
-};
+}

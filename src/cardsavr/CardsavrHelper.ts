@@ -4,8 +4,7 @@ import { CardsavrSession } from "./CardsavrJSLibrary-2.0";
 import CardsavrSessionResponse from "./CardsavrSessionResponse";
 import { generateRandomPar, createMetaKey } from "./CardsavrSessionUtilities";
 import JSLibraryError from "./JSLibraryError";
-import * as CardsavrCrypto from "./CardsavrSessionCrypto";
-
+import { Keys } from "./CardsavrSessionCrypto";
 
 interface SessionLogin {
     session: CardsavrSession, 
@@ -20,13 +19,10 @@ export class CardsavrHelper {
 
     private sessions: { [key:string]:SessionLogin; } = {};
 
-    private cardsavr_server: string = "";
-    private app_name: string = "";
-    private app_key: string = "";
+    private cardsavr_server = "";
+    private app_name = "";
+    private app_key = "";
     private cert?: string;
-
-    private constructor() { 
-    }
 
     public setAppSettings(cardsavr_server: string, app_name: string, app_key: string, cert?: string) : CardsavrHelper {
         this.cardsavr_server = cardsavr_server;
@@ -39,30 +35,31 @@ export class CardsavrHelper {
     public async loginAndCreateSession(username: string, 
                                        password?: string,
                                        grant?: string,
-                                       trace?: any) {
+                                       trace?: unknown) : Promise<SessionLogin | null> {
         if (this.sessions[username]) {
             return this.sessions[username];
         }
         try {
             const session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, username, password, grant, this.cert, trace);
             const login_data = await session.init();
-            this.sessions[username] = { session: session, user_id: login_data.body.user_id, cardholder_safe_key: login_data.body.cardholder_safe_key, account_map: {} }; 
+            this.sessions[username] = { session : session, user_id : login_data.body.user_id, cardholder_safe_key : login_data.body.cardholder_safe_key, account_map : {} }; 
             return this.sessions[username];
         } catch(err) {
             this.handleError(err);
         }
+        return null;
     }
 
     public getSession(username: string) : CardsavrSession {
         if (!this.sessions[username]) {
-            throw new JSLibraryError(null, "Must login and create session before using it.")
+            throw new JSLibraryError(null, "Must login and create session before using it.");
         }
         return this.sessions[username].session;
     }
 
     public getCardholderSafeKey(username: string) : string {
         if (!this.sessions[username]) {
-            throw new JSLibraryError(null, "Must login and create session before accessing safe key.")
+            throw new JSLibraryError(null, "Must login and create session before accessing safe key.");
         }
         return this.sessions[username].cardholder_safe_key;
     }
@@ -74,7 +71,7 @@ export class CardsavrHelper {
         return CardsavrHelper.instance;
     }
 
-    public async createCard(agent_username: string, financial_institution: string, cardholder_data: any, address_data: any, card_data: any) {
+    public async createCard(agent_username: string, financial_institution: string, cardholder_data: any, address_data: Record<string, string>, card_data: any) : Promise<unknown> {
     
         try {
             //don't need the login data
@@ -86,8 +83,8 @@ export class CardsavrHelper {
             if (!cardholder_data.last_name) cardholder_data_copy.last_name = card_data.last_name;
             if (!card_data.name_on_card) card_data.name_on_card = card_data.first_name + card_data.last_name;
             const meta_key: string = createMetaKey(card_data, address_data.postal_code);
-            cardholder_data_copy.custom_data = { reporting_id: meta_key, cardsavr_card_data: { meta_key: meta_key } };
-            cardholder_data_copy.cardholder_safe_key =  await CardsavrCrypto.Keys.generateCardholderSafeKey(cardholder_data.email + card_data.name_on_card); 
+            cardholder_data_copy.custom_data = { reporting_id : meta_key, cardsavr_card_data : { meta_key : meta_key } };
+            cardholder_data_copy.cardholder_safe_key =  await Keys.generateCardholderSafeKey(cardholder_data.email + card_data.name_on_card); 
     
             const agent_session = this.getSession(agent_username);
             const cardholder_response = await agent_session.createUser(cardholder_data_copy, cardholder_data_copy.cardholder_safe_key, financial_institution);
@@ -108,14 +105,16 @@ export class CardsavrHelper {
             card_data.par = generateRandomPar(card_data.pan, card_data.expiration_month, card_data.expiration_year, cardholder_data_copy.username);
             const card_response = await session_user.createCard(card_data, cardholder_data_copy.cardholder_safe_key);
     
-            return { grant: grant_handoff, cardholder: cardholder_response.body, card: card_response.body, address: address_response.body } ;
+            return { grant : grant_handoff, cardholder : cardholder_response.body, card : card_response.body, address : address_response.body } ;
     
         } catch(err) {
             this.handleError(err);
         }
+        // eslint-disable-next-line no-constant-condition
         if (false) {  //this is only for testing
             this.deleteAccount(agent_username, card_data.cardholder_id);
         }
+        return null;
     }
 
     private handleError(err: any) {
@@ -136,7 +135,7 @@ export class CardsavrHelper {
     private async lookupMerchantSite(username: string, host: string) {
         const session = this.getSession(username);
 
-        const sites: CardsavrSessionResponse = await session.getSites({}, { page_length : 200, sort: "host" } )
+        const sites: CardsavrSessionResponse = await session.getSites({}, { page_length : 200, sort : "host" } );
         if (!sites || !sites.body || sites.body.length === 0 ) {
             return null;
         }
@@ -147,7 +146,7 @@ export class CardsavrHelper {
         return site;
     }
 
-    public async placeCardOnSite(username: string, merchant_creds: any, requesting_brand : string = "staging") {
+    public async placeCardOnSite(username: string, merchant_creds: any, requesting_brand  = "staging") {
         //const login = await this.loginAndCreateSession(username, undefined, grant);
         const login = this.sessions[username];
         if (login) {
@@ -163,24 +162,24 @@ export class CardsavrHelper {
                 //create the account and get all the users cards
                 const [account, cards] = await Promise.all(
                     [session.createAccount( 
-                        {cardholder_id: login.user_id,
-                        username: merchant_creds.username, 
-                        password: merchant_creds.password, 
-                        merchant_site_id: merchant_site_id}, login.cardholder_safe_key ),
+                        {cardholder_id : login.user_id,
+                        username : merchant_creds.username, 
+                        password : merchant_creds.password, 
+                        merchant_site_id : merchant_site_id}, login.cardholder_safe_key ),
                     session.getCards({})]
                 );
                 //use the first card the user has (we only created one)
                 if (account && account.body && cards && cards.body && cards.body.length == 1) {
-                    var job_params = {
-                        user_id: login.user_id,
-                        card_id: cards.body[0].id,
-                        account_id: account.body.id,
-                        requesting_brand: requesting_brand,
+                    const job_params = {
+                        user_id : login.user_id,
+                        card_id : cards.body[0].id,
+                        account_id : account.body.id,
+                        requesting_brand : requesting_brand,
                         //queue_name: "vbs_queue", //garbage
-                        user_is_present: true
+                        user_is_present : true
                     };
-                    var job_data = await session.createSingleSiteJob(job_params, login.cardholder_safe_key);
-                    var job_id = job_data.body.id;
+                    const job_data = await session.createSingleSiteJob(job_params, login.cardholder_safe_key);
+                    const job_id = job_data.body.id;
                     login.account_map[job_id] = account.body.id;
                     return job_data;
                 }
@@ -192,13 +191,13 @@ export class CardsavrHelper {
         }
     }
 
-    public async endSession(username: string) {
+    public endSession(username: string) {
         const session = this.getSession(username);
         session.end();
         delete this.sessions[username];
     }
 
-    public async pollOnJob(username: string, job_id: number, callback: any, interval: number = 5000) {
+    public async pollOnJob(username: string, job_id: number, callback: any, interval = 5000) {
         try {
             const session = this.getSession(username);
             const login = this.sessions[username];
@@ -242,7 +241,7 @@ export class CardsavrHelper {
         }
     }
 
-    public async placeCardOnSiteAndPoll(username: string, merchant_creds: any, requesting_brand: string = "staging", callback: any, interval: number = 5000) {
+    public async placeCardOnSiteAndPoll(username: string, merchant_creds: any, requesting_brand = "staging", callback: any, interval = 5000) {
         try {
             const job_data = await this.placeCardOnSite(username, merchant_creds, requesting_brand);
             if (job_data) {
@@ -269,8 +268,8 @@ export class CardsavrHelper {
             const login = this.sessions[username];
             session.updateAccount( 
                 login.account_map[job_id],
-                {username: merchant_creds.username, 
-                password: merchant_creds.password}, login.cardholder_safe_key );
+                {username : merchant_creds.username, 
+                password : merchant_creds.password}, login.cardholder_safe_key );
             session.sendJobInformation(job_id, envelope_id, "credential_response", "submitted");
         } catch(err) {
             this.handleError(err);
@@ -290,6 +289,3 @@ export class CardsavrHelper {
     }
     
 } 
-
-
-

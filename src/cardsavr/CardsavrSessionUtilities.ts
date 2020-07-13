@@ -1,9 +1,9 @@
 import JSLibraryError from  "./JSLibraryError";
-import * as crypto from 'crypto';
+import * as crypto from "crypto";
 
 export const generateHydrationHeader = (hydrationArray: any) : any => {
-    let stringifiedHeader = JSON.stringify(hydrationArray);
-    return {"hydration": stringifiedHeader};
+    const stringifiedHeader = JSON.stringify(hydrationArray);
+    return {"hydration" : stringifiedHeader};
 };
 
 const _stringReplaceAll = function (string: any, find: string, replace: string) {
@@ -34,31 +34,31 @@ export const generateTraceValue = (bytes? : number) => {
     return traceValue;
 };
   
-const stringIdPaths = ['/card_placement_results','/sites'];
+const stringIdPaths = ["/card_placement_results","/sites"];
 
 export const formatPath = (path:string, filter:any) => {
 
-    let validationErrors = [];
+    const validationErrors = [];
 
-    if (!path.startsWith('/')) {
-        path = '/' + path;
+    if (!path.startsWith("/")) {
+        path = "/" + path;
     }
-    if (path.endsWith('/')) {
+    if (path.endsWith("/")) {
         path = path.substring(0, path.length - 1);
     }
     if (filter) {
-        if (!isNaN(filter) || (typeof filter == 'string' && stringIdPaths.includes(path)) ) {
+        if (!isNaN(filter) || (typeof filter == "string" && stringIdPaths.includes(path)) ) {
             path = `${path}/${filter}`;
         }
-        else if (typeof filter === 'object' && !Array.isArray(filter)) {
-            let filterProperties = Object.keys(filter);
-            for (var x = 0; x < filterProperties.length; x++) {
+        else if (typeof filter === "object" && !Array.isArray(filter)) {
+            const filterProperties = Object.keys(filter);
+            for (let x = 0; x < filterProperties.length; x++) {
                 if (x == 0) {
                     path = path + "?";
                 }
                 path = path + filterProperties[x] + "=" + filter[filterProperties[x]];
                 if (x != filterProperties.length - 1) {
-                    path = path + ',';
+                    path = path + ",";
                 }
             }
         }
@@ -80,63 +80,63 @@ export const createMetaKey = (card: any, postal_code: string) => {
         throw new JSLibraryError(validationErrors, null);
     }
     return card.first_name[0] + card.last_name[0] + postal_code.substring(0, 5) + card.pan.slice(-2);
-}
+};
 
 export const generateRandomPar = (pan: string, exp_month: string, exp_year: string, salt: string) : string => {
-    let paramsArray = [pan, exp_month, exp_year, salt];
-    let validationErrors = [];
+    const paramsArray = [pan, exp_month, exp_year, salt];
+    const validationErrors = [];
 
-    for(var param of paramsArray){
+    for(const param of paramsArray){
         if(!param){
             validationErrors.push("Missing required parameter: " + param);
         }
     }
 
     if ((exp_month.length != 2) || isNaN(+exp_month) || (+exp_month > 12)) {
-        validationErrors.push("Invalid expiration month received: " + exp_month);
+        validationErrors.push("Invalid expiration month received: " + exp_month);
     }
 
-    if ((exp_year.length != 2) || isNaN(+exp_year)) {
-        validationErrors.push("Invalid expiration year received: " + exp_year);
-    }
+    if ((exp_year.length != 2) || isNaN(+exp_year)) {
+        validationErrors.push("Invalid expiration year received: " + exp_year);
+    }
 
-    if(validationErrors.length>0){
+    if (validationErrors.length > 0){
       throw new JSLibraryError(validationErrors, null);
     }
 
-    // Hash up the salt for use as salt
-    const hashS = crypto.createHash("sha256");
-    hashS.update(salt + exp_month + exp_year);
-    const salt_buffer = hashS.digest();
+    // Hash up the salt for use as salt
+    const hashS = crypto.createHash("sha256");
+    hashS.update(salt + exp_month + exp_year);
+    const salt_buffer = hashS.digest();
 
-    // Hashup the PAN into 128bits
-    const hashP = crypto.createHash("md5");
-    hashP.update(pan);
-    const panHash = hashP.digest();
-    const PARHash = crypto.pbkdf2Sync(panHash.toString("utf8"), salt_buffer, 5000, 20, "sha1");
-    const PAR = "C" + PARHash.toString('base64');
+    // Hashup the PAN into 128bits
+    const hashP = crypto.createHash("md5");
+    hashP.update(pan);
+    const panHash = hashP.digest();
+    const PARHash = crypto.pbkdf2Sync(panHash.toString("utf8"), salt_buffer, 5000, 20, "sha1");
+    const PAR = "C" + PARHash.toString("base64");
 
-    return PAR;
-}
+    return PAR;
+};
 
 export const getCardBrand = function(pan:string) {
 
-    let validationErrors = [];
+    const validationErrors = [];
 
     pan = pan.toString();
 
     const brandRegexes: { [key: string]: RegExp } = {
-      "visa": /^4[0-9]{12}(?:[0-9]{3})?$/,
-      "mastercard": /^5[1-5][0-9]{14}$/,
-      "amex": /^3[47][0-9]{5,}$/,
-      "discover": /^6(?:011|5[0-9]{2})[0-9]{12}$/
+      "visa" : /^4[0-9]{12}(?:[0-9]{3})?$/,
+      "mastercard" : /^5[1-5][0-9]{14}$/,
+      "amex" : /^3[47][0-9]{5,}$/,
+      "discover" : /^6(?:011|5[0-9]{2})[0-9]{12}$/
     };
 
-    let brands = Object.keys(brandRegexes);
+    const brands = Object.keys(brandRegexes);
 
-    for(var brand of brands){
+    for(const brand of brands){
 
-      let regex = brandRegexes[brand];
+      const regex = brandRegexes[brand];
 
       if(pan.match(regex)){
         return brand;

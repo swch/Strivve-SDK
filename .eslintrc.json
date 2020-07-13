@@ -1,0 +1,57 @@
+{
+    "env": {
+        "browser": true,
+        "es6": true,
+        "node":true
+    },
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "plugins": [
+        "@typescript-eslint"
+    ],
+    "parserOptions": {
+        "ecmaFeatures": {
+            "jsx": true
+        },
+        "ecmaVersion": 2018,
+        "sourceType": "module"
+    },
+    "rules": {
+        "@typescript-eslint/ban-ts-comment": "off",
+        "no-var":"error",
+        "prefer-const":"error",
+        "no-console": "off",
+        "@typescript-eslint/camelcase": "off",
+        "space-infix-ops": 1,
+        "key-spacing":  [ "error", {
+            "beforeColon": true,
+            "afterColon": true,
+            "mode" : "strict"
+        }],
+        "linebreak-style":"off",
+        "quotes": [
+            "error",
+            "double"
+        ],
+        "no-multiple-empty-lines" : ["error", 
+        { 
+            "max": 1,
+            "maxEOF": 0 
+        }],
+        "semi": [
+            "error",
+            "always"
+        ]
+    },
+    "settings": {
+        "import/resolver": {
+            "node": {
+                "extensions": [".js", ".jsx", ".ts", ".tsx"]
+            }
+        }
+    }
+}

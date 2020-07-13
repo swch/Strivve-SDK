@@ -1,26 +1,25 @@
-const crypto = require("../2.0/transpiled-node-js/CardsavrSessionCrypto.js");
+import { Signing } from "../../../lib/cardsavr/CardsavrSessionCrypto.js";
 
-let app_key = process.env.app_key;
-let app_name = process.env.app_name;
-let path = process.env.path;
-let body = process.env.body;
+const app_key = process.env.app_key;
+const app_name = process.env.app_name;
+const path = process.env.path;
+const body = process.env.body;
 
 async function signature_test(){
 
-    let date = new Date();
-    let nonce = date.getTime().toString(10);
-    let authorization = 'SWCH-HMAC-SHA256 Credentials=' + app_name;
+    const date = new Date();
+    const nonce = date.getTime().toString(10);
+    const authorization = "SWCH-HMAC-SHA256 Credentials=" + app_name;
 
-    let bodyString = body ? JSON.stringify(body) : ``;
-    let stringToSign = decodeURIComponent(path) + authorization + nonce + bodyString;
+    const bodyString = body ? JSON.stringify(body) : "";
+    const stringToSign = decodeURIComponent(path) + authorization + nonce + bodyString;
 
-    console.log(`The string being signed is: ${stringToSign}`)
+    console.log(`The string being signed is: ${stringToSign}`);
 
-    let headers = await crypto.Signing.signRequest(path, app_name, app_key, body);
+    const headers = await Signing.signRequest(path, app_name, app_key, body);
 
-    console.log("the generated headers are: ")
-    console.log(headers)
+    console.log("the generated headers are: ");
+    console.log(headers);
 }
 
 signature_test();
-

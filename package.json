@@ -12,8 +12,12 @@
     "dev": "webpack --display-error-details --mode development",
     "prod": "webpack --mode production",
     "build": "tsc",
-    "start": "node sample/webserver.js"
+    "start": "node sample/webserver.js",
+    "lint": "eslint ./src --ext .js,.ts --fix"
   },
+  "config": {
+    "static_dir": "./dist/"
+  }, 
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/swch/Strivve-SDK.git"
@@ -38,6 +42,9 @@
   },
   "dependencies": {
     "@types/lodash": "^4.14.149",
-    "axios": "^0.19.2"
+    "@typescript-eslint/eslint-plugin": "^3.6.0",
+    "@typescript-eslint/parser": "^3.6.0",
+    "axios": "^0.19.2",
+    "eslint": "^7.4.0"
   }
 }
