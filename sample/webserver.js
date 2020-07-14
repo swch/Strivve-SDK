@@ -33,7 +33,7 @@ app.get("/create_user", function (req, res) {
 
 const static_dir = process.env.npm_package_config_static_dir || "../dist";
 //console.log(process.env);
-console.log("USING " + static_dir + " for static file serving.");
+//console.log("USING " + static_dir + " for static file serving.");
 app.use(express.static(static_dir));
 
 app.listen(port, () => console.log(`CardUpdatr Demo app listening at ${port}`));
