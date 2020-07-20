@@ -2,7 +2,36 @@
 
 const expect = require("chai").expect;
 const { CardsavrHelper } = require("../lib/cardsavr/CardsavrHelper");
-const { generateRandomPar } = require("../lib/cardsavr/CardsavrSessionUtilities");
+const { generateRandomPar, formatPath } = require("../lib/cardsavr/CardsavrSessionUtilities");
+
+describe("#formatPath", function() {
+
+    it("path with multiple ids and no filters", function() {
+        const result = formatPath("merchant_sites", {top_hosts: "walmart.com,amazon.com,apple.com", exclude_hosts: "walmart.com"});
+        expect(result).to.be.a('string');
+        expect(result).to.equal("/merchant_sites?top_hosts=walmart.com,amazon.com,apple.com&exclude_hosts=walmart.com");
+        console.log(result);
+    });
+    it("path with multiple ids and no filters", function() {
+        const result = formatPath("merchant_sites", {top_hosts: ["walmart.com","amazon.com","apple.com"], exclude_hosts: ["walmart.com"]});
+        expect(result).to.be.a('string');
+        expect(result).to.equal("/merchant_sites?top_hosts=walmart.com,amazon.com,apple.com&exclude_hosts=walmart.com");
+        console.log(result);
+    });
+    it("path with id and no filters", function() {
+        const result = formatPath("merchant_sites", 1);
+        expect(result).to.equal("/merchant_sites/1");
+    });
+    it("path with ids and no filters", function() {
+        const result = formatPath("merchant_sites", {"ids": [1,2]});
+        expect(result).to.equal("/merchant_sites?ids=1,2");
+    });
+    it("path with hostnaames and no filters", function() {
+        const result = formatPath("merchant_sites", {"hosts": ["amazon.com","apple.com"]});
+        expect(result).to.equal("/merchant_sites?hosts=amazon.com,apple.com");
+    });
+
+});
 
 describe("#CardsavrHelper", function() {
 
