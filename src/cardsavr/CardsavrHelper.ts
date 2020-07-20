@@ -13,6 +13,8 @@ interface SessionLogin {
     account_map: { [key:number]:number; }
 }
 
+type MessageHandler = (str: string) => void;
+
 export class CardsavrHelper {
     
     private static instance: CardsavrHelper;
@@ -197,19 +199,18 @@ export class CardsavrHelper {
         delete this.sessions[username];
     }
 
-    public async pollOnJob(username: string, job_id: number, callback: any, interval = 5000) {
+    public async pollOnJob(username: string, job_id: number, callback: MessageHandler, interval = 5000) {
         try {
             const session = this.getSession(username);
-            const login = this.sessions[username];
-
+            
             const subscription = await session.registerForJobStatusUpdates(job_id);
-            const request_probe = setInterval(async (message) => { 
+            const request_probe = setInterval(async (_message) => { 
                 const request = await session.getJobInformationRequest(job_id);
                 if (request.body) {
                     callback(request.body);
                 }
             }, interval < 1000 ? 1000 : interval);
-            const broadcast_probe = setInterval(async (message) => { 
+            const broadcast_probe = setInterval(async (_message) => { 
                 const update = await session.getJobStatusUpdate(job_id, subscription.body.access_key);
                 if (update.status_code == 401) {
                     clearInterval(broadcast_probe);
