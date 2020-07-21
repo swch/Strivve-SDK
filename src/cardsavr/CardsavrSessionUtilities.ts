@@ -34,7 +34,7 @@ export const generateTraceValue = (bytes? : number) => {
     return traceValue;
 };
   
-const stringIdPaths = ["/card_placement_results","/sites"];
+const stringIdPaths = ["/card_placement_results","/merchant_sites"];
 
 export const formatPath = (path:string, filter:any) => {
 
@@ -51,16 +51,8 @@ export const formatPath = (path:string, filter:any) => {
             path = `${path}/${filter}`;
         }
         else if (typeof filter === "object" && !Array.isArray(filter)) {
-            const filterProperties = Object.keys(filter);
-            for (let x = 0; x < filterProperties.length; x++) {
-                if (x == 0) {
-                    path = path + "?";
-                }
-                path = path + filterProperties[x] + "=" + filter[filterProperties[x]];
-                if (x != filterProperties.length - 1) {
-                    path = path + ",";
-                }
-            }
+            path += "?" + Object.keys(filter)
+                .map(k => `${k}=${filter[k]}`).join("&");
         }
         else {
             validationErrors.push("Valid ID or filter not found in provided path.");
