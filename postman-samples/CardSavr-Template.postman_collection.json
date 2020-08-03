@@ -1,0 +1,573 @@
+{
+	"info": {
+		"_postman_id": "960b2327-8de5-4608-a803-1b4fd873a2be",
+		"name": "CardSavr-Template",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Start Admin",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "trace",
+						"value": "{\"key\":\"postman\"}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://api.CDE-DOMAIN.cardsavr.io/session/start",
+					"protocol": "https",
+					"host": [
+						"api",
+						"CDE-DOMAIN",
+						"cardsavr",
+						"io"
+					],
+					"path": [
+						"session",
+						"start"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login Admin",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true
+				}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "trace",
+						"value": "{\"key\":\"postman\"}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n \t\t\"userName\": \"admin\",\n\t\t\"password\": \"ADMIN-PASSWORD\"\n} ",
+					"options": {
+						"raw": {}
+					}
+				},
+				"url": {
+					"raw": "https://api.CDE-DOMAIN .cardsavr.io/session/login",
+					"protocol": "https",
+					"host": [
+						"api",
+						"CDE-DOMAIN ",
+						"cardsavr",
+						"io"
+					],
+					"path": [
+						"session",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Cardsavr Users",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "trace",
+						"value": "{\"key\":\"postman\"}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://api.CDE-DOMAIN.cardsavr.io/cardsavr_users/",
+					"protocol": "https",
+					"host": [
+						"api",
+						"CDE-DOMAIN",
+						"cardsavr",
+						"io"
+					],
+					"path": [
+						"cardsavr_users",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Cards",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "trace",
+						"value": "{\"key\":\"postman\"}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://api.CDE-DOMAIN.cardsavr.io/cardsavr_cards",
+					"protocol": "https",
+					"host": [
+						"api",
+						"CDE-DOMAIN",
+						"cardsavr",
+						"io"
+					],
+					"path": [
+						"cardsavr_cards"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Cardholder Agent",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true
+				}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "trace",
+						"value": "{\"key\":\"postman\"}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\" : \"demo_cardholder_agent\",\n    \"role\" : \"cardholder_agent\",\n    \"financial_institution\" : \"Default\",\n    \"first_name\" : \"Cardholder\",\n    \"last_name\" : \"Agent\",\n    \"email\" : \"gtomlinson@strivve.com\",\n    \"phone_number\" : \"1-425-503-0881\"\n}",
+					"options": {
+						"raw": {}
+					}
+				},
+				"url": {
+					"raw": "https://api.CDE-DOMAIN.cardsavr.io/cardsavr_users",
+					"protocol": "https",
+					"host": [
+						"api",
+						"CDE-DOMAIN",
+						"cardsavr",
+						"io"
+					],
+					"path": [
+						"cardsavr_users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Cardholder",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "trace",
+						"value": "{\"key\":\"postman\"}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://api.CDE-DOMAIN.cardsavr.io/cardsavr_users/CARDHOLDER-ID",
+					"protocol": "https",
+					"host": [
+						"api",
+						"CDE-DOMAIN",
+						"cardsavr",
+						"io"
+					],
+					"path": [
+						"cardsavr_users",
+						"CARDHOLDER-ID"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "End Admin",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "trace",
+						"value": "{\"key\":\"postman\"}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://api.CDE-DOMAIN.cardsavr.io/session/end",
+					"protocol": "https",
+					"host": [
+						"api",
+						"CDE-DOMAIN",
+						"cardsavr",
+						"io"
+					],
+					"path": [
+						"session",
+						"end"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Start Cardholder Agent",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "trace",
+						"value": "{\"key\":\"postman\"}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://api.CDE-DOMAIN.cardsavr.io/session/start",
+					"protocol": "https",
+					"host": [
+						"api",
+						"CDE-DOMAIN",
+						"cardsavr",
+						"io"
+					],
+					"path": [
+						"session",
+						"start"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login Cardholder Agent",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true
+				}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "trace",
+						"value": "{\"key\":\"postman\"}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n \t\t\"userName\": \"demo_cardholder_agent\",\n\t\t\"password\": \"password\"\n} ",
+					"options": {
+						"raw": {}
+					}
+				},
+				"url": {
+					"raw": "https://api.CDE-DOMAIN.cardsavr.io/session/login",
+					"protocol": "https",
+					"host": [
+						"api",
+						"CDE-DOMAIN",
+						"cardsavr",
+						"io"
+					],
+					"path": [
+						"session",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create cardholder",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true
+				}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "trace",
+						"type": "text",
+						"value": "{\"key\":\"postman\"}"
+					},
+					{
+						"key": "financial-institution",
+						"type": "text",
+						"value": "default"
+					},
+					{
+						"key": "new-cardholder-safe-key",
+						"type": "text",
+						"value": "trNhQIgXbCCnfXlD/2AFW1DsLs0d92cWPByBv64WDnc="
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"username\" : \"demo_cardholder\",\n\t\"role\" : \"cardholder\",\n\t\"cardholder_safe_key\" : \"trNhQIgXbCCnfXlD/2AFW1DsLs0d92cWPByBv64WDnc=\",\n\t\"first_name\" : \"Demo\",\n\t\"last_name\" : \"Cardholder\",\n\t\"email\" : \"demo_carholder@example.com\",\n\t\"phone_number\" : \"18003222700\"\n}",
+					"options": {
+						"raw": {}
+					}
+				},
+				"url": {
+					"raw": "https://api.CDE-DOMAIN.cardsavr.io/cardsavr_users",
+					"protocol": "https",
+					"host": [
+						"api",
+						"CDE-DOMAIN",
+						"cardsavr",
+						"io"
+					],
+					"path": [
+						"cardsavr_users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Cred Grant By Username",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "trace",
+						"value": "{\"key\":\"postman\"}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://api.CDE-DOMAIN.cardsavr.io/cardsavr_users/demo_cardholder/credential_grant",
+					"protocol": "https",
+					"host": [
+						"api",
+						"CDE-DOMAIN",
+						"cardsavr",
+						"io"
+					],
+					"path": [
+						"cardsavr_users",
+						"demo_cardholder",
+						"credential_grant"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "End Cardhiolder Agent",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "trace",
+						"value": "{\"key\":\"postman\"}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://api.CDE-DOMAIN.cardsavr.io/session/end",
+					"protocol": "https",
+					"host": [
+						"api",
+						"CDE-DOMAIN",
+						"cardsavr",
+						"io"
+					],
+					"path": [
+						"session",
+						"end"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Start Cardholder",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "trace",
+						"value": "{\"key\":\"postman\"}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://api.CDE-DOMAIN.cardsavr.io/session/start",
+					"protocol": "https",
+					"host": [
+						"api",
+						"CDE-DOMAIN",
+						"cardsavr",
+						"io"
+					],
+					"path": [
+						"session",
+						"start"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login Cardholder",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true
+				}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "trace",
+						"value": "{\"key\":\"postman\"}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n \t\t\"userName\": \"demo_cardholder\",\n\t\t\"userCredentialGrant\": \"GRANT-RETURNED-FROM-API.CDE-DOMAIN.CARDSAVR.IO/CARDHOLDER_USERS/DEMO-CARDHOLDER/CREDENTIAL-GRANT\"\n} ",
+					"options": {
+						"raw": {}
+					}
+				},
+				"url": {
+					"raw": "https://api.CDE-DOMAIN.cardsavr.io/session/login",
+					"protocol": "https",
+					"host": [
+						"api",
+						"CDE-DOMAIN",
+						"cardsavr",
+						"io"
+					],
+					"path": [
+						"session",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "End Cardhiolder",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "trace",
+						"value": "{\"key\":\"postman\"}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://api.CDE-DOMAIN.cardsavr.io/session/end",
+					"protocol": "https",
+					"host": [
+						"api",
+						"CDE-DOMAIN",
+						"cardsavr",
+						"io"
+					],
+					"path": [
+						"session",
+						"end"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}
