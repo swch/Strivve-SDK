@@ -21,9 +21,11 @@ app.get("/create_user", function (req, res) {
                 //Save the card on a behalf of a temporary cardholder - return their username, grant, card par
                 const data = await ch.createCard(app_username, "default", cardholder_data, address_data, card_data);
                 await ch.endSession(data.cardholder.username);
-                const handoff = { grant : data.grant, username : data.cardholder.username, card_id : data.card.card_id };
+                const handoff = { grant : data.grant, username : data.cardholder.username, card_id : data.card.id };
                 const queryString = Object.keys(handoff).map(key => key + "=" + encodeURIComponent(handoff[key])).join("&");
-                res.redirect(cu + "#select-merchants&" + queryString);
+                //res.redirect(cu + "#select-merchants&" + queryString);
+                //console.log(queryString);
+                res.redirect("iframe.html#select-merchants&" + queryString);
             }
         } catch (err) {
             console.log(err);

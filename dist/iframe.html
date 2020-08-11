@@ -91,13 +91,18 @@
     </nav>
     <div class="container" style="background-color: deepskyblue; width: 100%; text-align: center; padding-top: 3vh; min-height: 100vh;">
     <!-- This script loads in from a .cardupdatr.app domain. -->
-    <script src="https://acmebank.cardupdatr.app/cardupdatr-client.js"></script>
+    <script src="https://mbudos.cardupdatr.app/cardupdatr-client.js"></script>
     <!-- Empty div to initialize the iFrame which loads CardUpdatr. -->
     <div class="cardupdatr-frame" id="cardupdatr-frame"></div>
     </div>
     <script>
 
-      /**
+      function get_hash_key_values() {
+        var hash = window.location.hash ? window.location.hash.substring(1) : "";
+        return hash.split('&').reduce(function (result, item) {
+          var parts = item.split('='); result[parts[0]] = decodeURIComponent(parts[1]); return result;
+        }, {});
+      }      /**
        * You must pass in an object to initialize CardUpdatr. The required properties in the object are app_container_id and hostname.
        * Optional object properties are:
        *  show_header (defaults to false)
@@ -119,7 +124,16 @@
        *      grant_object: { username: "redacted", grant: "redacted", card_id: "redacted" }
        *  }; 
        * */
-      window.initCardupdatr(settings = { app_container_id: "cardupdatr-frame", hostname: "https://acmebank.cardupdatr.app/" });
+      window.initCardupdatr(settings = 
+        { app_container_id: "cardupdatr-frame", 
+          hostname: "https://mbudos.cardupdatr.app/",
+          landing_page: "select-merchants",
+          grant_object: {
+            username: get_hash_key_values().username,
+            grant: get_hash_key_values().grant,
+            card_id: get_hash_key_values().card_id
+          }
+        });
   </script>
 </body>
 </body>
