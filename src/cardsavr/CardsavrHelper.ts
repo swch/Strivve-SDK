@@ -148,7 +148,7 @@ export class CardsavrHelper {
         return site;
     }
 
-    public async placeCardOnSite(username: string, merchant_creds: any, requesting_brand  = "staging", status = "requested") {
+    public async placeCardOnSite(username: string, merchant_creds: any, requesting_brand  = "staging", status = "REQUESTED") {
         //const login = await this.loginAndCreateSession(username, undefined, grant);
         const login = this.sessions[username];
         if (login) {
@@ -179,7 +179,7 @@ export class CardsavrHelper {
                         requesting_brand : requesting_brand,
                         //queue_name: "vbs_queue", //garbage
                         user_is_present : true,
-                        job_status : status
+                        status : status
                     };
                     const job_data = await session.createSingleSiteJob(job_params, login.cardholder_safe_key);
                     const job_id = job_data.body.id;
