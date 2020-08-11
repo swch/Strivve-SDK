@@ -148,7 +148,7 @@ export class CardsavrHelper {
         return site;
     }
 
-    public async placeCardOnSite(username: string, merchant_creds: any, requesting_brand  = "staging", status = "requested") {
+    public async placeCardOnSite(username: string, merchant_creds: any, requesting_brand  = "staging", status = "REQUESTED") {
         //const login = await this.loginAndCreateSession(username, undefined, grant);
         const login = this.sessions[username];
         if (login) {
