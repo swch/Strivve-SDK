@@ -450,7 +450,8 @@ export class CardsavrSession {
         return await this.get("/place_card_on_multiple_sites_jobs", filter, headersToAdd);
     };
 
-    createMultipleSitesJob = async(body: any, headersToAdd = {}): Promise < any > => {
+    createMultipleSitesJob = async(body: any, safeKey: string, headersToAdd = {}): Promise < any > => {
+        Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
         return await this.post("/place_card_on_multiple_sites_jobs", body, headersToAdd);
     };
 
@@ -464,12 +465,14 @@ export class CardsavrSession {
         return await this.get("/place_card_on_single_site_jobs", filter, headersToAdd);
     };
 
-    createSingleSiteJob = async(body: any, headersToAdd = {}): Promise < any > => {
+    createSingleSiteJob = async(body: any, safeKey: string, headersToAdd = {}): Promise < any > => {
+        Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
         return await this.post("/place_card_on_single_site_jobs", body, headersToAdd);
     };
 
-    updateSingleSiteJob = async(id: number, body: any, headersToAdd = {}): Promise < any > => {
+    updateSingleSiteJob = async(id: number, body: any, safeKey: string, headersToAdd = {}): Promise < any > => {
 
+        Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
         return await this.put("/place_card_on_single_site_jobs", id, body, headersToAdd);
     };
 

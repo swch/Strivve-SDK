@@ -181,7 +181,7 @@ export class CardsavrHelper {
                         user_is_present : true,
                         status : status
                     };
-                    const job_data = await session.createSingleSiteJob(job_params);
+                    const job_data = await session.createSingleSiteJob(job_params, login.cardholder_safe_key);
                     const job_id = job_data.body.id;
                     login.account_map[job_id] = account.body.id;
                     return job_data;
