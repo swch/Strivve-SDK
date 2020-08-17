@@ -136,19 +136,18 @@ export class CardsavrHelper {
 
     private async lookupMerchantSite(username: string, host: string) {
         const session = this.getSession(username);
-
-        const sites: CardsavrSessionResponse = await session.getSites({}, { page_length : 200, sort : "host" } );
+        const sites: CardsavrSessionResponse = await session.getMerchantSites({"host" : host});
         if (!sites || !sites.body || sites.body.length === 0 ) {
             return null;
         }
-        const site : any = sites.body.find((site: any) => site.host === host);
+        const site : any = sites.body[0];
         if (!site ) {
             return null;
         }
         return site;
     }
 
-    public async placeCardOnSite(username: string, merchant_creds: any, requesting_brand  = "staging", status = "REQUESTED") {
+    public async placeCardOnSite(username: string, merchant_creds: any, requesting_brand  = "staging", status = "requested") {
         //const login = await this.loginAndCreateSession(username, undefined, grant);
         const login = this.sessions[username];
         if (login) {
@@ -179,7 +178,7 @@ export class CardsavrHelper {
                         requesting_brand : requesting_brand,
                         //queue_name: "vbs_queue", //garbage
                         user_is_present : true,
-                        status : status
+                        job_status : status
                     };
                     const job_data = await session.createSingleSiteJob(job_params, login.cardholder_safe_key);
                     const job_id = job_data.body.id;
@@ -225,7 +224,6 @@ export class CardsavrHelper {
                         arr.push(...update.body);
                     }
                     arr.map(item => {
-                        console.log(item);
                         callback(item);
                         if (update.body.type === "job_status") {
                             if (update.body.message.terminal_type || update.body.message.status === "COMPLETED") {

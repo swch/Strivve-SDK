@@ -101,9 +101,11 @@ export class CardsavrSession {
         }
 
         const requestConfig: AxiosRequestConfig = {
-            //httpsAgent: new HTTPSAgent({
-            //  rejectUnauthorized: false
-            //}),
+            /*
+            httpsAgent : new HTTPSAgent({
+              rejectUnauthorized : false
+            }),
+            */
             baseURL : this.sessionData.baseUrl,
             url : path,
             timeout : 10000,
@@ -357,8 +359,11 @@ export class CardsavrSession {
     deleteIntegrator = async(id: number, headersToAdd = {}): Promise < any > => {
         return await this.delete("/integrators", id, headersToAdd);
     };
-
     getSites = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
+        return this.getMerchantSites(filter, pagingHeader, headersToAdd);
+    };
+    getMerchantSites = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
+        console.log("MERCHANT SITES!!");
         if (Object.keys(pagingHeader).length > 0) {
             pagingHeader = {
                 paging : JSON.stringify(pagingHeader)

@@ -19,8 +19,8 @@ const _stringReplaceAll = function (string: any, find: string, replace: string) 
      return replaced_string;
 };
 
-export const generateTraceValue = (bytes? : number) => {
-    if (bytes || typeof bytes !== "number") {
+export const generateTraceValue = (bytes? : number) : string => {
+    if (!bytes) {
         bytes = 16;
     }
 
@@ -51,8 +51,11 @@ export const formatPath = (path:string, filter:any) => {
             path = `${path}/${filter}`;
         }
         else if (typeof filter === "object" && !Array.isArray(filter)) {
-            path += "?" + Object.keys(filter)
-                .map(k => `${k}=${filter[k]}`).join("&");
+            path += "?" + Object.keys(filter).map(k => 
+                Array.isArray(filter[k]) ?
+                filter[k].map((o: string) => `${k}=${o}`).join("&") : 
+                `${k}=${filter[k]}`)
+                .join("&");
         }
         else {
             validationErrors.push("Valid ID or filter not found in provided path.");

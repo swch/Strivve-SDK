@@ -9,9 +9,10 @@ app.get("/create_user", function (req, res) {
     const address_data = getFromEnv(getFromEnv(require("./address.json"), process.env), req.query);
     const card_data = getFromEnv(getFromEnv(require("./card.json"), process.env), req.query);
     (async() => {
-
-        const cu = cardsavr_server.replace("cardsavr.io", "cardupdatr.app").replace("//api.", "//");
-        //const cu = "/index.html";
+        let cu = cardsavr_server.replace("cardsavr.io", "cardupdatr.app").replace("//api.", "//");
+        if (req.query.rd) {
+            cu = req.query.rd;
+        }
         try {
             const ch = CardsavrHelper.getInstance();
             //Setup the settings for the application
@@ -25,7 +26,7 @@ app.get("/create_user", function (req, res) {
                 const queryString = Object.keys(handoff).map(key => key + "=" + encodeURIComponent(handoff[key])).join("&");
                 //res.redirect(cu + "#select-merchants&" + queryString);
                 //console.log(queryString);
-                res.redirect("iframe.html#select-merchants&" + queryString);
+                res.redirect(cu + "#select-merchants&" + queryString);
             }
         } catch (err) {
             console.log(err);
