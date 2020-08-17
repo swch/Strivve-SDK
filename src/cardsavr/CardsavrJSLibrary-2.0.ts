@@ -363,7 +363,6 @@ export class CardsavrSession {
         return this.getMerchantSites(filter, pagingHeader, headersToAdd);
     };
     getMerchantSites = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
-        console.log("MERCHANT SITES!!");
         if (Object.keys(pagingHeader).length > 0) {
             pagingHeader = {
                 paging : JSON.stringify(pagingHeader)
