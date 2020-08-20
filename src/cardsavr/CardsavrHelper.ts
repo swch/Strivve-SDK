@@ -2,7 +2,7 @@
 
 import { CardsavrSession } from "./CardsavrJSLibrary-2.0";
 import CardsavrSessionResponse from "./CardsavrSessionResponse";
-import { generateRandomPar, createMetaKey } from "./CardsavrSessionUtilities";
+import { generateRandomPar, createMetaKey, localStorageAvailable } from "./CardsavrSessionUtilities";
 import JSLibraryError from "./JSLibraryError";
 import { Keys } from "./CardsavrSessionCrypto";
 
@@ -44,12 +44,20 @@ export class CardsavrHelper {
         try {
             const session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, username, password, grant, this.cert, trace);
             const login_data = await session.init();
-            this.sessions[username] = { session : session, user_id : login_data.body.user_id, cardholder_safe_key : login_data.body.cardholder_safe_key, account_map : {} }; 
+            // this.sessions[username] = { session : session, user_id : login_data.body.user_id, cardholder_safe_key : login_data.body.cardholder_safe_key, account_map : {} };
+            this.saveSession(username, { session : session, user_id : login_data.body.user_id, cardholder_safe_key : login_data.body.cardholder_safe_key, account_map : {} });
             return this.sessions[username];
         } catch(err) {
             this.handleError(err);
         }
         return null;
+    }
+
+    private saveSession(username: string, session : SessionLogin) : void {
+        this.sessions[username] = session;
+        if(localStorageAvailable()) {
+            localStorage.setItem(`session[${username}]`, JSON.stringify({ cardholder_safe_key : session.cardholder_safe_key, user_id : session.user_id, sessionKey : session.session.sessionData.sessionKey }))
+        }
     }
 
     public getSession(username: string) : CardsavrSession {
