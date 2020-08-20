@@ -41,6 +41,15 @@ export class CardsavrHelper {
         if (this.sessions[username]) {
             return this.sessions[username];
         }
+        if (localStorageAvailable() && localStorage.getItem(`session[${username}]`)) {
+            const existing_session_json = localStorage.getItem(`session[${username}]`);
+            if(existing_session_json) {
+                const existing_session = JSON.parse(existing_session_json);
+                const session = new CardsavrSession(existing_session.cardsavr_server, existing_session.sessionKey, existing_session.app_name, existing_session.username, existing_session.password, existing_session.grant, existing_session.cert, existing_session.trace);
+                this.sessions[username] = { session : session, user_id : existing_session.user_id, cardholder_safe_key : existing_session.cardholder_safe_key, account_map : {} };
+                return this.sessions[username]
+            }
+        }
         try {
             const session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, username, password, grant, this.cert, trace);
             const login_data = await session.init();
@@ -53,10 +62,10 @@ export class CardsavrHelper {
         return null;
     }
 
-    private saveSession(username: string, session : SessionLogin) : void {
+    private saveSession(username: string, session : SessionLogin, password?: string, grant?: string, trace?: unknown) : void {
         this.sessions[username] = session;
         if(localStorageAvailable()) {
-            localStorage.setItem(`session[${username}]`, JSON.stringify({ cardholder_safe_key : session.cardholder_safe_key, user_id : session.user_id, sessionKey : session.session.sessionData.sessionKey }))
+            localStorage.setItem(`session[${username}]`, JSON.stringify({ cardsavr_server : this.cardsavr_server, app_key : this.app_key, app_name : this.app_name, username, password, grant, cert: this.cert, trace, cardholder_safe_key : session.cardholder_safe_key, user_id : session.user_id, sessionKey : session.session.sessionData.sessionKey }))
         }
     }
 
