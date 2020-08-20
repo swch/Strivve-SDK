@@ -44,6 +44,7 @@ export class CardsavrHelper {
         try {
             const session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, username, password, grant, this.cert, trace);
             const login_data = await session.init();
+
             this.sessions[username] = { session : session, user_id : login_data.body.user_id, cardholder_safe_key : login_data.body.cardholder_safe_key, account_map : {} }; 
             return this.sessions[username];
         } catch(err) {
@@ -85,7 +86,11 @@ export class CardsavrHelper {
             if (!cardholder_data.last_name) cardholder_data_copy.last_name = card_data.last_name;
             if (!card_data.name_on_card) card_data.name_on_card = card_data.first_name + card_data.last_name;
             const meta_key: string = createMetaKey(card_data, address_data.postal_code);
-            cardholder_data_copy.custom_data = { reporting_id : meta_key, cardsavr_card_data : { meta_key : meta_key } };
+            if (!cardholder_data_copy.custom_data) {
+                cardholder_data_copy.custom_data = {};
+            }
+            cardholder_data_copy.custom_data.reporting_id = meta_key;
+            cardholder_data_copy.custom_data.cardsavr_card_data = { meta_key : meta_key };
             cardholder_data_copy.cardholder_safe_key =  await Keys.generateCardholderSafeKey(cardholder_data.email + card_data.name_on_card); 
     
             const agent_session = this.getSession(agent_username);
