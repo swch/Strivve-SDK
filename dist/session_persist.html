@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Getting Started</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="strivve-sdk.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+  </head>
+  <body>
+    <span id="test_label"></span>
+    <script>
+
+      async function session(app_name, app_key, cardsavr_server) {
+        var helper = strivvesdk.CardsavrHelper.getInstance();
+        helper.setAppSettings(cardsavr_server, app_name, app_key);
+
+        var result = get_hash_key_values();
+        await helper.loginAndCreateSession(result.username, undefined, result.grant);
+        const sites = await (await helper.getSession(result.username)).getSites({ "tags": "prod" }, { page_length : 200, sort: "name" });
+
+        var status = document.getElementById("test_label");
+        var session = helper.getSession(result.username);
+        status.innerHTML = sites.body[0].name;
+      }
+
+      window.onload = function() {
+        axios({url: 'strivve_creds.json'})
+          .then(response => {
+            session("CardUpdatr Demo", response.data.app_key, response.data.cardsavr_server);
+          });
+      }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+
+      function get_hash_key_values() {
+        var hash = window.location.hash ? window.location.hash.substring(1) : "";
+        return hash.split('&').reduce(function (result, item) {
+          var parts = item.split('='); result[parts[0]] = decodeURIComponent(parts[1]); return result;
+        }, {});
+      }
+
+    </script>
+  </body>
+</html>
