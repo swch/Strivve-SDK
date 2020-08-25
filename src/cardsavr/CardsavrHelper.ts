@@ -73,7 +73,7 @@ export class CardsavrHelper {
             const sessionKey = window.localStorage.getItem(`session[${username}]`);
             if (sessionKey) {
                 const session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, this.cert);
-                session.sessionData = {"sessionKey" : sessionKey};
+                session._sessionData = {"sessionKey" : sessionKey};
                 this.saveSession(username, session);
                 return session;
             }
