@@ -1,9 +1,9 @@
 export default class JSLibraryError extends Error {
 
-  validationErrors: any;
-  otherErrors: any;
+  validationErrors: string[] | null;
+  otherErrors: string | null;
 
-  constructor(validationErrors: any, otherErrors: any, message = "JS Library Error") {
+  constructor(validationErrors: string[] | null, otherErrors: string | null = null, message = "JS Library Error") {
     super(message); 
     this.validationErrors = validationErrors;
     this.otherErrors = otherErrors;

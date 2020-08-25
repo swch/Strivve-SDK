@@ -15,7 +15,8 @@
         helper.setAppSettings(cardsavr_server, app_name, app_key);
 
         var result = get_hash_key_values();
-        await helper.loginAndCreateSession(result.username, undefined, result.grant);
+        var session = await helper.loginAndCreateSession(result.username, undefined, result.grant);
+        console.log(session);
         const sites = await (await helper.getSession(result.username)).getSites({ "tags": "prod" }, { page_length : 200, sort: "name" });
 
         var status = document.getElementById("test_label");

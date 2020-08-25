@@ -192,21 +192,14 @@ export class CardsavrSession {
 
     private _startSession = async(): Promise < any > => {
 
+        //if the user doesn't supply a trace (likely) or doesn't supply a trace key, just use the username
         this._cookies = {};
-
-        const startResponse = await this.get("/session/start", null, false);
+        const startResponse = await this.get("/session/start", null, {}, false);
 
         return startResponse;
     };
 
-    private _login = async(sessionSalt: string, username: string, password? : string, grant? : string, trace ? : {[k: string]: unknown}): Promise <unknown> => {
-
-        //if the user doesn't supply a trace (likely) or doesn't supply a trace key, just use the username
-        if (!trace) 
-            trace = {};
-        if (trace instanceof Object && !trace.key)
-            trace.key = username;
-        this.setSessionHeaders({ "trace" : JSON.stringify(trace) });
+    private _login = async(sessionSalt: string, username: string, password? : string, grant? : string): Promise <unknown> => {
 
         interface EncryptedLoginBody {
             signedSalt ? : string,
@@ -237,15 +230,23 @@ export class CardsavrSession {
         return loginResponse;
     };
 
-    init = async(username : string, password ? : string, grant ? : string, trace ? : {[k: string]: unknown}): Promise < any > => {
+    setTrace = (username: string, trace?: {[k: string]: unknown}) : void => {
+        if (!trace) 
+            trace = {};
+        if (trace instanceof Object && !trace.key)
+            trace.key = username;
+        this.setSessionHeaders({ "trace" : JSON.stringify(trace) });
+    }
 
+    init = async(username : string, password ? : string, grant ? : string, trace ? : {[k: string]: unknown}): Promise < any > => {
+        this.setTrace(username, trace);
         const startResponse = await this._startSession();
-        return await this._login(startResponse.body.sessionSalt, username, password, grant, trace);
+        return await this._login(startResponse.body.sessionSalt, username, password, grant);
     };
 
-    end = async(headersToAdd = {}): Promise < any > => {
+    end = async(): Promise < any > => {
 
-        return await this.get("/session/end", null, headersToAdd);
+        return await this.get("/session/end", null);
     };
 
     getAccounts = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {

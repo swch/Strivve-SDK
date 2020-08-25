@@ -2,7 +2,7 @@
 
 import { CardsavrSession } from "./CardsavrJSLibrary-2.0";
 import CardsavrSessionResponse from "./CardsavrSessionResponse";
-import { generateRandomPar, createMetaKey } from "./CardsavrSessionUtilities";
+import { generateRandomPar, createMetaKey, localStorageAvailable } from "./CardsavrSessionUtilities";
 import JSLibraryError from "./JSLibraryError";
 import { Keys } from "./CardsavrSessionCrypto";
 
@@ -17,9 +17,9 @@ export class CardsavrHelper {
     
     private static instance: CardsavrHelper;
 
-    private sessions: { [key:string]:CardsavrSession; } = {};
+    private _sessions: { [key:string]:CardsavrSession; } = {};
 
-    private safe_keys: { [key:string]:string; } = {};
+    private _safe_keys: { [key:string]:string; } = {};
 
     private cardsavr_server = "";
     private app_name = "";
@@ -38,14 +38,20 @@ export class CardsavrHelper {
                                        password?: string,
                                        grant?: string,
                                        trace?: {[k: string]: unknown}) : Promise<CardsavrSession | null> {
-        if (this.sessions[username]) {
-            return this.sessions[username];
+
+        let session : CardsavrSession | undefined = this._sessions[username];
+        if (session) {
+            return session;
+        } else if ((session = this.restoreSession(username))) {
+            session.setTrace(username, trace);
+            return session;
         }
+
         try {
-            const session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, this.cert);
+            session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, this.cert);
             const login_data = await session.init(username, password, grant, trace);
-            this.sessions[username] = session;
-            this.safe_keys[username] = login_data.body.cardholder_safe_key;
+            this.saveSession(username, session);
+            this._safe_keys[username] = login_data.body.cardholder_safe_key;
             return session;
         } catch(err) {
             this.handleError(err);
@@ -53,19 +59,40 @@ export class CardsavrHelper {
         return null;
     }
 
-    public getSession(username: string) : CardsavrSession {
-        if (!this.sessions[username]) {
-            throw new JSLibraryError(null, "Must login and create session before using it.");
+    private async saveSession(username: string, session: CardsavrSession) {
+        this._sessions[username] = session;
+        if(localStorageAvailable()) {
+            window.localStorage.setItem(`session[${username}]`, session.sessionData.sessionKey);
         }
-        return this.sessions[username];
+    }
+
+    public getSession(username : string) : CardsavrSession {
+        const session = this._sessions[username]; 
+        if (session) {
+            return session;
+        }
+        throw new JSLibraryError(null, "Must login and create session before accessing session by username.");
+    }
+
+    private restoreSession(username: string) : CardsavrSession | undefined {
+        if (localStorageAvailable()) {
+            const sessionKey = window.localStorage.getItem(`session[${username}]`);
+            if (sessionKey) {
+                const session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, this.cert);
+                session.sessionData = {"sessionKey" : sessionKey};
+                this.saveSession(username, session);
+                return session;
+            }
+        }
     }
 
     public getCardholderSafeKey(username: string) : string {
-        if (!this.safe_keys[username]) {
+        if (!this._safe_keys[username]) {
             throw new JSLibraryError(null, "Must login and create session before accessing safe key.");
         }
-        return this.safe_keys[username];
+        return this._safe_keys[username];
     }
+
     public static getInstance(): CardsavrHelper {
         if (!CardsavrHelper.instance) {
             CardsavrHelper.instance = new CardsavrHelper();
@@ -93,12 +120,12 @@ export class CardsavrHelper {
     
             const agent_session = this.getSession(agent_username);
             const cardholder_response = await agent_session.createUser(cardholder_data_copy, cardholder_data_copy.cardholder_safe_key, financial_institution);
-            const cardholder_id = cardholder_response.body.id;
+            const cardholder_id = cardholder_response?.body?.id;
             //eventually these will be one time grants
             const grant_response_login = await agent_session.getCredentialGrant(cardholder_id);
-            const grant_login = grant_response_login.body.user_credential_grant;
+            const grant_login = grant_response_login?.body?.user_credential_grant;
             const grant_response_handoff = await agent_session.getCredentialGrant(cardholder_id);
-            const grant_handoff = grant_response_handoff.body.user_credential_grant;
+            const grant_handoff = grant_response_handoff?.body?.user_credential_grant;
 
             await this.loginAndCreateSession(cardholder_data_copy.username, undefined, grant_login);
             const session_user = this.getSession(cardholder_data_copy.username);
@@ -106,7 +133,7 @@ export class CardsavrHelper {
             const address_response = await session_user.createAddress(address_data);
     
             card_data.cardholder_id = cardholder_id;
-            card_data.address_id = address_response.body.id;
+            card_data.address_id = address_response?.body?.id;
             card_data.par = generateRandomPar(card_data.pan, card_data.expiration_month, card_data.expiration_year, cardholder_data_copy.username);
             const card_response = await session_user.createCard(card_data, cardholder_data_copy.cardholder_safe_key);
     
@@ -152,7 +179,7 @@ export class CardsavrHelper {
 
     public async placeCardOnSite(username: string, merchant_creds: any, status = "REQUESTED") {
         //const login = await this.loginAndCreateSession(username, undefined, grant);
-        const session = this.sessions[username];
+        const session = this._sessions[username];
         if (session) {
             try {
                 let merchant_site_id: number = merchant_creds.merchant_site_id;
@@ -169,7 +196,7 @@ export class CardsavrHelper {
                         {cardholder_id : user_json.body[0].id,
                         username : merchant_creds.username, 
                         password : merchant_creds.password, 
-                        merchant_site_id : merchant_site_id}, this.safe_keys[username] ),
+                        merchant_site_id : merchant_site_id}, this._safe_keys[username] ),
                     session.getCards({})]
                 );
                 //use the first card the user has (we only created one)
@@ -181,21 +208,24 @@ export class CardsavrHelper {
                         user_is_present : true,
                         status : status
                     };
-                    return await session.createSingleSiteJob(job_params, this.safe_keys[username]);
+                    return await session.createSingleSiteJob(job_params, this._safe_keys[username]);
                 }
             } catch(err) {
                 this.handleError(err);
             }
         } else {
-            throw new JSLibraryError(null, "No session established for: " + username + ".  Need to call loginAndCreateSession?");
+            throw new JSLibraryError(null, `No session established for: ${username}.  Need to call loginAndCreateSession?`);
         }
     }
 
     public endSession(username: string) : void {
         const session = this.getSession(username);
         session.end();
-        delete this.sessions[username];
-    }
+        delete this._sessions[username];
+        if(localStorageAvailable()) {
+            window.localStorage.removeItem(`session[${username}]`);
+        }
+     }
 
     public async pollOnJob(username: string, job_id: number, callback: MessageHandler, interval = 5000) : Promise<void> {
         try {
@@ -268,7 +298,7 @@ export class CardsavrHelper {
                 session.updateAccount( 
                     acct.body.account_id,
                     {username : merchant_creds.username, 
-                    password : merchant_creds.password}, this.safe_keys[username] );
+                    password : merchant_creds.password}, this._safe_keys[username] );
                 session.sendJobInformation(job_id, envelope_id, "credential_response", "submitted");
             }
         } catch(err) {
