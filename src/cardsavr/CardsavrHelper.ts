@@ -32,25 +32,19 @@ export class CardsavrHelper {
     public async loginAndCreateSession(username: string, 
                                        password?: string,
                                        grant?: string,
-                                       trace?: {[k: string]: unknown}) : Promise<CardsavrSession | null> {
+                                       trace?: {[k: string]: unknown}) : Promise<CardsavrSession> {
 
         let session : CardsavrSession | undefined = this._sessions[username];
         if (session) {
             return session;
-        } else if ((session = this.restoreSession(username))) {
-            session.setTrace(username, trace);
+        } else if ((session = await this.restoreSession(username, trace))) {
             return session;
         }
 
-        try {
-            session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, this.cert);
-            await session.init(username, password, grant, trace);
-            this.saveSession(username, session);
-            return session;
-        } catch(err) {
-            this.handleError(err);
-        }
-        return null;
+        session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, this.cert);
+        await session.init(username, password, grant, trace);
+        this.saveSession(username, session);
+        return session;
     }
 
     private async saveSession(username: string, session: CardsavrSession) {
@@ -68,12 +62,14 @@ export class CardsavrHelper {
         throw new JSLibraryError(null, "Must login and create session before accessing session by username.");
     }
 
-    private restoreSession(username: string) : CardsavrSession | undefined {
+    private async restoreSession(username: string, trace?: {[k: string]: unknown}) : Promise<CardsavrSession | undefined> {
         if (localStorageAvailable()) {
             const sessionKey = window.localStorage.getItem(`session[${username}]`);
             if (sessionKey) {
                 const session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, this.cert);
                 session.setSessionKey(sessionKey);
+                session.setTrace(username, trace);
+                await session.refresh();
                 this.saveSession(username, session);
                 return session;
             }

@@ -68,7 +68,7 @@ export class CardsavrSession {
     };
 
     getSessionKey = () : string => {
-        return this.getSessionKey();
+        return this._sessionData.sessionKey;
     }
 
     setSessionKey = (key: string): void  => {
@@ -243,6 +243,11 @@ export class CardsavrSession {
     end = async(): Promise < any > => {
 
         return await this.get("/session/end", null);
+    };
+
+    refresh = async(): Promise < any > => {
+
+        return await this.get("/session/refresh", null);
     };
 
     getAccounts = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {

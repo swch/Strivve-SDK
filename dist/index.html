@@ -50,7 +50,7 @@
         helper.setAppSettings(cardsavr_server, app_name, app_key);
         
         result = get_hash_key_values();
-        await helper.loginAndCreateSession(result.username, undefined, result.grant);
+        const login = await helper.loginAndCreateSession(result.username, undefined, result.grant);
         
         //not used, but could be used to pick a site
         const sites = await (await helper.getSession(result.username)).getSites({ "tags": "prod" }, { page_length : 200, sort: "name" });
