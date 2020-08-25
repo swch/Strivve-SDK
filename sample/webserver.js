@@ -1,5 +1,6 @@
 const express = require('express');
 const { CardsavrHelper } = require("@strivve/strivve-sdk/lib/cardsavr/CardsavrHelper");
+
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -21,11 +22,8 @@ app.get("/create_user", function (req, res) {
             if (await ch.loginAndCreateSession(app_username, app_password)) {
                 //Save the card on a behalf of a temporary cardholder - return their username, grant, card par
                 const data = await ch.createCard(app_username, "default", cardholder_data, address_data, card_data);
-                await ch.endSession(data.cardholder.username);
                 const handoff = { grant : data.grant, username : data.cardholder.username, card_id : data.card.id };
                 const queryString = Object.keys(handoff).map(key => key + "=" + encodeURIComponent(handoff[key])).join("&");
-                //res.redirect(cu + "#select-merchants&" + queryString);
-                //console.log(queryString);
                 res.redirect(cu + "#select-merchants&" + queryString);
             }
         } catch (err) {

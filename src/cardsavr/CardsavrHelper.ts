@@ -5,6 +5,7 @@ import CardsavrSessionResponse from "./CardsavrSessionResponse";
 import { generateRandomPar, createMetaKey, localStorageAvailable } from "./CardsavrSessionUtilities";
 import JSLibraryError from "./JSLibraryError";
 import { Keys } from "./CardsavrSessionCrypto";
+import "source-map-support/register";
 
 type MessageHandler = (str: string) => void;
 
@@ -107,21 +108,12 @@ export class CardsavrHelper {
             const agent_session = this.getSession(agent_username);
             const cardholder_response = await agent_session.createUser(cardholder_data_copy, safe_key, financial_institution);
             const cardholder_id = cardholder_response?.body?.id;
-            //eventually these will be one time grants
-            const grant_response_login = await agent_session.getCredentialGrant(cardholder_id);
-            const grant_login = grant_response_login?.body?.user_credential_grant;
-            const grant_response_handoff = await agent_session.getCredentialGrant(cardholder_id);
-            const grant_handoff = grant_response_handoff?.body?.user_credential_grant;
-
-            await this.loginAndCreateSession(cardholder_data_copy.username, undefined, grant_login);
-            const session_user = this.getSession(cardholder_data_copy.username);
-
-            const address_response = await session_user.createAddress(address_data);
-    
+            const grant_handoff = cardholder_response?.body?.credential_grant;
+            const address_response = await agent_session.createAddress(address_data);
             card_data.cardholder_id = cardholder_id;
             card_data.address_id = address_response?.body?.id;
             card_data.par = generateRandomPar(card_data.pan, card_data.expiration_month, card_data.expiration_year, cardholder_data_copy.username);
-            const card_response = await session_user.createCard(card_data, safe_key);
+            const card_response = await agent_session.createCard(card_data, safe_key);
     
             return { grant : grant_handoff, cardholder : cardholder_response.body, card : card_response.body, address : address_response.body } ;
     
@@ -163,7 +155,7 @@ export class CardsavrHelper {
         return site;
     }
 
-    public async placeCardOnSite(username: string, merchant_creds: any, status = "REQUESTED", safe_key? : string) : Promise<any> {
+    public async placeCardOnSite(username: string, merchant_creds: any, card_id : number | null = null, status = "REQUESTED", safe_key? : string) : Promise<any> {
         //const login = await this.loginAndCreateSession(username, undefined, grant);
         const session = this._sessions[username];
         if (session) {
@@ -175,21 +167,22 @@ export class CardsavrHelper {
                         merchant_site_id = site.id;
                     }
                 }
+                //if there's no card_id, just grab the latest one
+                if (!card_id) {
+                    const card_data = await session.getCards({});
+                    card_id = card_data.body[0].id;
+                }
                 const user_json = await session.getUsers({username : username});
-                //create the account and get all the users cards
-                const [account, cards] = await Promise.all(
-                    [session.createAccount( 
+                const account = await session.createAccount( 
                         {cardholder_id : user_json.body[0].id,
                         username : merchant_creds.username, 
                         password : merchant_creds.password, 
-                        merchant_site_id : merchant_site_id}, safe_key ),
-                    session.getCards({})]
-                );
+                        merchant_site_id : merchant_site_id}, safe_key );
                 //use the first card the user has (we only created one)
-                if (account && account.body && cards && cards.body && cards.body.length == 1) {
+                if (account && account.body && card_id) {
                     const job_params = {
                         user_id : user_json.body[0].id,
-                        card_id : cards.body[0].id,
+                        card_id : card_id,
                         account_id : account.body.id,
                         user_is_present : true,
                         status : status
@@ -218,32 +211,25 @@ export class CardsavrHelper {
             const session = this.getSession(username);
             
             const subscription = await session.registerForJobStatusUpdates(job_id);
-            const request_probe = setInterval(async (_message) => { 
+            const request_probe = setInterval(async () => { 
                 const request = await session.getJobInformationRequest(job_id);
                 if (request.body) {
                     callback(request.body);
                 }
             }, interval < 1000 ? 1000 : interval);
-            const broadcast_probe = setInterval(async (_message) => { 
+            const broadcast_probe = setInterval(async () => { 
                 const update = await session.getJobStatusUpdate(job_id, subscription.body.access_key);
                 if (update.status_code == 401) {
                     clearInterval(broadcast_probe);
                     clearInterval(request_probe);
                 } else if (update.body) {
-                    //this is temporary until we can guarantee that messages are arrays
-                    const arr = []; 
-                    if (!Array.isArray(update.body)) {
-                        arr.push(update.body);
-                    } else {
-                        arr.push(...update.body);
-                    }
-                    arr.map(item => {
+                    update.body.map((item: any) => {
                         callback(item);
-                        if (update.body.type === "job_status") {
-                            if (update.body.message.terminal_type || update.body.message.status === "COMPLETED") {
+                        if (item.type === "job_status") {
+                            if (item.message.termination_type || item.message.percent_complete == 100) { //job is completed, stop probing
                                 clearInterval(broadcast_probe);
                                 clearInterval(request_probe);
-                            } else if (update.body.message.status === "UPDATING") {
+                            } else if (item.message.status === "UPDATING") {
                                 clearInterval(request_probe);
                             }
                         }
@@ -255,9 +241,9 @@ export class CardsavrHelper {
         }
     }
 
-    public async placeCardOnSiteAndPoll(username: string, merchant_creds: any, callback: any, interval = 5000) : Promise<void> {
+    public async placeCardOnSiteAndPoll(username: string, merchant_creds: any, callback: any, card_id : number | null = null, interval = 5000) : Promise<void> {
         try {
-            const job_data = await this.placeCardOnSite(username, merchant_creds);
+            const job_data = await this.placeCardOnSite(username, merchant_creds, card_id);
             if (job_data) {
                 this.pollOnJob(username, job_data.body.id, callback, interval);
             }

@@ -11,9 +11,11 @@
   "license": "ISC",
   "dependencies": {
     "@strivve/strivve-sdk": "^2.1.20",
+    "@types/source-map-support": "^0.5.3",
     "axios": "^0.19.2",
     "body-parser": "*",
     "express": "*",
-    "https": "^1.0.0"
+    "https": "^1.0.0",
+    "source-map-support": "^0.5.19"
   }
 }

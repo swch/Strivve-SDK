@@ -42,9 +42,11 @@
   },
   "dependencies": {
     "@types/lodash": "^4.14.157",
+    "@types/source-map-support": "^0.5.3",
     "@typescript-eslint/eslint-plugin": "^3.6.0",
     "@typescript-eslint/parser": "^3.6.0",
     "axios": "^0.19.2",
-    "eslint": "^7.4.0"
+    "eslint": "^7.4.0",
+    "source-map-support": "^0.5.19"
   }
 }
