@@ -6,11 +6,6 @@ import { generateRandomPar, createMetaKey, localStorageAvailable } from "./Cards
 import JSLibraryError from "./JSLibraryError";
 import { Keys } from "./CardsavrSessionCrypto";
 
-interface SessionLogin {
-    session: CardsavrSession, 
-    cardholder_safe_key: string
-}
-
 type MessageHandler = (str: string) => void;
 
 export class CardsavrHelper {
