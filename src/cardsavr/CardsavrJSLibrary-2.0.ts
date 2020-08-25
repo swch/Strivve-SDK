@@ -259,15 +259,19 @@ export class CardsavrSession {
         return await this.get("/cardsavr_accounts", filter, headersToAdd);
     };
 
-    createAccount = async(body: any, safeKey: string, headersToAdd = {}): Promise < any > => {
+    createAccount = async(body: any, safeKey: string | null = null, headersToAdd = {}): Promise < any > => {
 
-        Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+        if (safeKey) {
+            Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+        }
         return await this.post("/cardsavr_accounts", body, headersToAdd);
     };
 
-    updateAccount = async(id: number, body: any, safeKey: string, headersToAdd = {}): Promise < any > => {
+    updateAccount = async(id: number, body: any, safeKey: string | null = null, headersToAdd = {}): Promise < any > => {
 
-        Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+        if (safeKey) {
+            Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+        }
         return await this.put("/cardsavr_accounts", id, body, headersToAdd);
     };
 
@@ -331,9 +335,10 @@ export class CardsavrSession {
         return await this.get("/cardsavr_cards", filter, headersToAdd);
     };
 
-    createCard = async(body: any, safeKey: string, headersToAdd = {}): Promise < any > => {
-
-        Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+    createCard = async(body: any, safeKey: string | null = null, headersToAdd = {}): Promise < any > => {
+        if (safeKey) {
+            Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+        }
         return await this.post("/cardsavr_cards", body, headersToAdd);
     };
 
@@ -378,9 +383,11 @@ export class CardsavrSession {
     deleteIntegrator = async(id: number, headersToAdd = {}): Promise < any > => {
         return await this.delete("/integrators", id, headersToAdd);
     };
+
     getSites = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
         return this.getMerchantSites(filter, pagingHeader, headersToAdd);
     };
+
     getMerchantSites = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
         if (Object.keys(pagingHeader).length > 0) {
             pagingHeader = {
@@ -488,14 +495,18 @@ export class CardsavrSession {
         return await this.get("/place_card_on_single_site_jobs", filter, headersToAdd);
     };
 
-    createSingleSiteJob = async(body: any, safeKey: string, headersToAdd = {}): Promise < any > => {
-        Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+    createSingleSiteJob = async(body: any, safeKey: string | null = null, headersToAdd = {}): Promise < any > => {
+        if (safeKey) {
+            Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+        }
         return await this.post("/place_card_on_single_site_jobs", body, headersToAdd);
     };
 
-    updateSingleSiteJob = async(id: number, body: any, safeKey: string, headersToAdd = {}): Promise < any > => {
+    updateSingleSiteJob = async(id: number, body: any, safeKey: string | null = null, headersToAdd = {}): Promise < any > => {
 
-        Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+        if (safeKey) {
+            Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+        }
         return await this.put("/place_card_on_single_site_jobs", id, body, headersToAdd);
     };
 
