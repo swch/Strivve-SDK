@@ -5,7 +5,6 @@ import CardsavrSessionResponse from "./CardsavrSessionResponse";
 import { generateRandomPar, createMetaKey, localStorageAvailable } from "./CardsavrSessionUtilities";
 import JSLibraryError from "./JSLibraryError";
 import { Keys } from "./CardsavrSessionCrypto";
-import "source-map-support/register";
 
 type MessageHandler = (str: string) => void;
 
