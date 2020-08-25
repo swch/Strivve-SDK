@@ -56,7 +56,7 @@ export class CardsavrHelper {
     private async saveSession(username: string, session: CardsavrSession) {
         this._sessions[username] = session;
         if(localStorageAvailable()) {
-            window.localStorage.setItem(`session[${username}]`, session.sessionData.sessionKey);
+            window.localStorage.setItem(`session[${username}]`, session.getSessionKey());
         }
     }
 
@@ -73,7 +73,7 @@ export class CardsavrHelper {
             const sessionKey = window.localStorage.getItem(`session[${username}]`);
             if (sessionKey) {
                 const session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, this.cert);
-                session._sessionData = {"sessionKey" : sessionKey};
+                session.setSessionKey(sessionKey);
                 this.saveSession(username, session);
                 return session;
             }
