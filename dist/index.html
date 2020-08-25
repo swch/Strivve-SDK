@@ -24,15 +24,19 @@
     <span id="site_job_site"></span>: <span id="site_job_message"></span>
     <script>
 
-      var app_name = "CardUpdatr Demo";
-      var app_key;
-      var cardsavr_server;
-      axios({url: 'strivve_creds.json'})
-        .then(response => {
-          app_key = response.data.app_key;
-          cardsavr_server = response.data.cardsavr_server;
-        });
 
+      async function session(app_name, app_key, cardsavr_server) {
+        var cardsavr_helper = strivvesdk.CardsavrHelper.getInstance();
+        cardsavr_helper.setAppSettings(cardsavr_server, app_name, app_key);
+
+        var result = get_hash_key_values();
+        try {
+          var session = await cardsavr_helper.loginAndCreateSession(result.username, undefined, result.grant);
+        } catch (err) {
+          //handle the case where the API session is no longer valid, or it's a refresh in incognito
+          console.log(err.body._errors);
+        }
+      }      
 
       async function post_job(event) {
 
@@ -45,22 +49,18 @@
         document.getElementById("site_job_site").innerHTML = getFormValue(event, "site_hostname");
         var status = document.getElementById("site_job_message");
         status.innerHTML = "job_started";
-
-        var helper = strivvesdk.CardsavrHelper.getInstance();
-        helper.setAppSettings(cardsavr_server, app_name, app_key);
         
-        result = get_hash_key_values();
-        await helper.loginAndCreateSession(result.username, undefined, result.grant);
-        
+        var cardsavr_helper = strivvesdk.CardsavrHelper.getInstance();
+        var result = get_hash_key_values();
         //not used, but could be used to pick a site
-        const sites = await (await helper.getSession(result.username)).getSites({ "tags": "prod" }, { page_length : 200, sort: "name" });
+        const sites = await (await cardsavr_helper.getSession(result.username)).getSites({ "tags": "prod" }, { page_length : 200, sort: "name" });
 
-        helper.placeCardOnSiteAndPoll(result.username, creds, "acembank", (message) => {
+        cardsavr_helper.placeCardOnSiteAndPoll(result.username, creds, (message) => {
           if (message.type == 'job_status') { //status updates
             console.log(message.message);
             status.innerHTML = message.message.status + ": " + message.message.percent_complete + "%";
-            if (message.message.status == 'COMPLETED' && message.message.percent_complete == 100) {  //only one on job complete
-              status.innerHTML = message.message.result;
+            if (message.message.status == "COMPLETED" || message.message.percent_complete == 100) {  //only one on job complete
+              status.innerHTML = message.message.termination_type;
               document.getElementById('job_form').style.display = "none";
             }
           } else if (message.job_id && message.type.endsWith("_request")) {
@@ -75,15 +75,15 @@
               toggle_element(["username", "password"], "block"); //show credential boxes
             }
           }
-        });
+        }, result.card_id);
       }
  
       async function post_tfa(event) {
         result = get_hash_key_values();
-        var helper = strivvesdk.CardsavrHelper.getInstance();
-        await helper.postTFA(result.username, getFormValue(event, 'tfa'), 
-                                              getFormValue(event, 'job_id'), 
-                                              getFormValue(event, 'envelope_id'));
+        var cardsavr_helper = strivvesdk.CardsavrHelper.getInstance();
+        await cardsavr_helper.postTFA(result.username, getFormValue(event, 'tfa'), 
+                                                       getFormValue(event, 'job_id'), 
+                                                       getFormValue(event, 'envelope_id'));
         toggle_element(["tfa"], "none");
       }
 
@@ -91,13 +91,18 @@
         creds = {username: getFormValue(event, 'username'), 
                  password: getFormValue(event, 'password')} //can't update site_hostname
 
-        var helper = strivvesdk.CardsavrHelper.getInstance();
-        await helper.postCreds(get_hash_key_values().username, creds, getFormValue(event, 'job_id'), 
+        var cardsavr_helper = strivvesdk.CardsavrHelper.getInstance();
+        await cardsavr_helper.postCreds(get_hash_key_values().username, creds, getFormValue(event, 'job_id'), 
                                                                       getFormValue(event, 'envelope_id'));
         toggle_element(["username", "password"], "none");
       }
 
       window.onload = function() {
+        axios({url: 'strivve_creds.json'})
+          .then(response => {
+            session("CardUpdatr Demo", response.data.app_key, response.data.cardsavr_server);
+          });
+
         var form = document.querySelector('#job_form');
         if(form.addEventListener){
           form.addEventListener("submit", function(evt) {
@@ -105,6 +110,7 @@
             window[document.getElementById("submit_type").value](evt);  
           }, false);  //Modern browsers      
         }
+
       }
 
       function toggle_element(names, display) {

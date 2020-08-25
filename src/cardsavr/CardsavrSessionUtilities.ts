@@ -59,7 +59,7 @@ export const formatPath = (path:string, filter:any) => {
         }
         else {
             validationErrors.push("Valid ID or filter not found in provided path.");
-            throw new JSLibraryError(validationErrors, null);
+            throw new JSLibraryError(validationErrors);
         }
     }
     return path;
@@ -72,7 +72,7 @@ export const createMetaKey = (card: any, postal_code: string) => {
     if (!postal_code || postal_code.length < 5) { validationErrors.push("Can't create meta_key, invalid postal code"); }
     if (!card.pan || card.pan.length === 0) { validationErrors.push("Can't create meta_key, no pan on card"); }
     if (validationErrors.length > 0) {
-        throw new JSLibraryError(validationErrors, null);
+        throw new JSLibraryError(validationErrors);
     }
     return card.first_name[0] + card.last_name[0] + postal_code.substring(0, 5) + card.pan.slice(-2);
 };
@@ -96,7 +96,7 @@ export const generateRandomPar = (pan: string, exp_month: string, exp_year: stri
     }
 
     if (validationErrors.length > 0){
-      throw new JSLibraryError(validationErrors, null);
+      throw new JSLibraryError(validationErrors);
     }
 
     // Hash up the salt for use as salt
@@ -140,9 +140,33 @@ export const getCardBrand = function(pan:string) {
 
     validationErrors.push("Card number could not be matched to a recognized brand.");
 
-    throw new JSLibraryError(validationErrors, null);
+    throw new JSLibraryError(validationErrors);
 };
 
-export interface ValidObject {
-    [key: string]: any
-}
+export const localStorageAvailable = function() : boolean {
+    if (typeof window === "undefined") {
+        return false;
+    }
+    let storage;
+    try {
+        storage = window["localStorage"];
+        const x = "__storage_test__";
+        storage.setItem(x, x);
+        storage.removeItem(x);
+        return true;
+    }
+    catch(e) {
+        return e instanceof DOMException && (
+            // everything except Firefox
+            e.code === 22 ||
+            // Firefox
+            e.code === 1014 ||
+            // test name field too, because code might not be present
+            // everything except Firefox
+            e.name === "QuotaExceededError" ||
+            // Firefox
+            e.name === "NS_ERROR_DOM_QUOTA_REACHED") &&
+                // acknowledge QuotaExceededError only if there's something already stored
+                (storage !== undefined && storage.length !== 0);
+    }
+};

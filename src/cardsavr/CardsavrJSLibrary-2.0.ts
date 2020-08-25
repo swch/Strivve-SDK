@@ -13,59 +13,53 @@ import axios, {
 
 export class CardsavrSession {
 
-    sessionData: any;
+    _sessionData: { [key: string]: string; };
+    _headers: { [key: string]: string; };
+    _cookies : { [key: string]: string; };
+    _cardsavrCert : string | undefined;
+    _baseUrl : string;
+    _appName : string;
+    _debug : boolean;
 
-    constructor(baseUrl: string, sessionKey: string, appName: string, userName: string, password ? : string, userCredentialGrant ? : string, cardsavrCert ? : string, trace ? : any) {
+    constructor(baseUrl: string, sessionKey: string, appName: string, cardsavrCert ? : string) {
 
-        this.sessionData = {
-            baseUrl,
-            sessionKey,
-            appName,
-            userName,
-            password,
-            userCredentialGrant,
-            cookies : null,
-            headers : {},
-            cardsavrCert
+        this._headers = {}; 
+        this._cookies = {};
+        this._cardsavrCert = cardsavrCert;
+        this._baseUrl = baseUrl;
+        this._appName = appName;
+        this._debug = false;
+
+        this._sessionData = {
+            sessionKey
         };
 
-        //if the user doesn't supply a trace (likely) or doesn't supply a trace key, just use the username
-        if (!trace) {
-            trace = {};
-        }
-        if (!trace.key) {
-            trace.key = userName;
-        }
-
         this.setSessionHeaders({
-            "trace" : JSON.stringify(trace)
-        });
-        this.setSessionHeaders({
-            "client-application" : appName
+            "client-application" : appName 
         });
     }
 
     setSessionHeaders = (headersObject: {
-        [key: string]: string;
-    }) => { 
-        Object.assign(this.sessionData.headers, headersObject);
+            [key: string]: string;
+        }) : void => { 
+        Object.assign(this._headers, headersObject);
     };
 
-    removeSessionHeader = (...headerKeys: string[]) => {
+    removeSessionHeader = (...headerKeys: string[]) : void => {
 
-        if (!this.sessionData.headers) {
+        if (!this._headers) {
             throw new JSLibraryError(null, "You have not set any header values.");
         } else {
-            headerKeys.forEach(headerKey => {
-                if (!Object.prototype.hasOwnProperty.call(this.sessionData.headers, headerKey)) {
+            headerKeys.map(headerKey => {
+                if (!Object.prototype.hasOwnProperty.call(this._headers, headerKey)) {
                     throw new JSLibraryError(null, "Header value could not be found.");
                 }
-                delete this.sessionData.headers[headerKey];
+                delete this._headers[headerKey];
             });
         }
     };
 
-    private _makeSafeKeyHeader = (safeKey: string, newKey = false): any => {
+    private _makeSafeKeyHeader = (safeKey: string, newKey = false): {[key: string]: string} => {
         return newKey ? {
             "new-cardholder-safe-key" : safeKey
         } : {
@@ -73,30 +67,43 @@ export class CardsavrSession {
         };
     };
 
+    getSessionKey = () : string => {
+        return this._sessionData.sessionKey;
+    }
+
+    setSessionKey = (key: string): void  => {
+        this._sessionData.sessionKey = key;
+    }
+
     sendRequest = async(path: string, method: "get" | "GET" | "delete" | "DELETE" | "head" | "HEAD" | "options" | "OPTIONS" | "post" | "POST" | "put" | "PUT" | "patch" | "PATCH" | undefined, requestBody ? : any, headersToAdd = {}, cookiesEnforced = true): Promise < any > => {
 
-        const headers = Object.assign({}, this.sessionData.headers, headersToAdd);
+        const headers = Object.assign({}, this._headers, headersToAdd);
+        const unencryptedBody = requestBody;
 
         // Encrypt the cardholder-safe-header(s) if they are in this request
-        CardsavrCrypto.Encryption.encryptSafeKeys(headers, this.sessionData.sessionKey);
-
+        CardsavrCrypto.Encryption.encryptSafeKeys(headers, this.getSessionKey());
         if (requestBody) {
-            requestBody = await CardsavrCrypto.Encryption.encryptRequest(this.sessionData.sessionKey, requestBody);
+            requestBody = await CardsavrCrypto.Encryption.encryptRequest(this.getSessionKey(), requestBody);
         }
-        const authHeaders = await CardsavrCrypto.Signing.signRequest(path, this.sessionData.appName, this.sessionData.sessionKey, requestBody);
+        const authHeaders = await CardsavrCrypto.Signing.signRequest(path, this._appName, this.getSessionKey(), requestBody);
         Object.assign(headers, authHeaders);
 
         if (typeof window === "undefined" && cookiesEnforced) {
-            if (this.sessionData.cookies && Object.keys(this.sessionData.cookies).length > 0) {
+            if (this._cookies && Object.keys(this._cookies).length > 0) {
                 //if there are cookies stored, sends them all in cookie header 
-                const cookieKeys = Object.keys(this.sessionData.cookies);
                 headers["cookie"] = "";
-                for (let x = 0; x < cookieKeys.length; x++) {
-                    const key = cookieKeys[x];
-                    headers["cookie"] += (key + "=" + this.sessionData.cookies[key]);
-                }
+                Object.keys(this._cookies).map(key => {
+                    headers["cookie"] += (key + "=" + this._cookies[key] + ";");
+                });
             } else {
                 throw new JSLibraryError(null, "Couldn't find cookie. Can't send request.");
+            }
+        }
+        if (this._debug) {
+            console.log(method + " " + path);
+            console.log(headers);
+            if (requestBody) {
+                console.log(unencryptedBody);
             }
         }
 
@@ -106,7 +113,7 @@ export class CardsavrSession {
               rejectUnauthorized : false
             }),
             */
-            baseURL : this.sessionData.baseUrl,
+            baseURL : this._baseUrl,
             url : path,
             timeout : 10000,
             headers,
@@ -116,9 +123,9 @@ export class CardsavrSession {
         };
 
         // Trust the shared cardsavr cert
-        if (this.sessionData.cardsavrCert) {
+        if (this._cardsavrCert) {
             requestConfig.httpsAgent = new HTTPSAgent({
-                ca : this.sessionData.cardsavrCert
+                ca : this._cardsavrCert
             });
         }
 
@@ -126,24 +133,24 @@ export class CardsavrSession {
             const response = await axios.request(requestConfig);
 
             if (response.headers["set-cookie"] && typeof window === "undefined") {
-                //iterate through set-cookie array and save cookies in sessionData.cookies
-                response.headers["set-cookie"].forEach((rawCookie: string) => {
+                //iterate through set-cookie array and save cookies in _cookies
+                response.headers["set-cookie"].map((rawCookie: string) => {
                     //grab cookie key/value
                     const cookiePart = rawCookie.split(";")[0];
                     const arr = cookiePart.split("=");
                     const cookieKey = arr[0];
                     const cookieValue = arr[1];
-                    //set cookie in sessionData.cookies if it has a value
+                    //set cookie in _cookies if it has a value
                     if (cookieValue) {
-                        this.sessionData.cookies[cookieKey] = cookieValue;
+                        this._cookies[cookieKey] = cookieValue;
                     }
                 });
             }
-            response.data = await CardsavrCrypto.Encryption.decryptResponse(this.sessionData.sessionKey, response.data);
+            response.data = await CardsavrCrypto.Encryption.decryptResponse(this.getSessionKey(), response.data);
             return new CardsavrSessionResponse(response.status, response.statusText, response.headers, response.data, path);
         } catch (err) {
             if (err.response) {
-                err.response.data = await CardsavrCrypto.Encryption.decryptResponse(this.sessionData.sessionKey, err.response.data);
+                err.response.data = await CardsavrCrypto.Encryption.decryptResponse(this.getSessionKey(), err.response.data);
                 throw new CardsavrSessionResponse(err.response.status, err.response.statusText, err.response.headers, err.response.data, path);
             } else {
                 throw new Error(err.message);
@@ -179,55 +186,68 @@ export class CardsavrSession {
         return await this.sendRequest(path, "DELETE", null, headersToAdd, cookiesEnforced);
     };
 
-    private _startSession = async(headers: any): Promise < any > => {
+    private _startSession = async(): Promise < any > => {
 
-        this.sessionData.cookies = {};
-
-        const startResponse = await this.get("/session/start", null, headers, false);
+        //if the user doesn't supply a trace (likely) or doesn't supply a trace key, just use the username
+        this._cookies = {};
+        const startResponse = await this.get("/session/start", null, {}, false);
 
         return startResponse;
     };
 
-    private _login = async(sessionSalt: string, headersToAdd = {}): Promise < any > => {
+    private _login = async(sessionSalt: string, username: string, password? : string, grant? : string): Promise <unknown> => {
 
         interface EncryptedLoginBody {
             signedSalt ? : string,
-                userCredentialGrant ? : string,
-                clientPublicKey: string,
-                userName: string
+            userCredentialGrant ? : string,
+            clientPublicKey: string,
+            userName: string
         }
 
         const keyPair = await CardsavrCrypto.Keys.makeECDHkeyPair();
         const clientPublicKey = await CardsavrCrypto.Keys.makeECDHPublicKey(keyPair);
 
         const encryptedLoginBody : EncryptedLoginBody = {
-            userName : this.sessionData.userName,
-            clientPublicKey
+            userName : username,
+            clientPublicKey : clientPublicKey
         };
 
-        if (this.sessionData.password) {
-            const passwordKey = await CardsavrCrypto.Keys.generatePasswordKey(this.sessionData.userName, this.sessionData.password);
+        if (password) {
+            const passwordKey = await CardsavrCrypto.Keys.generatePasswordKey(username, password);
             encryptedLoginBody["signedSalt"] = await CardsavrCrypto.Signing.signSaltWithPasswordKey(sessionSalt, passwordKey);
-        } else if (this.sessionData.userCredentialGrant) {
-            encryptedLoginBody["userCredentialGrant"] = this.sessionData.userCredentialGrant;
+        } else if (grant) {
+            encryptedLoginBody["userCredentialGrant"] = grant;
         } else {
             throw new JSLibraryError(null, "Must include either password or user credential grant to initialize session.");
         }
 
-        const loginResponse = await this.sendRequest("/session/login", "post", encryptedLoginBody, headersToAdd);
-        this.sessionData.sessionKey = await CardsavrCrypto.Keys.makeECDHSecretKey(loginResponse.body.serverPublicKey, keyPair);
+        const loginResponse = await this.sendRequest("/session/login", "post", encryptedLoginBody);
+        this.setSessionKey(await CardsavrCrypto.Keys.makeECDHSecretKey(loginResponse.body.serverPublicKey, keyPair));
         return loginResponse;
     };
 
-    init = async(headersToAdd = {}): Promise < any > => {
+    setTrace = (username: string, trace?: {[k: string]: unknown}) : void => {
+        if (!trace) 
+            trace = {};
+        if (trace instanceof Object && !trace.key)
+            trace.key = username;
+        this.setSessionHeaders({ "trace" : JSON.stringify(trace) });
+    }
 
-        const startResponse = await this._startSession(headersToAdd);
-        return await this._login(startResponse.body.sessionSalt, headersToAdd);
+    init = async(username : string, password ? : string, grant ? : string, trace ? : {[k: string]: unknown}): Promise < any > => {
+        this.setTrace(username, trace);
+        const startResponse = await this._startSession();
+        return await this._login(startResponse.body.sessionSalt, username, password, grant);
     };
 
-    end = async(headersToAdd = {}): Promise < any > => {
+    end = async(): Promise < any > => {
 
-        return await this.get("/session/end", null, headersToAdd);
+        return await this.get("/session/end", null);
+    };
+
+    refresh = async(): Promise < any > => {
+
+        return await this.get("/session/refresh", null);
     };
 
     getAccounts = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
@@ -240,15 +260,19 @@ export class CardsavrSession {
         return await this.get("/cardsavr_accounts", filter, headersToAdd);
     };
 
-    createAccount = async(body: any, safeKey: string, headersToAdd = {}): Promise < any > => {
+    createAccount = async(body: any, safeKey: string | null = null, headersToAdd = {}): Promise < any > => {
 
-        Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+        if (safeKey) {
+            Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+        }
         return await this.post("/cardsavr_accounts", body, headersToAdd);
     };
 
-    updateAccount = async(id: number, body: any, safeKey: string, headersToAdd = {}): Promise < any > => {
+    updateAccount = async(id: number, body: any, safeKey: string | null = null, headersToAdd = {}): Promise < any > => {
 
-        Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+        if (safeKey) {
+            Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+        }
         return await this.put("/cardsavr_accounts", id, body, headersToAdd);
     };
 
@@ -312,9 +336,10 @@ export class CardsavrSession {
         return await this.get("/cardsavr_cards", filter, headersToAdd);
     };
 
-    createCard = async(body: any, safeKey: string, headersToAdd = {}): Promise < any > => {
-
-        Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+    createCard = async(body: any, safeKey: string | null = null, headersToAdd = {}): Promise < any > => {
+        if (safeKey) {
+            Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+        }
         return await this.post("/cardsavr_cards", body, headersToAdd);
     };
 
@@ -359,9 +384,11 @@ export class CardsavrSession {
     deleteIntegrator = async(id: number, headersToAdd = {}): Promise < any > => {
         return await this.delete("/integrators", id, headersToAdd);
     };
+
     getSites = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
         return this.getMerchantSites(filter, pagingHeader, headersToAdd);
     };
+
     getMerchantSites = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
         if (Object.keys(pagingHeader).length > 0) {
             pagingHeader = {
@@ -469,14 +496,18 @@ export class CardsavrSession {
         return await this.get("/place_card_on_single_site_jobs", filter, headersToAdd);
     };
 
-    createSingleSiteJob = async(body: any, safeKey: string, headersToAdd = {}): Promise < any > => {
-        Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+    createSingleSiteJob = async(body: any, safeKey: string | null = null, headersToAdd = {}): Promise < any > => {
+        if (safeKey) {
+            Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+        }
         return await this.post("/place_card_on_single_site_jobs", body, headersToAdd);
     };
 
-    updateSingleSiteJob = async(id: number, body: any, safeKey: string, headersToAdd = {}): Promise < any > => {
+    updateSingleSiteJob = async(id: number, body: any, safeKey: string | null = null, headersToAdd = {}): Promise < any > => {
 
-        Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+        if (safeKey) {
+            Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+        }
         return await this.put("/place_card_on_single_site_jobs", id, body, headersToAdd);
     };
 

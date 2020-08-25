@@ -416,7 +416,7 @@ export class Keys {
         }
     }
 
-    static async sha256pbkdf2(clearTextPassword: string, salt: any, rounds: number) {
+    static async sha256pbkdf2(clearTextPassword: string, salt: any, rounds: number) : Promise<ArrayBuffer> {
 
         if (!browserCrypto) {
             return crypto.pbkdf2Sync(clearTextPassword, salt, rounds, 32, "sha256");
