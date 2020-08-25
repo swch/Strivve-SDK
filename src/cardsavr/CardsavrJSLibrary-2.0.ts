@@ -13,24 +13,12 @@ import axios, {
 
 export class CardsavrSession {
 
-    sessionData: {
-        [key: string]: string;
-    };
-
-    _headers: {
-        [key: string]: string;
-    };
-
-    _cookies : {
-        [key: string]: string;
-    };
-
+    _sessionData: { [key: string]: string; };
+    _headers: { [key: string]: string; };
+    _cookies : { [key: string]: string; };
     _cardsavrCert : string | undefined;
-
     _baseUrl : string;
-
     _appName : string;
-
     _debug : boolean;
 
     constructor(baseUrl: string, sessionKey: string, appName: string, cardsavrCert ? : string) {
@@ -40,9 +28,9 @@ export class CardsavrSession {
         this._cardsavrCert = cardsavrCert;
         this._baseUrl = baseUrl;
         this._appName = appName;
-        this._debug = true;
+        this._debug = false;
 
-        this.sessionData = {
+        this._sessionData = {
             sessionKey
         };
 
@@ -85,11 +73,11 @@ export class CardsavrSession {
         const unencryptedBody = requestBody;
 
         // Encrypt the cardholder-safe-header(s) if they are in this request
-        CardsavrCrypto.Encryption.encryptSafeKeys(headers, this.sessionData.sessionKey);
+        CardsavrCrypto.Encryption.encryptSafeKeys(headers, this._sessionData.sessionKey);
         if (requestBody) {
-            requestBody = await CardsavrCrypto.Encryption.encryptRequest(this.sessionData.sessionKey, requestBody);
+            requestBody = await CardsavrCrypto.Encryption.encryptRequest(this._sessionData.sessionKey, requestBody);
         }
-        const authHeaders = await CardsavrCrypto.Signing.signRequest(path, this._appName, this.sessionData.sessionKey, requestBody);
+        const authHeaders = await CardsavrCrypto.Signing.signRequest(path, this._appName, this._sessionData.sessionKey, requestBody);
         Object.assign(headers, authHeaders);
 
         if (typeof window === "undefined" && cookiesEnforced) {
@@ -150,11 +138,11 @@ export class CardsavrSession {
                     }
                 });
             }
-            response.data = await CardsavrCrypto.Encryption.decryptResponse(this.sessionData.sessionKey, response.data);
+            response.data = await CardsavrCrypto.Encryption.decryptResponse(this._sessionData.sessionKey, response.data);
             return new CardsavrSessionResponse(response.status, response.statusText, response.headers, response.data, path);
         } catch (err) {
             if (err.response) {
-                err.response.data = await CardsavrCrypto.Encryption.decryptResponse(this.sessionData.sessionKey, err.response.data);
+                err.response.data = await CardsavrCrypto.Encryption.decryptResponse(this._sessionData.sessionKey, err.response.data);
                 throw new CardsavrSessionResponse(err.response.status, err.response.statusText, err.response.headers, err.response.data, path);
             } else {
                 throw new Error(err.message);
@@ -226,7 +214,7 @@ export class CardsavrSession {
         }
 
         const loginResponse = await this.sendRequest("/session/login", "post", encryptedLoginBody);
-        this.sessionData.sessionKey = await CardsavrCrypto.Keys.makeECDHSecretKey(loginResponse.body.serverPublicKey, keyPair);
+        this._sessionData.sessionKey = await CardsavrCrypto.Keys.makeECDHSecretKey(loginResponse.body.serverPublicKey, keyPair);
         return loginResponse;
     };
 
