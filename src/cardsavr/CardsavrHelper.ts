@@ -34,13 +34,12 @@ export class CardsavrHelper {
                                        grant?: string,
                                        trace?: {[k: string]: unknown}) : Promise<CardsavrSession> {
 
-        let session : CardsavrSession | undefined = this._sessions[username];
+        let session : CardsavrSession | null = this._sessions[username];
         if (session) {
             return session;
         } else if ((session = await this.restoreSession(username, trace))) {
             return session;
         }
-
         session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, this.cert);
         await session.init(username, password, grant, trace);
         this.saveSession(username, session);
@@ -62,18 +61,27 @@ export class CardsavrHelper {
         throw new JSLibraryError(null, "Must login and create session before accessing session by username.");
     }
 
-    private async restoreSession(username: string, trace?: {[k: string]: unknown}) : Promise<CardsavrSession | undefined> {
+    private async restoreSession(username: string, trace?: {[k: string]: unknown}) : Promise<CardsavrSession | null> {
         if (localStorageAvailable()) {
             const sessionKey = window.localStorage.getItem(`session[${username}]`);
             if (sessionKey) {
                 const session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, this.cert);
                 session.setSessionKey(sessionKey);
                 session.setTrace(username, trace);
-                await session.refresh();
+                try {
+                    await session.refresh();
+                } catch (err) {
+                    window.localStorage.removeItem(`session[${username}]`);
+                    if (err.body && err.body._errors) {
+                        err.body._errors.map((item: string) => console.log(item));
+                    }
+                    return null;
+                }
                 this.saveSession(username, session);
                 return session;
             }
         }
+        return null;
     }
 
     public static getInstance(): CardsavrHelper {
