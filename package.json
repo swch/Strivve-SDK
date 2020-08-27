@@ -1,6 +1,6 @@
 {
   "name": "@strivve/strivve-sdk",
-  "version": "2.1.25",
+  "version": "2.2.4",
   "description": "",
   "main": "src/sample/index.js",
   "directories": {
@@ -45,7 +45,6 @@
     "@typescript-eslint/eslint-plugin": "^3.6.0",
     "@typescript-eslint/parser": "^3.6.0",
     "axios": "^0.19.2",
-    "eslint": "^7.4.0",
-    "fsevents": "^2.1.3"
+    "eslint": "^7.4.0"
   }
 }
