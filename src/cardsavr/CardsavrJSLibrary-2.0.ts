@@ -31,7 +31,8 @@ export class CardsavrSession {
         this._debug = false;
 
         this._sessionData = {
-            sessionKey
+            sessionKey,
+            sessionToken : ""
         };
 
         this.setSessionHeaders({
@@ -75,6 +76,14 @@ export class CardsavrSession {
         this._sessionData.sessionKey = key;
     }
 
+    getSessionToken = () : string => {
+        return this._sessionData.sessionToken;
+    }
+
+    setSessionToken = (key: string): void  => {
+        this._sessionData.sessionToken = key;
+    }
+
     sendRequest = async(path: string, method: "get" | "GET" | "delete" | "DELETE" | "head" | "HEAD" | "options" | "OPTIONS" | "post" | "POST" | "put" | "PUT" | "patch" | "PATCH" | undefined, requestBody ? : any, headersToAdd = {}, cookiesEnforced = true): Promise < any > => {
 
         const headers = Object.assign({}, this._headers, headersToAdd);
@@ -85,7 +94,7 @@ export class CardsavrSession {
         if (requestBody) {
             requestBody = await CardsavrCrypto.Encryption.encryptRequest(this.getSessionKey(), requestBody);
         }
-        const authHeaders = await CardsavrCrypto.Signing.signRequest(path, this._appName, this.getSessionKey(), requestBody);
+        const authHeaders = await CardsavrCrypto.Signing.signRequest(path, this._appName, this.getSessionKey(), this.getSessionToken(), requestBody);
         Object.assign(headers, authHeaders);
 
         if (typeof window === "undefined" && cookiesEnforced) {
@@ -191,7 +200,7 @@ export class CardsavrSession {
         //if the user doesn't supply a trace (likely) or doesn't supply a trace key, just use the username
         this._cookies = {};
         const startResponse = await this.get("/session/start", null, {}, false);
-
+        this.setSessionToken(startResponse.body.sessionToken);
         return startResponse;
     };
 

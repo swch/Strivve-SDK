@@ -49,7 +49,7 @@ export class CardsavrHelper {
     private async saveSession(username: string, session: CardsavrSession) {
         this._sessions[username] = session;
         if(localStorageAvailable()) {
-            window.localStorage.setItem(`session[${username}]`, session.getSessionKey());
+            window.localStorage.setItem(`session[${username}]`, JSON.stringify({"sessionKey" : session.getSessionKey(), "sessionToken" : session.getSessionToken()}));
         }
     }
 
@@ -63,10 +63,11 @@ export class CardsavrHelper {
 
     private async restoreSession(username: string, trace?: {[k: string]: unknown}) : Promise<CardsavrSession | null> {
         if (localStorageAvailable()) {
-            const sessionKey = window.localStorage.getItem(`session[${username}]`);
-            if (sessionKey) {
+            const saved_session = JSON.parse(<string>window.localStorage.getItem(`session[${username}]`));
+            if (saved_session.sessionKey) {
                 const session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, this.cert);
-                session.setSessionKey(sessionKey);
+                session.setSessionKey(saved_session.sessionKey);
+                session.setSessionToken(saved_session.sessionToken);
                 session.setTrace(username, trace);
                 try {
                     await session.refresh();

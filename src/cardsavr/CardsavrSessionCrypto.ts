@@ -205,11 +205,12 @@ export class Signing {
         }
     }
 
-    static async signRequest(path: string, appName: string, sessionKey: string, body ? : any) {
+    static async signRequest(path: string, appName: string, sessionKey: string, sessionToken: string, body ? : any) {
 
         const date = new Date();
         const nonce = date.getTime().toString(10);
         const authorization = "SWCH-HMAC-SHA256 Credentials=" + appName;
+        const x_csavr_sess_token = sessionToken;
 
         const bodyString = body ? JSON.stringify(body) : "";
         const stringToSign = decodeURIComponent(path) + authorization + nonce + bodyString;
@@ -219,7 +220,8 @@ export class Signing {
         return {
             authorization,
             nonce,
-            signature
+            signature,
+            x_csavr_sess_token
         };
     }
 
