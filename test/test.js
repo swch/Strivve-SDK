@@ -12,10 +12,10 @@ describe("#formatPath", function() {
         expect(result).to.equal("/merchant_sites?top_hosts=walmart.com,amazon.com,apple.com&exclude_hosts=walmart.com");
         console.log(result);
     });
-    it("path with multiple ids and no filters", function() {
-        const result = formatPath("merchant_sites", {top_hosts: ["walmart.com","amazon.com","apple.com"], exclude_hosts: ["walmart.com"]});
+    it("path with multiple hosts and no filters", function() {
+        const result = formatPath("merchant_sites", {top_hosts: ["walmart.com,amazon.com", "apple.com"], exclude_hosts: ["walmart.com"]});
         expect(result).to.be.a('string');
-        expect(result).to.equal("/merchant_sites?top_hosts=walmart.com,amazon.com,apple.com&exclude_hosts=walmart.com");
+        expect(result).to.equal("/merchant_sites?top_hosts=walmart.com,amazon.com&top_hosts=apple.com&exclude_hosts=walmart.com");
         console.log(result);
     });
     it("path with id and no filters", function() {
@@ -23,12 +23,12 @@ describe("#formatPath", function() {
         expect(result).to.equal("/merchant_sites/1");
     });
     it("path with ids and no filters", function() {
-        const result = formatPath("merchant_sites", {"ids": [1,2]});
+        const result = formatPath("merchant_sites", {"ids": "1,2"});
         expect(result).to.equal("/merchant_sites?ids=1,2");
     });
-    it("path with hostnaames and no filters", function() {
+    it("path with hostnames and no filters", function() {
         const result = formatPath("merchant_sites", {"hosts": ["amazon.com","apple.com"]});
-        expect(result).to.equal("/merchant_sites?hosts=amazon.com,apple.com");
+        expect(result).to.equal("/merchant_sites?hosts=amazon.com&hosts=apple.com");
     });
 
 });
