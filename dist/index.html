@@ -56,15 +56,14 @@
         const sites = await (await cardsavr_helper.getSession(result.username)).getSites({ "tags": "prod" }, { page_length : 200, sort: "name" });
 
         cardsavr_helper.placeCardOnSiteAndPoll(result.username, creds, (message) => {
+          console.log(message);
           if (message.type == 'job_status') { //status updates
-            console.log(message.message);
             status.innerHTML = message.message.status + ": " + message.message.percent_complete + "%";
             if (message.message.status == "COMPLETED" || message.message.percent_complete == 100) {  //only one on job complete
               status.innerHTML = message.message.termination_type;
               document.getElementById('job_form').style.display = "none";
             }
           } else if (message.job_id && message.type.endsWith("_request")) {
-            console.log(message);
             document.getElementById("job_id").value = message.job_id;
             document.getElementById("envelope_id").value = message.envelope_id;
             if (message.type == 'tfa_request') {
