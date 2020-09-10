@@ -34,7 +34,7 @@
           var session = await cardsavr_helper.loginAndCreateSession(result.username, undefined, result.grant);
         } catch (err) {
           //handle the case where the API session is no longer valid, or it's a refresh in incognito
-          console.log(err.body._errors);
+          console.log(err);
         }
       }      
 
@@ -99,7 +99,7 @@
       window.onload = function() {
         axios({url: 'strivve_creds.json'})
           .then(response => {
-            session("CardUpdatr Demo", response.data.app_key, response.data.cardsavr_server);
+            session(response.data.app_name, response.data.app_key, response.data.cardsavr_server);
           });
 
         var form = document.querySelector('#job_form');
