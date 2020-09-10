@@ -108,9 +108,11 @@ export class CardsavrSession {
         }
 
         const requestConfig: AxiosRequestConfig = {
+            /*
             httpsAgent : new HTTPSAgent({
               rejectUnauthorized : false
             }),
+            */
             baseURL : this._baseUrl,
             url : path,
             timeout : 10000,
