@@ -1,1 +1,7 @@
-strivve_creds_mark.json
+{
+    "app_name": "CardUpdatr Demo",
+    "app_key" : "<REDACTED>",
+    "app_username": "cardupdatr_demo",
+    "app_password" : "<REDACTED>",
+    "cardsavr_server" : "<REDACTED>"
+} 
