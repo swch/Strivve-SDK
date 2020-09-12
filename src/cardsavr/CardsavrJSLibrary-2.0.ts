@@ -67,7 +67,18 @@ export class CardsavrSession {
         };
     };
 
-    getSessionKey = () : string => {
+    getSerializedSessionData = () : string => {
+        return JSON.stringify(this._sessionData);
+    }
+
+    deserializeSessionData = (json: string) : void => {
+        this._sessionData = JSON.parse(json);
+        this.setSessionHeaders({
+            "x-cardsavr-session-jwt" : this.getSessionToken()
+        });
+    }
+
+    private getSessionKey = () : string => {
         return this._sessionData.sessionKey;
     }
 
@@ -75,7 +86,7 @@ export class CardsavrSession {
         this._sessionData.sessionKey = key;
     }
 
-    getSessionToken = () : string => {
+    private getSessionToken = () : string => {
         return this._sessionData.sessionToken;
     }
 

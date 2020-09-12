@@ -49,7 +49,7 @@ export class CardsavrHelper {
     private async saveSession(username: string, session: CardsavrSession) {
         this._sessions[username] = session;
         if(localStorageAvailable()) {
-            window.localStorage.setItem(`session[${username}]`, JSON.stringify({"sessionKey" : session.getSessionKey(), "sessionToken" : session.getSessionToken()}));
+            window.localStorage.setItem(`session_v2.3.1[${username}]`, session.getSerializedSessionData());
         }
     }
 
@@ -63,16 +63,15 @@ export class CardsavrHelper {
 
     private async restoreSession(username: string, trace?: {[k: string]: unknown}) : Promise<CardsavrSession | null> {
         if (localStorageAvailable()) {
-            const saved_session = JSON.parse(<string>window.localStorage.getItem(`session[${username}]`));
-            if (saved_session) {
+            const session_cache_data = <string>window.localStorage.getItem(`session_v2.3.1[${username}]`);
+            if (session_cache_data) {
                 const session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, this.cert);
-                session.setSessionKey(saved_session.sessionKey);
-                session.setSessionToken(saved_session.sessionToken);
                 session.setTrace(username, trace);
                 try {
+                    session.deserializeSessionData(session_cache_data);
                     await session.refresh();
                 } catch (err) {
-                    window.localStorage.removeItem(`session[${username}]`);
+                    window.localStorage.clear();
                     if (err.body && err.body._errors) {
                         err.body._errors.map((item: string) => console.log(item));
                     }
@@ -209,8 +208,8 @@ export class CardsavrHelper {
         const session = this.getSession(username);
         session.end();
         delete this._sessions[username];
-        if(localStorageAvailable()) {
-            window.localStorage.removeItem(`session[${username}]`);
+         if(localStorageAvailable()) {
+            window.localStorage.removeItem(`session_v2.3.1[${username}]`);
         }
      }
 
