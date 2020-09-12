@@ -63,8 +63,18 @@ export class CardsavrHelper {
 
     private async restoreSession(username: string, trace?: {[k: string]: unknown}) : Promise<CardsavrSession | null> {
         if (localStorageAvailable()) {
-            const saved_session = JSON.parse(<string>window.localStorage.getItem(`session[${username}]`));
-            if (saved_session) {
+            const saved_raw_session = <string>window.localStorage.getItem(`session[${username}]`);
+            if (saved_raw_session) {
+            let saved_session;
+                try {
+                    saved_session = JSON.parse(saved_raw_session);
+                } catch (err) {
+                    // Old pre JSON object single b64sessionKey
+                    window.localStorage.removeItem(`session[${username}]`);
+                    saved_session = undefined;
+                    return null;
+                }
+                
                 const session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, this.cert);
                 session.setSessionKey(saved_session.sessionKey);
                 session.setSessionToken(saved_session.sessionToken);
