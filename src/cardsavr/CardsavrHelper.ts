@@ -71,7 +71,6 @@ export class CardsavrHelper {
                 } catch (err) {
                     // Old pre JSON object single b64sessionKey
                     window.localStorage.removeItem(`session[${username}]`);
-                    saved_session = undefined;
                     return null;
                 }
                 
