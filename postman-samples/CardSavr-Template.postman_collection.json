@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "c72d7e37-ddac-4019-9c54-aa3e06e51ea6",
+		"_postman_id": "9fbb8a01-188d-423f-b7e6-8ce91937265c",
 		"name": "CardSavr API Copy",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -16,11 +16,11 @@
 					}
 				],
 				"url": {
-					"raw": "https://api.mbudos.cardsavr.io/session/start",
+					"raw": "https://api.YOUR-INSTANCE-NAME.cardsavr.io/session/start",
 					"protocol": "https",
 					"host": [
 						"api",
-						"mbudos",
+						"YOUR-INSTANCE-NAME",
 						"cardsavr",
 						"io"
 					],
@@ -48,14 +48,14 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\"password\": \"|_ha^~>b_*(S>v?ez?Wc5\", \"userName\": \"ggarner_customer_agent\"}"
+					"raw": "{\"password\": \"YOUR-AGENT-PASSWORD\", \"userName\": \"YOUR_-USTOMER-AGENT-NAME\"}"
 				},
 				"url": {
-					"raw": "https://api.mbudos.cardsavr.io/session/login",
+					"raw": "https://api.YOUR-INSTANCE-NAME.cardsavr.io/session/login",
 					"protocol": "https",
 					"host": [
 						"api",
-						"mbudos",
+						"YOUR-INSTANCE-NAME",
 						"cardsavr",
 						"io"
 					],
@@ -86,13 +86,13 @@
 					},
 					{
 						"key": "financial-institution",
-						"value": "ggarner",
+						"value": "YOUR-EXPRIMENTAL-FI-NAME",
 						"type": "text"
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\"username\":\"username1\",\"first_name\": \"Greg\", \"last_name\":\"Garner\",\"phone_number\":\"206-790-2146\",\"email\": \"ggarner@strivve.com\",\"cardholder_safe_key\":\"KQY1TrLsywrPWEg65VcCn8Ww8F4/G3Z6kGc2wxsCjaQ=\",\"role\":\"cardholder\"}",
+					"raw": "{\"username\":\"username1\",\"first_name\": \"test\", \"last_name\":\"user\",\"phone_number\":\"123.456.6789\",\"email\": \"noreply@gmail.com\",\"cardholder_safe_key\":\"KQY1TrLsywrPWEg65VcCn8Ww8F4/G3Z6kGc2wxsCjaQ=\",\"role\":\"cardholder\"}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -100,11 +100,11 @@
 					}
 				},
 				"url": {
-					"raw": "https://api.mbudos.cardsavr.io/cardsavr_users/",
+					"raw": "https://api.YOUR-INSTANCE-NAME.cardsavr.io/cardsavr_users/",
 					"protocol": "https",
 					"host": [
 						"api",
-						"mbudos",
+						"YOUR-INSTANCE-NAME",
 						"cardsavr",
 						"io"
 					],
@@ -131,11 +131,11 @@
 					}
 				],
 				"url": {
-					"raw": "https://api.mbudos.cardsavr.io/session/end",
+					"raw": "https://api.YOUR-INSTANCE-NAME.cardsavr.io/session/end",
 					"protocol": "https",
 					"host": [
 						"api",
-						"mbudos",
+						"YOUR-INSTANCE-NAME",
 						"cardsavr",
 						"io"
 					],
@@ -154,15 +154,15 @@
 				"header": [
 					{
 						"key": "trace",
-						"value": "{\"key\": \"ggarner\"}"
+						"value": "{\"key\": \"my_trace\"}"
 					}
 				],
 				"url": {
-					"raw": "https://api.mbudos.cardsavr.io/session/start",
+					"raw": "https://api.YOUR-INSTANCE-NAME-.cardsavr.io/session/start",
 					"protocol": "https",
 					"host": [
 						"api",
-						"mbudos",
+						"YOUR-INSTANCE-NAME-",
 						"cardsavr",
 						"io"
 					],
@@ -190,14 +190,14 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\"password\": \"|_ha^~>b_*(S>v?ez?Wc5\", \"userName\": \"ggarner_customer_agent\"}"
+					"raw": "{\"password\": \"YOUR-PASSWORD\", \"userName\": \"YOUR-CUSTOMER-AGENT-NAME\"}"
 				},
 				"url": {
-					"raw": "https://api.mbudos.cardsavr.io/session/login",
+					"raw": "https://api.YOUR-INSTANCE-NAME.cardsavr.io/session/login",
 					"protocol": "https",
 					"host": [
 						"api",
-						"mbudos",
+						"YOUR-INSTANCE-NAME",
 						"cardsavr",
 						"io"
 					],
@@ -225,14 +225,14 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\"user_id\":2873,\"address1\":\"SGTClNSCCMqlfjuzTmJuepDyFgvWhlCMRycXlKGiRIooOJJkoXeObOcAwJMGeqjSDWfhTHobAWMimcCynMIQcvlBFSbMQlwUFyJ\",\"address2\":\"AyFgoCTjCLXUQVylBAfkHJOtqkkKJjuaLHnmJpSctqBOQueIvciyAUPqYoFpkiAPlkGjgPuabhAPCHFPvaxciObOmIBvBUWpngD\",\"city\":\"Seattle\",\"subnational\":\"WA\",\"postal_code\":\"98177\",\"postal_other\":\"98177-0124\",\"country\":\"USA\",\"is_primary\":true}"
+					"raw": "{\"user_id\":CARDHOLDER-ID,\"address1\":\"LINE-ONE\",\"address2\":\"OPTONAL-LINE-TWO\",\"city\":\"CITY\",\"subnational\":\"STATE\",\"postal_code\":\"ZIP\",\"postal_other\":\"ZIP-XXXX\",\"country\":\"USA\",\"is_primary\":true}"
 				},
 				"url": {
-					"raw": "https://api.mbudos.cardsavr.io/cardsavr_addresses/",
+					"raw": "https://api.YOUR-INSTANCE-NAME.cardsavr.io/cardsavr_addresses/",
 					"protocol": "https",
 					"host": [
 						"api",
-						"mbudos",
+						"YOUR-INSTANCE-NAME",
 						"cardsavr",
 						"io"
 					],
@@ -264,14 +264,14 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\"cardholder_id\":2873,\"address_id\":1894,\"par\":\"peLpzDnEHdhiiWEtuhUgICEonxScm\",\"pan\":\"KOnalFfwdrBXlZD\",\"cvv\":\"oAc\",\"expiration_month\":12,\"expiration_year\":24,\"name_on_card\":\"Joe C Smith\",\"first_name\":\"Joe\",\"last_name\":\"Smith\",\"first_6\":\"000000\",\"first_7\":\"0000000\",\"first_8\":\"00000000\"}"
+					"raw": "{\"cardholder_id\":CARDHOLDER-ID,\"address_id\":1894,\"par\":\"peLpzDnEHdhiiWEtuhUgICEonxScm\",\"pan\":\"41111111111111111\",\"cvv\":\"123\",\"expiration_month\":12,\"expiration_year\":24,\"name_on_card\":\"Joe C Smith\",\"first_name\":\"Joe\",\"last_name\":\"Smith\",\"first_6\":\"411111\",\"first_7\":\"4111111\",\"first_8\":\"41111111\"}"
 				},
 				"url": {
-					"raw": "https://api.mbudos.cardsavr.io/cardsavr_cards/",
+					"raw": "https://api.YOUR-INSTANCE-NAME.cardsavr.io/cardsavr_cards/",
 					"protocol": "https",
 					"host": [
 						"api",
-						"mbudos",
+						"YOUR-INSTANCE-NAME",
 						"cardsavr",
 						"io"
 					],
@@ -303,14 +303,14 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\"cardholder_id\":750294823,\"merchant_site_id\":414264814,\"last_card_placed_id\":1434361030,\"username\":\"jsmith123\",\"password\":\"BSN6W6IF72W6EVWwbwgqYIo51ad/ZCZ74vxa3rzyQqI=\"}"
+					"raw": "{\"cardholder_id\":CARDHOLDER-ID,\"merchant_site_id\":MERCHANT-SITE-ID,\"last_card_placed_id\":1434361030,\"username\":\"LOGIN-NAME-AT-MERCHANT\",\"password\":\"LOGIN-PASSWORD\"}"
 				},
 				"url": {
-					"raw": "https://api.mbudos.cardsavr.io/cardsavr_accounts/",
+					"raw": "https://api.YOUR-INSTANCE-NAME.cardsavr.io/cardsavr_accounts/",
 					"protocol": "https",
 					"host": [
 						"api",
-						"mbudos",
+						"YOUR-INSTANCE-NAME",
 						"cardsavr",
 						"io"
 					],
@@ -342,14 +342,14 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\"user_id\":2875,\"card_id\":785,\"account_id\":536}"
+					"raw": "{\"user_id\":CARDHOLDER-ID,\"card_id\":CARD-ID,\"account_id\":ACCOUNT-ID}"
 				},
 				"url": {
-					"raw": "https://api.mbudos.cardsavr.io/place_card_on_single_site_jobs/",
+					"raw": "https://api.YOUR-INSTANCE-NAME.cardsavr.io/place_card_on_single_site_jobs/",
 					"protocol": "https",
 					"host": [
 						"api",
-						"mbudos",
+						"YOUR-INSTANCE-NAME",
 						"cardsavr",
 						"io"
 					],
@@ -376,11 +376,11 @@
 					}
 				],
 				"url": {
-					"raw": "https://api.mbudos.cardsavr.io/session/end",
+					"raw": "https://api.YOUR-INSTANCE-NAME.cardsavr.io/session/end",
 					"protocol": "https",
 					"host": [
 						"api",
-						"mbudos",
+						"YOUR-INSTANCE-NAME",
 						"cardsavr",
 						"io"
 					],
