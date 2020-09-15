@@ -48,7 +48,7 @@
 
         document.getElementById("site_job_site").innerHTML = getFormValue(event, "site_hostname");
         var status = document.getElementById("site_job_message");
-        status.innerHTML = "job_started";
+        status.innerHTML = "WAITING FOR JOB TO START";
         
         var cardsavr_helper = strivvesdk.CardsavrHelper.getInstance();
         var result = get_hash_key_values();
@@ -63,7 +63,7 @@
               status.innerHTML = message.message.termination_type;
               document.getElementById('job_form').style.display = "none";
             }
-          } else if (message.job_id && message.type.endsWith("_request")) {
+          } else if (message.job_id && (message.type.endsWith("_request") || message.type.endsWith("_message"))) {
             document.getElementById("job_id").value = message.job_id;
             document.getElementById("envelope_id").value = message.envelope_id;
             if (message.type == 'tfa_request') {
@@ -72,6 +72,8 @@
             } else if (message.type == 'credential_request') {
               document.getElementById("submit_type").value = "post_new_creds";
               toggle_element(["username", "password"], "block"); //show credential boxes
+            } else if (message.type == 'tfa_message') {
+              status.innerHTML = status.innerHTML.replace("AUTH", "PENDING USER APPROVAL ON DEVICE");
             }
           }
         }, result.card_id);
@@ -80,9 +82,10 @@
       async function post_tfa(event) {
         result = get_hash_key_values();
         var cardsavr_helper = strivvesdk.CardsavrHelper.getInstance();
-        await cardsavr_helper.postTFA(result.username, getFormValue(event, 'tfa'), 
-                                                       getFormValue(event, 'job_id'), 
-                                                       getFormValue(event, 'envelope_id'));
+        await cardsavr_helper.postTFA(result.username, 
+                                      getFormValue(event, 'tfa'), 
+                                      getFormValue(event, 'job_id'), 
+                                      getFormValue(event, 'envelope_id'));
         toggle_element(["tfa"], "none");
       }
 
@@ -91,8 +94,10 @@
                  password: getFormValue(event, 'password')} //can't update site_hostname
 
         var cardsavr_helper = strivvesdk.CardsavrHelper.getInstance();
-        await cardsavr_helper.postCreds(get_hash_key_values().username, creds, getFormValue(event, 'job_id'), 
-                                                                      getFormValue(event, 'envelope_id'));
+        await cardsavr_helper.postCreds(get_hash_key_values().username, 
+                                        creds, 
+                                        getFormValue(event, 'job_id'), 
+                                        getFormValue(event, 'envelope_id'));
         toggle_element(["username", "password"], "none");
       }
 
