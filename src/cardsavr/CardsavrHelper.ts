@@ -115,8 +115,11 @@ export class CardsavrHelper {
             const agent_session = this.getSession(agent_username);
             const cardholder_response = await agent_session.createUser(cardholder_data_copy, safe_key, financial_institution);
             const cardholder_id = cardholder_response?.body?.id;
-            const grant_handoff = cardholder_response?.body?.credential_grant;
+            //address requires a user id
+            address_data.user_id = cardholder_id;
             const address_response = await agent_session.createAddress(address_data);
+            const grant_handoff = cardholder_response?.body?.credential_grant;
+            //card requires a user id
             card_data.cardholder_id = cardholder_id;
             card_data.address_id = address_response?.body?.id;
             card_data.par = generateRandomPar(card_data.pan, card_data.expiration_month, card_data.expiration_year, cardholder_data_copy.username);
