@@ -10,12 +10,16 @@
   "author": "Strivve <mbudos@strivve.com> (https://www.strivve.com/)",
   "license": "ISC",
   "dependencies": {
-    "@strivve/strivve-sdk": "^2.3.3",
+    "@strivve/strivve-sdk": "^2.3.4",
     "@types/source-map-support": "^0.5.3",
     "axios": "^0.19.2",
     "body-parser": "*",
     "express": "*",
     "https": "^1.0.0",
     "source-map-support": "^0.5.19"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/swch/Strivve-SDK.git"
   }
 }
