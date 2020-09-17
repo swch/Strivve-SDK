@@ -60,8 +60,11 @@ http://localhost:3000/create_user
 This call will provision a user using the cardholder.json, card.json, and address.json files. These structures are based on the [API docuemntation](https://swch.github.io/slate).  The service then redirects to one of the following places:
 
 http://localhost:3000/create_user (default - goes to the corresponding cardupdatr instance and runs CardUpdatr SSO)
+
 http://localhost:3000/create_user?rd=index.html (launches index.html, a bare bones client application)
+
 http://localhost:3000/create_user?rd=session_persist.html (for testing session persistence)
+
 http://localhost:3000/create_user?rd=iframe.html (for testing embedded SSO)
 
 This is just a simple api call and static webserver that demonstrates how the web application works.  In the dist/index.html file, there is a simple application that uses a webpack bundle of the sdk (strivve-sdk.js) to manage the user's merchant credentials and job.  The grant, username and card_id are passed in to launch the application.
