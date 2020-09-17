@@ -51,12 +51,22 @@ The application is a simple web application (/sample/webserver.js).  The initial
 From the sample directory, you can also run the express web server:
 
 ```bash
-node webserver.js
+npm install
+npm start
 ```
 
-This is just a simple api call and static webserver that demonstrates how the web application works.  In the dist/index.html file, there is a simple application that uses a webpack bundle of the sdk (strivve-sdk.js) to manage the user's merchant credentials and job.  By passing the grant and username into the url of the web application, it can attain a sesssion for that user:
+http://localhost:3000/create_user
 
-http://localhost:3000/#grant=[GRANT]&username=[USERNAME]
+This call will provision a user using the cardholder.json, card.json, and address.json files. These structures are based on the [API docuemntation](https://swch.github.io/slate).  The service then redirects to one of the following places:
+
+http://localhost:3000/create_user (default - goes to the corresponding cardupdatr instance and runs CardUpdatr SSO)
+http://localhost:3000/create_user?rd=index.html (launches index.html, a bare bones client application)
+http://localhost:3000/create_user?rd=session_persist.html (for testing session persistence)
+http://localhost:3000/create_user?rd=iframe.html (for testing embedded SSO)
+
+This is just a simple api call and static webserver that demonstrates how the web application works.  In the dist/index.html file, there is a simple application that uses a webpack bundle of the sdk (strivve-sdk.js) to manage the user's merchant credentials and job.  The grant, username and card_id are passed in to launch the application.
+
+http://localhost:3000/index.html#grant=[GRANT]&username=[USERNAME]&card_id=[CARD_ID]
 
 Now the web application can re-establish the session using the grant and username provided by the original provisioning call.  The cardholder will be presented with a simple form for the merchant credentials of the site to place their card.  Once the form is submitted, the web application authenticates the user with the username and grant, and then posts the job as that user.  There is a messaging system the posts messages to the UI to show status, progress, and the success or failure of the job.  The form will also present additional fields to collect a new password or a two-factor authentication code.
 
