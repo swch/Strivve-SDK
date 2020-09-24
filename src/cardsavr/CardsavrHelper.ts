@@ -91,6 +91,23 @@ export class CardsavrHelper {
         return CardsavrHelper.instance;
     }
 
+    public async create_user(agent_username: string, financial_institution: string, cardholder_data: any, safe_key?: string): Promise<unknown> {
+        try {
+            //don't need the login data
+            const cardholder_data_copy = { ...cardholder_data };
+            if (!safe_key) { //generate a safe_key if one isn't passed in
+                safe_key = await Keys.generateCardholderSafeKey(cardholder_data.email);
+                cardholder_data_copy.cardholder_safe_key = safe_key; 
+            }
+    
+            const agent_session = this.getSession(agent_username);
+            const cardholder_response = await agent_session.createUser(cardholder_data_copy, safe_key, financial_institution);
+            return { ...cardholder_response.body };
+        } catch(e) {
+            this.handleError(e);
+        }
+    }
+
     public async createCard(agent_username: string, financial_institution: string, cardholder_data: any, address_data: {[k: string]: string}, card_data: any, safe_key?: string) : Promise<unknown> {
     
         try {
