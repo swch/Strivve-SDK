@@ -95,6 +95,7 @@ export class CardsavrHelper {
         try {
             //don't need the login data
             const cardholder_data_copy = { ...cardholder_data };
+            cardholder_data_copy.role = "cardholder";
             if (!safe_key) { //generate a safe_key if one isn't passed in
                 safe_key = await Keys.generateCardholderSafeKey(cardholder_data.email);
                 cardholder_data_copy.cardholder_safe_key = safe_key; 
@@ -103,6 +104,22 @@ export class CardsavrHelper {
             const agent_session = this.getSession(agent_username);
             const cardholder_response = await agent_session.createUser(cardholder_data_copy, safe_key, financial_institution);
             return { ...cardholder_response.body };
+        } catch(e) {
+            this.handleError(e);
+        }
+    }
+
+    public async update_user_information(agent_username: string, cardholder_data: any, cardholder_id: number, safe_key: string, address_id: number, address_data: {[k: string]: string}, card_id: number, card_data: any): Promise<unknown> {
+        try {
+            const cardholder_data_copy = { ...cardholder_data };
+            const agent_session = this.getSession(agent_username);
+            const update_user_response = await agent_session.updateUser(cardholder_id, cardholder_data_copy, null, safe_key);
+            address_data.user_id = cardholder_id.toString();
+            const update_address_response = await agent_session.updateAddress(address_id, address_data);
+            card_data.address_id = address_id;
+            card_data.cardholder_id = cardholder_id;
+            const update_card_data_response = await agent_session.updateCard(card_id, card_data);
+            return { cardholder : update_user_response.body, address : update_address_response.body, card : update_card_data_response.body };
         } catch(e) {
             this.handleError(e);
         }
