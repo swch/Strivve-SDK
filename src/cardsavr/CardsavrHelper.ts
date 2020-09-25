@@ -12,16 +12,16 @@ export class CardsavrHelper {
     
     private static instance: CardsavrHelper;
 
-    private _sessions: { [key:string]:CardsavrSession; } = {};
+    private _sessions: { [key: string]: CardsavrSession } = {};
 
-    private _safe_keys: { [key:string]:string; } = {};
+    private _safe_keys: { [key: string]: string } = {};
 
     private cardsavr_server = "";
     private app_name = "";
     private app_key = "";
     private cert?: string;
 
-    public setAppSettings(cardsavr_server: string, app_name: string, app_key: string, cert?: string) : CardsavrHelper {
+    public setAppSettings(cardsavr_server: string, app_name: string, app_key: string, cert?: string): CardsavrHelper {
         this.cardsavr_server = cardsavr_server;
         this.app_name = app_name;
         this.app_key = app_key;
@@ -32,9 +32,9 @@ export class CardsavrHelper {
     public async loginAndCreateSession(username: string, 
                                        password?: string,
                                        grant?: string,
-                                       trace?: {[k: string]: unknown}) : Promise<CardsavrSession> {
+                                       trace?: {[k: string]: unknown}): Promise<CardsavrSession> {
 
-        let session : CardsavrSession | null = this._sessions[username];
+        let session: CardsavrSession | null = this._sessions[username];
         if (session) {
             return session;
         } else if ((session = await this.restoreSession(username, trace))) {
@@ -53,7 +53,7 @@ export class CardsavrHelper {
         }
     }
 
-    public getSession(username : string) : CardsavrSession {
+    public getSession(username: string): CardsavrSession {
         const session = this._sessions[username]; 
         if (session) {
             return session;
@@ -61,8 +61,9 @@ export class CardsavrHelper {
         throw new JSLibraryError(null, "Must login and create session before accessing session by username.");
     }
 
-    private async restoreSession(username: string, trace?: {[k: string]: unknown}) : Promise<CardsavrSession | null> {
+    private async restoreSession(username: string, trace?: {[k: string]: unknown}): Promise<CardsavrSession | null> {
         if (localStorageAvailable()) {
+            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
             const session_cache_data = <string>window.localStorage.getItem(`session_v2.3.1[${username}]`);
             if (session_cache_data) {
                 const session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, this.cert);
@@ -125,7 +126,7 @@ export class CardsavrHelper {
         }
     }
 
-    public async createCard(agent_username: string, financial_institution: string, cardholder_data: any, address_data: {[k: string]: string}, card_data: any, safe_key?: string) : Promise<unknown> {
+    public async createCard(agent_username: string, financial_institution: string, cardholder_data: any, address_data: {[k: string]: string}, card_data: any, safe_key?: string): Promise<unknown> {
     
         try {
             //don't need the login data
@@ -192,14 +193,14 @@ export class CardsavrHelper {
         if (!sites || !sites.body || sites.body.length === 0 ) {
             return null;
         }
-        const site : any = sites.body[0];
+        const site: any = sites.body[0];
         if (!site ) {
             return null;
         }
         return site;
     }
 
-    public async placeCardOnSite(username: string, merchant_creds: any, card_id : number | null = null, status = "REQUESTED", safe_key? : string) : Promise<any> {
+    public async placeCardOnSite(username: string, merchant_creds: any, card_id: number | null = null, status = "REQUESTED", safe_key? : string): Promise<any> {
         //const login = await this.loginAndCreateSession(username, undefined, grant);
         const session = this._sessions[username];
         if (session) {
@@ -211,11 +212,11 @@ export class CardsavrHelper {
                         merchant_site_id = site.id;
                     }
                 }
-                //if there's no card_id, just grab the latest one
-                if (!card_id) {
-                    const card_data = await session.getCards({});
-                    card_id = card_data.body[0].id;
-                }
+                //if there's no card_id, the job needs to be updated with it later.
+                // if (!card_id) {
+                //     const card_data = await session.getCards({});
+                //     card_id = card_data.body[0].id;
+                // }
                 const user_json = await session.getUsers({username : username});
                 const account = await session.createAccount( 
                         {cardholder_id : user_json.body[0].id,
@@ -241,7 +242,7 @@ export class CardsavrHelper {
         }
     }
 
-    public endSession(username: string) : void {
+    public endSession(username: string): void {
         const session = this.getSession(username);
         session.end();
         delete this._sessions[username];
@@ -250,7 +251,7 @@ export class CardsavrHelper {
         }
      }
 
-    public async pollOnJob(username: string, job_id: number, callback: MessageHandler, interval = 5000) : Promise<void> {
+    public async pollOnJob(username: string, job_id: number, callback: MessageHandler, interval = 5000): Promise<void> {
         try {
             const session = this.getSession(username);
             
@@ -285,7 +286,7 @@ export class CardsavrHelper {
         }
     }
 
-    public async placeCardOnSiteAndPoll(username: string, merchant_creds: any, callback: any, card_id : number | null = null, interval = 5000) : Promise<void> {
+    public async placeCardOnSiteAndPoll(username: string, merchant_creds: any, callback: any, card_id: number | null = null, interval = 5000): Promise<void> {
         try {
             const job_data = await this.placeCardOnSite(username, merchant_creds, card_id);
             if (job_data) {
@@ -296,7 +297,7 @@ export class CardsavrHelper {
         }
     }
 
-    public async postTFA(username: string, tfa: string, job_id: number, envelope_id: string) : Promise<void> {
+    public async postTFA(username: string, tfa: string, job_id: number, envelope_id: string): Promise<void> {
     
         try {
             const session = this.getSession(username); //session should already be loaded
@@ -306,7 +307,7 @@ export class CardsavrHelper {
         }
     }
 
-    public async postCreds(username: string, merchant_creds: any, job_id: number, envelope_id: string) : Promise<void> {
+    public async postCreds(username: string, merchant_creds: any, job_id: number, envelope_id: string): Promise<void> {
         try {
             const session = this.getSession(username);
             const acct = await session.getSingleSiteJobs(job_id);
@@ -322,7 +323,7 @@ export class CardsavrHelper {
         }
     }
 
-    public async deleteAccount (agent_username: string, cardholder_id: number) : Promise<void> {
+    public async deleteAccount (agent_username: string, cardholder_id: number): Promise<void> {
     
         try {
             const session = this.getSession(agent_username);
