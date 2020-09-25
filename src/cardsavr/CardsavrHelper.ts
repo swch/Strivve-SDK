@@ -110,7 +110,7 @@ export class CardsavrHelper {
         }
     }
 
-    public async update_user(cardholder_username: string, cardholder_data: any, cardholder_id: number, safe_key: string, address_data: {[k: string]: string | number}, card_data: any): Promise<unknown> {
+    public async update_user(cardholder_username: string, cardholder_data: any, cardholder_id: number, safe_key: string | null, address_data: {[k: string]: string | number}, card_data: any): Promise<unknown> {
         try {
             const cardholder_data_copy = { ...cardholder_data };
             // Log in as cardholder
