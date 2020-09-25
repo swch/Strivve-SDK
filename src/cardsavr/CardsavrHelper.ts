@@ -213,10 +213,9 @@ export class CardsavrHelper {
                     }
                 }
                 //if there's no card_id, the job needs to be updated with it later.
-                // if (!card_id) {
-                //     const card_data = await session.getCards({});
-                //     card_id = card_data.body[0].id;
-                // }
+                if (!card_id) {
+                    card_id = null;
+                }
                 const user_json = await session.getUsers({username : username});
                 const account = await session.createAccount( 
                         {cardholder_id : user_json.body[0].id,
