@@ -110,17 +110,23 @@ export class CardsavrHelper {
         }
     }
 
-    public async update_user_information(agent_username: string, cardholder_data: any, cardholder_id: number, safe_key: string, address_id: number, address_data: {[k: string]: string}, card_id: number, card_data: any): Promise<unknown> {
+    public async update_user(cardholder_username: string, cardholder_data: any, cardholder_id: number, safe_key: string, address_data: {[k: string]: string | number}, card_data: any): Promise<unknown> {
         try {
             const cardholder_data_copy = { ...cardholder_data };
-            const agent_session = this.getSession(agent_username);
-            const update_user_response = await agent_session.updateUser(cardholder_id, cardholder_data_copy, null, safe_key);
-            address_data.user_id = cardholder_id.toString();
-            const update_address_response = await agent_session.updateAddress(address_id, address_data);
-            card_data.address_id = address_id;
-            card_data.cardholder_id = cardholder_id;
-            const update_card_data_response = await agent_session.updateCard(card_id, card_data);
-            return { cardholder : update_user_response.body, address : update_address_response.body, card : update_card_data_response.body };
+            // Log in as cardholder
+            const cardholder_session = this.getSession(cardholder_username);
+            // Update the users information
+            const update_user_response = await cardholder_session.updateUser(cardholder_id, cardholder_data_copy, null, safe_key);
+            address_data.user_id = cardholder_id; // address needs user_id ref
+            // Create the user address
+            const address_response = await cardholder_session.createAddress(address_data);
+            //card requires a user id
+            card_data.cardholder_id = cardholder_id; // card needs user_id ref
+            card_data.address_id = address_response?.body?.id; // card needs address_id ref
+            card_data.par = generateRandomPar(card_data.pan, card_data.expiration_month, card_data.expiration_year, cardholder_data_copy.username);
+            // Create the users card
+            const card_response = await cardholder_session.createCard(card_data, safe_key);
+            return { cardholder : update_user_response.body, address : address_response.body, card : card_response.body };
         } catch(e) {
             this.handleError(e);
         }
