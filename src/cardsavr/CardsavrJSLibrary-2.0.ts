@@ -426,8 +426,7 @@ export class CardsavrSession {
     createUser = async(body: any, newSafeKey: string, financial_institution = "default", headersToAdd = {}): Promise < any > => {
 
         if (body && body.role == "cardholder" && !body.username) {
-            const length = 20;
-            body.username = [...Array(length)].map(i => (~~(Math.random() * 36)).toString(36)).join("");
+            body.username = CardsavrSessionUtilities.generateUniqueUsername();
         }
         Object.assign(headersToAdd, this._makeSafeKeyHeader(newSafeKey, true));
         Object.assign(headersToAdd, {

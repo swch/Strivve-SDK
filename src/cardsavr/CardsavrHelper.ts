@@ -2,7 +2,7 @@
 
 import { CardsavrSession } from "./CardsavrJSLibrary-2.0";
 import CardsavrSessionResponse from "./CardsavrSessionResponse";
-import { generateRandomPar, createMetaKey, localStorageAvailable } from "./CardsavrSessionUtilities";
+import { generateRandomPar, createMetaKey, localStorageAvailable, generateUniqueUsername } from "./CardsavrSessionUtilities";
 import JSLibraryError from "./JSLibraryError";
 import { Keys } from "./CardsavrSessionCrypto";
 
@@ -137,10 +137,56 @@ export class CardsavrHelper {
         return null;
     }
 
+    public async placeCardOnSiteSingleCall(agent_username: string, 
+                                        financial_institution: string, 
+                                        cardholder_data: any, 
+                                        address_data: {[k: string]: any}, 
+                                        card_data: any, 
+                                        merchant_creds: {[k: string]: any}, 
+                                        safe_key?: string) : Promise<unknown> {
+    try {
+        //don't need the login data
+        cardholder_data.role = "cardholder";
+        //set the missing settings for model
+        if (!cardholder_data.first_name) cardholder_data.first_name = card_data.first_name;
+        if (!cardholder_data.last_name) cardholder_data.last_name = card_data.last_name;
+        if (!cardholder_data.username) cardholder_data.username = generateUniqueUsername();
+        if (!card_data.name_on_card) card_data.name_on_card = `${card_data.first_name} ${card_data.last_name}`;
+
+        card_data.par = generateRandomPar(card_data.pan, card_data.expiration_month, card_data.expiration_year, cardholder_data.username);
+        const meta_key: string = createMetaKey(card_data, address_data.postal_code);
+        if (!cardholder_data.custom_data) {
+            cardholder_data.custom_data = {};
+        }
+        cardholder_data.custom_data.cardsavr_card_data = { meta_key : meta_key };
+        if (!safe_key) { //generate a safe_key if one isn't passed in
+            safe_key = await Keys.generateCardholderSafeKey(cardholder_data.email + card_data.name_on_card);
+            cardholder_data.cardholder_safe_key = safe_key; 
+        }
+        address_data.user_ref = card_data.cardholder_ref = merchant_creds.cardholder_ref = {"username" : cardholder_data.username };
+        card_data.address = address_data;
+        
+        const agent_session = this.getSession(agent_username);
+        const job_data = {"status" : "REQUESTED", "user" : cardholder_data, "card" : card_data, "account" : merchant_creds};
+
+        const response = await agent_session.createSingleSiteJob(job_data, safe_key, 
+            {"new-cardholder-safe-key" : safe_key, 
+             "financial-institution" : financial_institution, 
+             "hydration" : JSON.stringify(["user"])});
+        return response.body;
+    } catch(err) {
+        this.handleError(err);
+    }
+    return null;
+}
+
     private handleError(err: any) {
         if (err.body && err.body._errors) {
             console.log("Errors returned from REST API : " + err.call);
-            err.body._errors.map((item: string) => console.log(item));
+            Object.keys(err.body).filter((item: string) => err.body[item]._errors !== undefined).map(obj => {
+                console.log("For entity: " + obj);
+                console.log(err.body[obj]._errors);
+            });
         } else if (err.body && err.body.message) {
             console.log("Message returned from REST API: " + err.body.message);
         } else if (err.stack) {
@@ -165,12 +211,12 @@ export class CardsavrHelper {
         return site;
     }
 
-    public async placeCardOnSite(username: string, merchant_creds: any, card_id : number | null = null, status = "REQUESTED", safe_key? : string) : Promise<any> {
+    public async placeCardOnSite(username: string, merchant_creds: {[k: string]: string}, card_id : number | null = null, status = "REQUESTED", safe_key? : string) : Promise<any> {
         //const login = await this.loginAndCreateSession(username, undefined, grant);
         const session = this._sessions[username];
         if (session) {
             try {
-                let merchant_site_id: number = merchant_creds.merchant_site_id;
+                let merchant_site_id: number = parseInt(merchant_creds.merchant_site_id);
                 if (!merchant_site_id && merchant_creds.site_hostname) {
                     const site: any = await this.lookupMerchantSite(username, merchant_creds.site_hostname);
                     if (site) {
@@ -216,11 +262,11 @@ export class CardsavrHelper {
         }
      }
 
-    public async pollOnJob(username: string, job_id: number, callback: MessageHandler, interval = 5000) : Promise<void> {
+     public async pollOnJob(username: string, job_id: number, callback: MessageHandler, access_key: string | null = null, interval = 5000) : Promise<void> {
         try {
             const session = this.getSession(username);
             
-            const subscription = await session.registerForJobStatusUpdates(job_id);
+            const subscription = access_key ? access_key : await session.registerForJobStatusUpdates(job_id);
             const request_probe = setInterval(async () => { 
                 const request = await session.getJobInformationRequest(job_id);
                 if (request.body) {
@@ -255,7 +301,7 @@ export class CardsavrHelper {
         try {
             const job_data = await this.placeCardOnSite(username, merchant_creds, card_id);
             if (job_data) {
-                this.pollOnJob(username, job_data.body.id, callback, interval);
+                this.pollOnJob(username, job_data.body.id, callback, null, interval);
             }
         } catch(err) {
             this.handleError(err);
