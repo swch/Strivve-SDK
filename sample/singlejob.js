@@ -26,10 +26,10 @@ async function placeCard() {
     if (await ch.loginAndCreateSession(app_username, app_password)) {
         const job = await ch.placeCardOnSiteSingleCall(app_username, "default", cardholder_data, address_data, card_data, creds_data);
         await ch.loginAndCreateSession(job.user.username, undefined, job.user.credential_grant);
-        const access_key = ch.getSession(job.user.username).registerForJobStatusUpdates(job.id);
+        //const access_key = ch.getSession(job.user.username).registerForJobStatusUpdates(job.id);
         await ch.pollOnJob(job.user.username, job.id, (message) => {
             console.log(message);
-        }, access_key);
+        }, job.access_key);
     }
 }
 
