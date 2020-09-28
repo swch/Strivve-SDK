@@ -2,7 +2,7 @@
   "name": "@strivve/strivve-sdk",
   "version": "2.3.5",
   "description": "",
-  "main": "src/sample/index.js",
+  "main": "sample/index.js",
   "directories": {
     "src": "src",
     "test": "test"
@@ -13,7 +13,8 @@
     "prod": "webpack --mode production",
     "build": "tsc",
     "start": "node sample/webserver.js",
-    "lint": "eslint ./src --ext .js,.ts --fix"
+    "lint": "eslint ./src --ext .js,.ts --fix",
+    "singlejob": "sample/singlejob.js"
   },
   "config": {
     "static_dir": "./dist/"

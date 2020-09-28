@@ -77,6 +77,11 @@ export const createMetaKey = (card: any, postal_code: string) => {
     return card.first_name[0] + card.last_name[0] + postal_code.substring(0, 5) + card.pan.slice(-2);
 };
 
+export const generateUniqueUsername = (): string => {
+    const length = 20;
+    return [...Array(length)].map(() => (~~(Math.random() * 36)).toString(36)).join("");
+};
+
 export const generateRandomPar = (pan: string, exp_month: string, exp_year: string, salt: string) : string => {
     const paramsArray = [pan, exp_month, exp_year, salt];
     const validationErrors = [];
