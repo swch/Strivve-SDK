@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env node  --unhandled-rejections=strict
 const { CardsavrHelper } = require("@strivve/strivve-sdk/lib/cardsavr/CardsavrHelper");
 
 const static_dir = process.env.npm_package_config_static_dir || "../dist";
@@ -14,31 +14,22 @@ const address_data = getFromEnv(require("./address.json"), process.env);
 const card_data = getFromEnv(require("./card.json"), process.env);
 const creds_data = getFromEnv(require("./account.json"), process.env);
 
-(async() => {
-    //let cu = cardsavr_server.replace("cardsavr.io", "cardupdatr.app").replace("//api.", "//");
-    //if (req.query.rd) {
-    //    cu = req.query.rd;
-    //}
-    try {
-        const ch = CardsavrHelper.getInstance();
-        //Setup the settings for the application
-        ch.setAppSettings(cardsavr_server, app_name, app_key);
-        //Create a session for the application user (cardholder agent)
-        if (await ch.loginAndCreateSession(app_username, app_password)) {
-            const job = await ch.placeCardOnSiteSingleCall(app_username, "default", cardholder_data, address_data, card_data, creds_data);
-            //const grant = job.user.credential_grant;
-            const grant = (await ch.getSession(app_username).getCredentialGrant(job.user.id)).body.user_credential_grant;  //replace
-            //const access_key = job.access_key;
-            const access_key = (await ch.getSession(app_username).registerForJobStatusUpdates(job.id)).body.access_key;  //replace
-            const username = job.user.username;
-            const job_id = job.id;
+placeCard().then(() => {
+    console.log("SUCCESS");
+}).catch((e) => console.log(e));
 
-            await ch.loginAndCreateSession(username, undefined, grant);
-            ch.pollOnJob(username, job_id, (message) => {
-                console.log(message);
-            }, access_key);
-        }
-    } catch (err) {
-        console.log(err);
+async function placeCard() {
+    const ch = CardsavrHelper.getInstance();
+    //Setup the settings for the application
+    ch.setAppSettings(cardsavr_server, app_name, app_key);
+    //Create a session for the application user (cardholder agent)
+    if (await ch.loginAndCreateSession(app_username, app_password)) {
+        const job = await ch.placeCardOnSiteSingleCall(app_username, "default", cardholder_data, address_data, card_data, creds_data);
+        await ch.loginAndCreateSession(job.user.username, undefined, job.user.credential_grant);
+        const access_key = ch.getSession(job.user.username).registerForJobStatusUpdates(job.id);
+        await ch.pollOnJob(job.user.username, job.id, (message) => {
+            console.log(message);
+        }, access_key);
     }
-})();
+}
+

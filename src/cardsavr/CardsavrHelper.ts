@@ -264,9 +264,10 @@ export class CardsavrHelper {
 
      public async pollOnJob(username: string, job_id: number, callback: MessageHandler, access_key: string | null = null, interval = 5000) : Promise<void> {
         try {
+            console.log("POLLING...");
             const session = this.getSession(username);
             
-            const subscription = access_key ? access_key : await session.registerForJobStatusUpdates(job_id);
+            const subscription = access_key ? access_key : (await session.registerForJobStatusUpdates(job_id)).body.access_key;
             const request_probe = setInterval(async () => { 
                 const request = await session.getJobInformationRequest(job_id);
                 if (request.body) {
@@ -274,8 +275,8 @@ export class CardsavrHelper {
                 }
             }, interval < 1000 ? 1000 : interval);
             const broadcast_probe = setInterval(async () => { 
-                const update = await session.getJobStatusUpdate(job_id, subscription.body.access_key);
-                if (update.status_code == 401) {
+                const update = await session.getJobStatusUpdate(job_id, subscription);
+                if (update.statusCode == 401) {
                     clearInterval(broadcast_probe);
                     clearInterval(request_probe);
                 } else if (update.body) {
