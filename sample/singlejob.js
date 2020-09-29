@@ -38,12 +38,10 @@ async function placeCard() {
                     console.log(update.termination_type);
                 }
             } else if (message.type == 'tfa_request') {
-                console.log("tfa request");
                 const tfa = rl.question("Please enter a tfa code: ");
-                console.log("POST TFA");
+                console.log("Posting TFA");
                 ch.postTFA(job.user.username, tfa, job.id, message.envelope_id);
             } else if (message.type == 'credential_request') {
-                console.log("credential request");
                 creds_data.username = rl.question("Please re-enter your username: ");
                 creds_data.password = rl.question("Please re-enter your password: ");
                 ch.postCreds(job.user.username, creds_data, job.id, message.envelope_id);
