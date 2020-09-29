@@ -14,7 +14,7 @@
     "build": "tsc",
     "start": "node sample/webserver.js",
     "lint": "eslint ./src --ext .js,.ts --fix",
-    "singlejob": "sample/singlejob.js"
+    "singlejob": "node --enable-source-maps sample/singlejob.js"
   },
   "config": {
     "static_dir": "./dist/"
@@ -36,6 +36,7 @@
     "@types/node": "^12.12.60",
     "chai": "^4.2.0",
     "mocha": "^7.1.2",
+    "source-map-support": "^0.5.19",
     "ts-loader": "^6.2.2",
     "typescript": "^3.8.3",
     "webpack": "^4.43.0",
@@ -46,6 +47,7 @@
     "@typescript-eslint/eslint-plugin": "^3.6.0",
     "@typescript-eslint/parser": "^3.6.0",
     "axios": "^0.19.2",
-    "eslint": "^7.9.0"
+    "eslint": "^7.9.0",
+    "readline-sync": "^1.4.10"
   }
 }

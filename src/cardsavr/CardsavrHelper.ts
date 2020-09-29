@@ -167,7 +167,7 @@ export class CardsavrHelper {
         card_data.address = address_data;
         
         const agent_session = this.getSession(agent_username);
-        const job_data = {"status" : "REQUESTED", "user" : cardholder_data, "card" : card_data, "account" : merchant_creds};
+        const job_data = {"status" : "REQUESTED", "user_is_present" : true, "user" : cardholder_data, "card" : card_data, "account" : merchant_creds};
 
         const response = await agent_session.createSingleSiteJob(job_data, safe_key, 
             {"new-cardholder-safe-key" : safe_key, 
@@ -264,7 +264,6 @@ export class CardsavrHelper {
 
      public async pollOnJob(username: string, job_id: number, callback: MessageHandler, access_key: string | null = null, interval = 5000) : Promise<void> {
         try {
-            console.log("POLLING...");
             const session = this.getSession(username);
             
             const subscription = access_key ? access_key : (await session.registerForJobStatusUpdates(job_id)).body.access_key;
@@ -279,7 +278,7 @@ export class CardsavrHelper {
                 if (update.statusCode == 401) {
                     clearInterval(broadcast_probe);
                     clearInterval(request_probe);
-                } else if (update.body) {
+                } else if (update.body && update.body.length > 0) {
                     update.body.map((item: any) => {
                         callback(item);
                         if (item.type === "job_status") {

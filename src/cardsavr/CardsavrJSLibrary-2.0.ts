@@ -131,6 +131,9 @@ export class CardsavrSession {
         try {
             const response = await axios.request(requestConfig);
             response.data = await CardsavrCrypto.Encryption.decryptResponse(sessionKey, response.data);
+            if (this._debug) {
+                console.log(response.data);
+            }
             return new CardsavrSessionResponse(response.status, response.statusText, response.headers, response.data, path);
         } catch (err) {
             if (err.response) {
