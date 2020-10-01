@@ -2,10 +2,12 @@
 const { CardsavrHelper } = require("@strivve/strivve-sdk/lib/cardsavr/CardsavrHelper");
 const { exit } = require("process");
 const rl = require("readline-sync");
+require('log-timestamp');
 
-const static_dir = process.env.npm_package_config_static_dir || "../dist";
+const instance = rl.question("Instance: ");
 
-const {app_name, app_key, app_username, app_password, cardsavr_server } = getFromEnv(require("./strivve_creds.json"), process.env);
+const config = require("./strivve_creds.json");
+const {app_name, app_key, app_username, app_password, cardsavr_server } = getFromEnv(config[instance ? instance : config.instance], process.env);
 
 function getFromEnv(config, env) {
     return Object.fromEntries(Object.entries(config).map(([key, value]) => env[key] ? [key, env[key]] : [key, value]));
@@ -16,23 +18,43 @@ const address_data = getFromEnv(require("./address.json"), process.env);
 const card_data = getFromEnv(require("./card.json"), process.env);
 const creds_data = getFromEnv(require("./account.json"), process.env);
 
-
 placeCard().then(() => {
-    console.log("SUCCESS");
+    console.log("STARTUP");
 }).catch((e) => console.log(e));
 
 async function placeCard() {
     const ch = CardsavrHelper.getInstance();
     //Setup the settings for the application
     ch.setAppSettings(cardsavr_server, app_name, app_key);
+
+    const merchant_site = rl.question("Merchant hostname: ");
+
     //Create a session for the application user (cardholder agent)
     if (await ch.loginAndCreateSession(app_username, app_password)) {
+
+        if (merchant_site) {
+            const site = await ch.lookupMerchantSite(app_username, merchant_site);
+            creds_data.merchant_site_id = site.id;
+        }
+        
         const job = await ch.placeCardOnSiteSingleCall(app_username, "default", cardholder_data, address_data, card_data, creds_data);
         await ch.loginAndCreateSession(job.user.username, undefined, job.user.credential_grant);
-        //const access_key = ch.getSession(job.user.username).registerForJobStatusUpdates(job.id);
+
+        creds_data.username = rl.question("Username: ");
+        creds_data.password = rl.question("Password: ");
+        delete creds_data.merchant_site_id; //can't be posted
+
+        ch.getSession(job.user.username).updateAccount(job.account.id, creds_data).catch(err => console.log(err.body._errors));
+
+        const job_start = new Date().getTime(); let vbs_start = null;
+
         await ch.pollOnJob(job.user.username, job.id, (message) => {
             if (message.type == "job_status") {
                 update = message.message;
+                if (!vbs_start) {
+                    vbs_start = new Date().getTime();
+                    console.log("VBS startup: " + Math.round(((vbs_start - job_start) / 1000)) + " seconds");
+                }
                 console.log(`${update.status} ${update.percent_complete}: ${update.completed_state_name}, Time remaining: ${update.job_timeout}`);
                 if (update.termination_type) {
                     console.log(update.termination_type);

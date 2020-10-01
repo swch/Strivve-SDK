@@ -37,7 +37,8 @@ app.use(express.static(static_dir));
 
 app.listen(port, () => console.log(`CardUpdatr Demo app listening at ${port}`));
 
-const {app_name, app_key, app_username, app_password, cardsavr_server } = getFromEnv(require("./strivve_creds.json"), process.env);
+const config = require("./strivve_creds.json");
+const {app_name, app_key, app_username, app_password, cardsavr_server } = getFromEnv(config[config.instance], process.env);
 
 function getFromEnv(config, env) {
     return Object.fromEntries(Object.entries(config).map(([key, value]) => env[key] ? [key, env[key]] : [key, value]));

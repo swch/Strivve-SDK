@@ -172,7 +172,7 @@ export class CardsavrHelper {
         const response = await agent_session.createSingleSiteJob(job_data, safe_key, 
             {"new-cardholder-safe-key" : safe_key, 
              "financial-institution" : financial_institution, 
-             "hydration" : JSON.stringify(["user"])});
+             "hydration" : JSON.stringify(["user", "account"])});
         return response.body;
     } catch(err) {
         this.handleError(err);

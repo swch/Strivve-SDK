@@ -104,7 +104,9 @@
       window.onload = function() {
         axios({url: 'strivve_creds.json'})
           .then(response => {
-            session(response.data.app_name, response.data.app_key, response.data.cardsavr_server);
+            session(response[response.instance].data.app_name, 
+                    response[response.instance].data.app_key, 
+                    response[response.instance].data.cardsavr_server);
           });
 
         var form = document.querySelector('#job_form');
