@@ -254,10 +254,13 @@ export class CardsavrSession {
         return await this.post("/cardsavr_accounts", body, headersToAdd);
     };
 
-    updateAccount = async(id: number, body: any, safeKey: string | null = null, headersToAdd = {}): Promise < any > => {
+    updateAccount = async(id: number, body: any, envelope_id: string | null = null, safeKey: string | null = null, headersToAdd = {}): Promise < any > => {
 
         if (safeKey) {
             Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+        }
+        if (envelope_id) { //envelope_id required to send a credential_re
+            Object.assign(headersToAdd, { "envelope-id" : envelope_id });
         }
         return await this.put("/cardsavr_accounts", id, body, headersToAdd);
     };

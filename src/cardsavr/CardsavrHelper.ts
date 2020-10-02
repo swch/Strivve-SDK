@@ -325,9 +325,9 @@ export class CardsavrHelper {
             if (acct && acct.body && acct.body.account_id) {
                 session.updateAccount( 
                     acct.body.account_id,
-                    {username : merchant_creds.username, 
-                    password : merchant_creds.password}, this._safe_keys[username] );
-                session.sendJobInformation(job_id, envelope_id, "credential_response", "submitted");
+                    {username : merchant_creds.username, password : merchant_creds.password}, 
+                    this._safe_keys[username],
+                    envelope_id);
             }
         } catch(err) {
             this.handleError(err);

@@ -41,10 +41,8 @@ async function placeCard() {
         await ch.loginAndCreateSession(job.user.username, undefined, job.user.credential_grant);
 
         creds_data.username = rl.question("Username: ");
-        creds_data.password = rl.question("Password: ");
+        creds_data.password = rl.question("Password: ", { hideEchoBack: true });
         delete creds_data.merchant_site_id; //can't be posted
-
-        ch.getSession(job.user.username).updateAccount(job.account.id, creds_data).catch(err => console.log(err.body._errors));
 
         const job_start = new Date().getTime(); let vbs_start = null;
 
@@ -55,7 +53,7 @@ async function placeCard() {
                     vbs_start = new Date().getTime();
                     console.log("VBS startup: " + Math.round(((vbs_start - job_start) / 1000)) + " seconds");
                 }
-                console.log(`${update.status} ${update.percent_complete}: ${update.completed_state_name}, Time remaining: ${update.job_timeout}`);
+                console.log(`${update.status} ${update.percent_complete}% - ${update.completed_state_name}, Time remaining: ${update.job_timeout}`);
                 if (update.termination_type) {
                     console.log(update.termination_type);
                 }
@@ -65,9 +63,12 @@ async function placeCard() {
                 ch.postTFA(job.user.username, tfa, job.id, message.envelope_id);
             } else if (message.type == 'credential_request') {
                 creds_data.username = rl.question("Please re-enter your username: ");
-                creds_data.password = rl.question("Please re-enter your password: ");
+                creds_data.password = rl.question("Please re-enter your password: ", { hideEchoBack: true });
                 ch.postCreds(job.user.username, creds_data, job.id, message.envelope_id);
                 console.log("Saving credentials");
+            } else if (message.type == 'quickstart_credential_request') {
+                ch.getSession(job.user.username).updateAccount(job.account.id, creds_data, message.envelope_id).catch(err => console.log(err.body._errors));
+                console.log("Quickstart - Saving credentials");
             } else if (message.type == 'tfa_message') {
                 console.log("Please check your device for a verification link.");
             }
