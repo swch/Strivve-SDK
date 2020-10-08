@@ -322,12 +322,12 @@ export class CardsavrHelper {
         try {
             const session = this.getSession(username);
             const acct = await session.getSingleSiteJobs(job_id);
-            if (acct && acct.body && acct.body.account_id) {
+            if (acct && acct.body && acct.body.account_id) { 
                 session.updateAccount( 
                     acct.body.account_id,
                     {username : merchant_creds.username, password : merchant_creds.password}, 
-                    this._safe_keys[username],
-                    envelope_id);
+                    envelope_id,
+                    this._safe_keys[username]);
             }
         } catch(err) {
             this.handleError(err);
