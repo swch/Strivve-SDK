@@ -224,18 +224,18 @@ export class CardsavrHelper {
                     }
                 }
                 //if there's no card_id, just grab the latest one
-                if (!card_id) {
-                    const card_data = await session.getCards({});
-                    card_id = card_data.body[0].id;
-                }
+                // if (!card_id) {
+                //     const card_data = await session.getCards({});
+                //     card_id = card_data.body[0].id;
+                // }
                 const user_json = await session.getUsers({username : username});
                 const account = await session.createAccount( 
                         {cardholder_id : user_json.body[0].id,
                         username : merchant_creds.username, 
                         password : merchant_creds.password, 
                         merchant_site_id : merchant_site_id}, safe_key );
-                //use the first card the user has (we only created one)
-                if (account && account.body && card_id) {
+                // User doesn't need a card_id to submit a job
+                if (account && account.body) {
                     const job_params = {
                         user_id : user_json.body[0].id,
                         card_id : card_id,
