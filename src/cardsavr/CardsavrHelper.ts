@@ -195,8 +195,7 @@ export class CardsavrHelper {
     private handleError(err: any) {
         if (err.body && err.body._errors) {
             console.log("Errors returned from REST API : " + err.call);
-            console.log(err.body);
-            Object.keys(err.body).filter((item: string) => err.body[item]._errors !== undefined).map(obj => {
+\            Object.keys(err.body).filter((item: string) => err.body[item]._errors !== undefined).map(obj => {
                 console.log("For entity: " + obj);
                 console.log(err.body[obj]._errors);
             });
