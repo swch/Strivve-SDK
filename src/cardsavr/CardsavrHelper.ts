@@ -124,7 +124,9 @@ export class CardsavrHelper {
             address_data_copy.user_ref = {"username" : cardholder_data_copy.username };
             card_data_copy.address = address_data_copy;
             card_data_copy.cardholder = cardholder_data_copy;
-            card_data_copy.par = generateRandomPar(card_data.pan, card_data.expiration_month, card_data.expiration_year, cardholder_data_copy.username);
+            if (!card_data_copy.par) {
+                card_data_copy.par = generateRandomPar(card_data_copy.pan, card_data_copy.expiration_month, card_data_copy.expiration_year, cardholder_data_copy.username);
+            }
 
             const card_response = await agent_session.createCard(card_data_copy, safe_key, 
                 {"new-cardholder-safe-key" : safe_key, 
@@ -161,7 +163,6 @@ export class CardsavrHelper {
         if (card_data && !card_data.par) {
             card_data.par = generateRandomPar(card_data.pan, card_data.expiration_month, card_data.expiration_year, cardholder_data.username);
         }
-
         merchant_creds.cardholder_ref = {"username" : cardholder_data.username };
 
         if (address_data && card_data) {
