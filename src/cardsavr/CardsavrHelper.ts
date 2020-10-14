@@ -158,7 +158,7 @@ export class CardsavrHelper {
         if (!cardholder_data.username) cardholder_data.username = generateUniqueUsername();
         if (card_data && !card_data.name_on_card) card_data.name_on_card = `${card_data.first_name} ${card_data.last_name}`;
 
-        if (card_data) {
+        if (card_data && !card_data.par) {
             card_data.par = generateRandomPar(card_data.pan, card_data.expiration_month, card_data.expiration_year, cardholder_data.username);
         }
 
