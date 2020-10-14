@@ -91,19 +91,25 @@ export class CardsavrHelper {
         return CardsavrHelper.instance;
     }
 
-    public async createCard(agent_username: string, financial_institution: string, cardholder_data: any, address_data: {[k: string]: string}, card_data: any, safe_key?: string) : Promise<unknown> {
-    
+    public async createCard(agent_username: string, financial_institution: string, 
+                            cardholder_data: {[k: string]: any}, 
+                            address_data: {[k: string]: any}, 
+                            card_data: {[k: string]: any}, 
+                            safe_key?: string) : Promise<unknown> {
         try {
             //don't need the login data
             const cardholder_data_copy = { ...cardholder_data };
+            const address_data_copy = { ...address_data };
+            const card_data_copy = { ...card_data };
             
             cardholder_data_copy.role = "cardholder";
+            cardholder_data_copy.username = generateUniqueUsername();
             //set the missing settings for model
             if (!cardholder_data.first_name) cardholder_data_copy.first_name = card_data.first_name;
             if (!cardholder_data.last_name) cardholder_data_copy.last_name = card_data.last_name;
-            if (!card_data.name_on_card) card_data.name_on_card = `${card_data.first_name} ${card_data.last_name}`;
+            if (!card_data.name_on_card) card_data_copy.name_on_card = `${card_data.first_name} ${card_data.last_name}`;
             const meta_key: string = createMetaKey(card_data, address_data.postal_code);
-            if (!cardholder_data_copy.custom_data) {
+            if (!cardholder_data.custom_data) {
                 cardholder_data_copy.custom_data = {};
             }
             cardholder_data_copy.custom_data.cardsavr_card_data = { meta_key : meta_key };
@@ -113,19 +119,18 @@ export class CardsavrHelper {
             }
     
             const agent_session = this.getSession(agent_username);
-            const cardholder_response = await agent_session.createUser(cardholder_data_copy, safe_key, financial_institution);
-            const cardholder_id = cardholder_response?.body?.id;
-            //address requires a user id
-            address_data.user_id = cardholder_id;
-            const address_response = await agent_session.createAddress(address_data);
-            const grant_handoff = cardholder_response?.body?.credential_grant;
+
             //card requires a user id
-            card_data.cardholder_id = cardholder_id;
-            card_data.address_id = address_response?.body?.id;
-            card_data.par = generateRandomPar(card_data.pan, card_data.expiration_month, card_data.expiration_year, cardholder_data_copy.username);
-            const card_response = await agent_session.createCard(card_data, safe_key);
-    
-            return { grant : grant_handoff, cardholder : cardholder_response.body, card : card_response.body, address : address_response.body } ;
+            address_data_copy.user_ref = {"username" : cardholder_data_copy.username };
+            card_data_copy.address = address_data_copy;
+            card_data_copy.cardholder = cardholder_data_copy;
+            card_data_copy.par = generateRandomPar(card_data.pan, card_data.expiration_month, card_data.expiration_year, cardholder_data_copy.username);
+
+            const card_response = await agent_session.createCard(card_data_copy, safe_key, 
+                {"new-cardholder-safe-key" : safe_key, 
+                 "financial-institution" : financial_institution,
+                 "hydration" : JSON.stringify(["cardholder"])});
+            return card_response.body;
     
         } catch(err) {
             this.handleError(err);
@@ -139,33 +144,40 @@ export class CardsavrHelper {
 
     public async placeCardOnSiteSingleCall(agent_username: string, 
                                         financial_institution: string, 
-                                        cardholder_data: any, 
-                                        address_data: {[k: string]: any}, 
-                                        card_data: any, 
+                                        cardholder_data: {[k: string]: any}, 
                                         merchant_creds: {[k: string]: any}, 
+                                        address_data?: {[k: string]: any}, 
+                                        card_data?: {[k: string]: any}, 
                                         safe_key?: string) : Promise<unknown> {
     try {
         //don't need the login data
         cardholder_data.role = "cardholder";
         //set the missing settings for model
-        if (!cardholder_data.first_name) cardholder_data.first_name = card_data.first_name;
-        if (!cardholder_data.last_name) cardholder_data.last_name = card_data.last_name;
+        if (!cardholder_data.first_name && card_data) cardholder_data.first_name = card_data.first_name;
+        if (!cardholder_data.last_name && card_data) cardholder_data.last_name = card_data.last_name;
         if (!cardholder_data.username) cardholder_data.username = generateUniqueUsername();
-        if (!card_data.name_on_card) card_data.name_on_card = `${card_data.first_name} ${card_data.last_name}`;
+        if (card_data && !card_data.name_on_card) card_data.name_on_card = `${card_data.first_name} ${card_data.last_name}`;
 
-        card_data.par = generateRandomPar(card_data.pan, card_data.expiration_month, card_data.expiration_year, cardholder_data.username);
-        const meta_key: string = createMetaKey(card_data, address_data.postal_code);
-        if (!cardholder_data.custom_data) {
-            cardholder_data.custom_data = {};
+        if (card_data) {
+            card_data.par = generateRandomPar(card_data.pan, card_data.expiration_month, card_data.expiration_year, cardholder_data.username);
         }
-        cardholder_data.custom_data.cardsavr_card_data = { meta_key : meta_key };
+
+        merchant_creds.cardholder_ref = {"username" : cardholder_data.username };
+
+        if (address_data && card_data) {
+            const meta_key: string = createMetaKey(card_data, address_data.postal_code);
+            if (!cardholder_data.custom_data) {
+                cardholder_data.custom_data = {};
+            }
+            cardholder_data.custom_data.cardsavr_card_data = { meta_key : meta_key };
+            address_data.user_ref = card_data.cardholder_ref = merchant_creds.cardholder_ref;
+            card_data.address = address_data;
+        }
         if (!safe_key) { //generate a safe_key if one isn't passed in
-            safe_key = await Keys.generateCardholderSafeKey(cardholder_data.email + card_data.name_on_card);
+            safe_key = await Keys.generateCardholderSafeKey(cardholder_data.email);
             cardholder_data.cardholder_safe_key = safe_key; 
         }
-        address_data.user_ref = card_data.cardholder_ref = merchant_creds.cardholder_ref = {"username" : cardholder_data.username };
-        card_data.address = address_data;
-        
+
         const agent_session = this.getSession(agent_username);
         const job_data = {"status" : "REQUESTED", "user_is_present" : true, "user" : cardholder_data, "card" : card_data, "account" : merchant_creds};
 
@@ -183,6 +195,7 @@ export class CardsavrHelper {
     private handleError(err: any) {
         if (err.body && err.body._errors) {
             console.log("Errors returned from REST API : " + err.call);
+            console.log(err.body);
             Object.keys(err.body).filter((item: string) => err.body[item]._errors !== undefined).map(obj => {
                 console.log("For entity: " + obj);
                 console.log(err.body[obj]._errors);
@@ -204,7 +217,7 @@ export class CardsavrHelper {
         if (!sites || !sites.body || sites.body.length === 0 ) {
             return null;
         }
-        const site : any = sites.body[0];
+        const site = sites.body[0];
         if (!site ) {
             return null;
         }
@@ -223,28 +236,19 @@ export class CardsavrHelper {
                         merchant_site_id = site.id;
                     }
                 }
-                //if there's no card_id, just grab the latest one
-                // if (!card_id) {
-                //     const card_data = await session.getCards({});
-                //     card_id = card_data.body[0].id;
-                // }
-                const user_json = await session.getUsers({username : username});
-                const account = await session.createAccount( 
-                        {cardholder_id : user_json.body[0].id,
-                        username : merchant_creds.username, 
-                        password : merchant_creds.password, 
-                        merchant_site_id : merchant_site_id}, safe_key );
-                // User doesn't need a card_id to submit a job
-                if (account && account.body) {
-                    const job_params = {
-                        user_id : user_json.body[0].id,
-                        card_id : card_id,
-                        account_id : account.body.id,
-                        user_is_present : true,
-                        status : status
-                    };
-                    return await session.createSingleSiteJob(job_params, safe_key);
-                }
+                const account = {cardholder_id : session.getSessionUserId(),
+                                 username : merchant_creds.username, 
+                                 password : merchant_creds.password, 
+                                 merchant_site_id : merchant_site_id};
+
+                const job_params = {
+                    user_id : session.getSessionUserId(),
+                    card_id : card_id,
+                    account : account,
+                    user_is_present : true,
+                    status : status
+                };
+                return await session.createSingleSiteJob(job_params, safe_key);
             } catch(err) {
                 this.handleError(err);
             }

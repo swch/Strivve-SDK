@@ -66,6 +66,10 @@ export class CardsavrSession {
         };
     };
 
+    getSessionUserId() : number {
+        return +this._sessionData.userId;
+    }
+
     getSerializedSessionData = () : string => {
         return JSON.stringify(this._sessionData);
     }
@@ -209,6 +213,7 @@ export class CardsavrSession {
 
         const loginResponse = await this.sendRequest("/session/login", "post", encryptedLoginBody);
         this._sessionData.sessionKey = await CardsavrCrypto.Keys.makeECDHSecretKey(loginResponse.body.serverPublicKey, keyPair);
+        this._sessionData.userId = loginResponse.body.user_id;
         return loginResponse;
     };
 
