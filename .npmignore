@@ -2,5 +2,5 @@
 .git
 webpack.config.json
 dist
-sample/
+sample
 react-test
