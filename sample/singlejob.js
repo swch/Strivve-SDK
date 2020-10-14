@@ -37,7 +37,7 @@ async function placeCard() {
             creds_data.merchant_site_id = site.id;
         }
         
-        const job = await ch.placeCardOnSiteSingleCall(app_username, "default", cardholder_data, address_data, card_data, creds_data);
+        const job = await ch.placeCardOnSiteSingleCall(app_username, "default", cardholder_data, creds_data, address_data, card_data);
         await ch.loginAndCreateSession(job.user.username, undefined, job.user.credential_grant);
 
         creds_data.username = rl.question("Username: ");
