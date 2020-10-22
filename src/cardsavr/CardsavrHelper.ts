@@ -16,6 +16,10 @@ export class CardsavrHelper {
 
     private _safe_keys: { [key:string]:string; } = {};
 
+    private _jobs = new Map<number, MessageHandler>();
+
+    private _user_probe!: ReturnType<typeof setTimeout>;
+
     private cardsavr_server = "";
     private app_name = "";
     private app_key = "";
@@ -266,46 +270,44 @@ export class CardsavrHelper {
         }
      }
 
-     public async pollOnJob(username: string, job_id: number, callback: MessageHandler, access_key: string | null = null, interval = 5000) : Promise<void> {
+     public removeJob(jobId: number) : void {
+        this._jobs.delete(jobId);
+        if (this._jobs.size === 0) {
+            clearInterval(this._user_probe);
+        }
+     }
+
+     public async pollOnJob(username: string, job_id: number, callback: MessageHandler, interval = 5000) : Promise<void> {
         try {
             const session = this.getSession(username);
             
-            const subscription = access_key ? access_key : (await session.registerForJobStatusUpdates(job_id)).body.access_key;
-            const request_probe = setInterval(async () => { 
-                const request = await session.getJobInformationRequest(job_id);
-                if (request.body) {
-                    callback(request.body);
-                }
-            }, interval < 1000 ? 1000 : interval);
-            const broadcast_probe = setInterval(async () => { 
-                const update = await session.getJobStatusUpdate(job_id, subscription);
-                if (update.statusCode == 401) {
-                    clearInterval(broadcast_probe);
-                    clearInterval(request_probe);
-                } else if (update.body && update.body.length > 0) {
-                    update.body.map((item: any) => {
-                        callback(item);
-                        if (item.type === "job_status") {
-                            if (item.message.termination_type || item.message.percent_complete == 100) { //job is completed, stop probing
-                                clearInterval(broadcast_probe);
-                                clearInterval(request_probe);
-                            } else if (item.message.status === "UPDATING") {
-                                clearInterval(request_probe);
+            if (this._jobs.size === 0) {
+                this._user_probe = setInterval(async () => { 
+                    const messages = await session.getUserMessages(session.getSessionUserId());
+                    if (messages.body) {
+                        messages.body.map((item: any) => {
+                            const handler = this._jobs.get(+item.job_id);
+                            if (handler) { handler(item); }
+                            if (item.type === "job_status") {
+                                if (item.message.termination_type || item.message.percent_complete == 100) { //job is completed, stop probing
+                                    this.removeJob(+item.job_id);
+                                }
                             }
-                        }
-                    });
-                }
-            }, interval < 1000 ? 1000 : interval);
+                        });
+                    }
+                }, interval < 1000 ? 1000 : interval);
+            }
+            this._jobs.set(job_id, callback);
         } catch(err) {
             this.handleError(err);
         }
-    }
+    }   
 
     public async placeCardOnSiteAndPoll(username: string, merchant_creds: any, callback: any, card_id : number | null = null, interval = 5000) : Promise<void> {
         try {
             const job_data = await this.placeCardOnSite(username, merchant_creds, card_id);
             if (job_data) {
-                this.pollOnJob(username, job_data.body.id, callback, null, interval);
+                this.pollOnJob(username, job_data.body.id, callback, interval);
             }
         } catch(err) {
             this.handleError(err);

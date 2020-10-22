@@ -399,6 +399,15 @@ export class CardsavrSession {
         }, headersToAdd);
     };
 
+    getUserMessages = async(userId: number, cardsavrMessagingAccessKey?: string, headersToAdd = {}): Promise < any > => {
+        if (cardsavrMessagingAccessKey) {
+            headersToAdd = Object.assign({
+                "cardsavr-messaging-access-key" : cardsavrMessagingAccessKey
+            }, headersToAdd);
+        }
+        return await this.get("/messages/cardsavr_users", userId, headersToAdd);
+    }
+
     getJobStatusUpdate = async(jobId: number, cardsavrMessagingAccessKey: string, headersToAdd = {}): Promise < any > => {
 
         headersToAdd = Object.assign({

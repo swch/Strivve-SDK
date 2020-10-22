@@ -72,7 +72,7 @@ async function placeCard() {
             } else if (message.type == 'tfa_message') {
                 console.log("Please check your device for a verification link.");
             }
-        }, job.access_key);
+        }, 2000);
     }
 }
 
