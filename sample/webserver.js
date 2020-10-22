@@ -20,6 +20,7 @@ app.get("/create_user", function (req, res) {
             ch.setAppSettings(cardsavr_server, app_name, app_key);
             //Create a session for the application user (cardholder agent)
             if (await ch.loginAndCreateSession(app_username, app_password)) {
+
                 //Save the card on a behalf of a temporary cardholder - return their username, grant, card par
                 const card_response = await ch.createCard(app_username, "default", cardholder_data, address_data, card_data);
                 const handoff = { grant : card_response.cardholder.credential_grant, username : card_response.cardholder.username, card_id : card_response.id };
@@ -28,7 +29,8 @@ app.get("/create_user", function (req, res) {
             }
         } catch (err) {
             console.log(err);
-        }
+            console.log(err.body._errors);
+    }
     })();      
 });
 
