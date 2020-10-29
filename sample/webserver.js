@@ -44,7 +44,6 @@ app.use(express.static(static_dir));
 app.listen(port, () => console.log(`CardUpdatr Demo app listening at ${port}`));
 
 const config = require("./strivve_creds.json");
-// console.log("Config: ", config);
 const {cardsavr_server } = getFromEnv(config, process.env);
 
 function getFromEnv(config, env) {
