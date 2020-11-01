@@ -24,12 +24,14 @@ export class CardsavrHelper {
     private app_name = "";
     private app_key = "";
     private cert?: string;
+    private reject_unauthorized = true;
 
-    public setAppSettings(cardsavr_server: string, app_name: string, app_key: string, cert?: string) : CardsavrHelper {
+    public setAppSettings(cardsavr_server: string, app_name: string, app_key: string, reject_unauthorized = true, cert?: string) : CardsavrHelper {
         this.cardsavr_server = cardsavr_server;
         this.app_name = app_name;
         this.app_key = app_key;
         this.cert = cert;
+        this.reject_unauthorized = reject_unauthorized;
         return this;
     }
     
@@ -44,7 +46,7 @@ export class CardsavrHelper {
         } else if ((session = await this.restoreSession(username, trace))) {
             return session;
         }
-        session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, this.cert);
+        session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, this.reject_unauthorized, this.cert);
         await session.init(username, password, grant, trace);
         this.saveSession(username, session);
         return session;
@@ -69,7 +71,7 @@ export class CardsavrHelper {
         if (localStorageAvailable()) {
             const session_cache_data = <string>window.localStorage.getItem(`session_v2.3.1[${username}]`);
             if (session_cache_data) {
-                const session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, this.cert);
+                const session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, this.reject_unauthorized, this.cert);
                 session.setTrace(username, trace);
                 try {
                     session.deserializeSessionData(session_cache_data);
@@ -117,10 +119,6 @@ export class CardsavrHelper {
                 cardholder_data_copy.custom_data = {};
             }
             cardholder_data_copy.custom_data.cardsavr_card_data = { meta_key : meta_key };
-            if (!safe_key) { //generate a safe_key if one isn't passed in
-                safe_key = await Keys.generateCardholderSafeKey(cardholder_data.email + card_data.name_on_card);
-                cardholder_data_copy.cardholder_safe_key = safe_key; 
-            }
     
             const agent_session = this.getSession(agent_username);
 
@@ -132,10 +130,13 @@ export class CardsavrHelper {
                 card_data_copy.par = generateRandomPar(card_data_copy.pan, card_data_copy.expiration_month, card_data_copy.expiration_year, cardholder_data_copy.username);
             }
 
-            const card_response = await agent_session.createCard(card_data_copy, safe_key, 
-                {"new-cardholder-safe-key" : safe_key, 
-                 "financial-institution" : financial_institution,
-                 "hydration" : JSON.stringify(["cardholder"])});
+            const headers : {[k: string]: string} = 
+                {"financial-institution" : financial_institution, 
+                "hydration" : JSON.stringify(["cardholder"])};
+            if (safe_key) { headers["cardholder_safe_key"] = safe_key; }
+
+            const card_response = await agent_session.createCard(card_data_copy, safe_key, headers);     
+     
             return card_response.body;
     
         } catch(err) {
@@ -178,18 +179,17 @@ export class CardsavrHelper {
             address_data.user_ref = card_data.cardholder_ref = merchant_creds.cardholder_ref;
             card_data.address = address_data;
         }
-        if (!safe_key) { //generate a safe_key if one isn't passed in
-            safe_key = await Keys.generateCardholderSafeKey(cardholder_data.email);
-            cardholder_data.cardholder_safe_key = safe_key; 
-        }
 
         const agent_session = this.getSession(agent_username);
         const job_data = {"status" : "REQUESTED", "user_is_present" : true, "user" : cardholder_data, "card" : card_data, "account" : merchant_creds};
 
-        const response = await agent_session.createSingleSiteJob(job_data, safe_key, 
-            {"new-cardholder-safe-key" : safe_key, 
-             "financial-institution" : financial_institution, 
-             "hydration" : JSON.stringify(["user", "account"])});
+        const headers : {[k: string]: string} = 
+            {"financial-institution" : financial_institution, 
+             "hydration" : JSON.stringify(["user", "account"])};
+
+        if (safe_key) { headers["new_cardholder_safe_key"] = safe_key; }
+
+        const response = await agent_session.createSingleSiteJob(job_data, safe_key, headers);
         return response.body;
     } catch(err) {
         this.handleError(err);
@@ -200,12 +200,18 @@ export class CardsavrHelper {
     private handleError(err: any) {
         if (err.body && err.body._errors) {
             console.log("Errors returned from REST API : " + err.call);
+            err.body._errors.map((obj: any) => {
+                console.log(obj);
+            });
             Object.keys(err.body).filter((item: string) => err.body[item]._errors !== undefined).map(obj => {
                 console.log("For entity: " + obj);
                 console.log(err.body[obj]._errors);
             });
         } else if (err.body && err.body.message) {
             console.log("Message returned from REST API: " + err.body.message);
+        } else if (err.otherErrors || err.validationErrors) {
+            console.log("SDK Errors");
+            console.log(err);
         } else if (err.stack) {
             console.log("no _errors from REST API, exception stack below:");
             console.log(err.stack);
@@ -270,24 +276,30 @@ export class CardsavrHelper {
         }
      }
 
-     public removeJob(jobId: number) : void {
+    public removeJob(jobId: number) : void {
         this._jobs.delete(jobId);
         if (this._jobs.size === 0) {
             clearInterval(this._user_probe);
         }
-     }
+    }
 
-     public async pollOnJob(username: string, job_id: number, callback: MessageHandler, interval = 5000) : Promise<void> {
+    public async pollOnJob(username: string, job_id: number, callback: MessageHandler, interval = 5000) : Promise<void> {
+        const session = this.getSession(username);
+        this.pollOnUserJob(username, session.getSessionUserId(), job_id, callback, interval);
+    }
+
+    public async pollOnUserJob(username: string, user_id: number, job_id: number, callback: MessageHandler, interval = 5000) : Promise<void> {
         try {
             const session = this.getSession(username);
             
             if (this._jobs.size === 0) {
                 this._user_probe = setInterval(async () => { 
-                    const messages = await session.getUserMessages(session.getSessionUserId());
+                    const messages = await session.getUserMessages(user_id);
                     if (messages.body) {
                         messages.body.map((item: any) => {
                             const handler = this._jobs.get(+item.job_id);
                             if (handler) { handler(item); }
+                            
                             if (item.type === "job_status") {
                                 if (item.message.termination_type || item.message.percent_complete == 100) { //job is completed, stop probing
                                     this.removeJob(+item.job_id);
@@ -324,7 +336,7 @@ export class CardsavrHelper {
         }
     }
 
-    public async postCreds(username: string, merchant_creds: any, job_id: number, envelope_id: string) : Promise<void> {
+    public async postCreds(username: string, merchant_creds: any, job_id: number, envelope_id: string, safe_key?: string) : Promise<void> {
         try {
             const session = this.getSession(username);
             const acct = await session.getSingleSiteJobs(job_id);
@@ -333,7 +345,7 @@ export class CardsavrHelper {
                     acct.body.account_id,
                     {username : merchant_creds.username, password : merchant_creds.password}, 
                     envelope_id,
-                    this._safe_keys[username]);
+                    safe_key);
             }
         } catch(err) {
             this.handleError(err);

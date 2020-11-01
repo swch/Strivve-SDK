@@ -19,14 +19,16 @@ export class CardsavrSession {
     _baseUrl : string;
     _appName : string;
     _debug : boolean;
+    _rejectUnauthorized : boolean;
 
-    constructor(baseUrl: string, sessionKey: string, appName: string, cardsavrCert ? : string) {
+    constructor(baseUrl: string, sessionKey: string, appName: string, rejectUnauthorized = false, cardsavrCert? : string) {
 
         this._headers = {}; 
         this._cardsavrCert = cardsavrCert;
         this._baseUrl = baseUrl;
         this._appName = appName;
         this._debug = false;
+        this._rejectUnauthorized = rejectUnauthorized;
 
         this._sessionData = {};
 
@@ -111,11 +113,11 @@ export class CardsavrSession {
         }
 
         const requestConfig: AxiosRequestConfig = {
-            /*
+            
             httpsAgent : new HTTPSAgent({
-              rejectUnauthorized : false
+              rejectUnauthorized : this._rejectUnauthorized
             }),
-            */
+            
             baseURL : this._baseUrl,
             url : path,
             timeout : 10000,
@@ -270,9 +272,11 @@ export class CardsavrSession {
         return await this.put("/cardsavr_accounts", id, body, headersToAdd);
     };
 
-    deleteAccount = async(id: number, safeKey: string, headersToAdd = {}): Promise < any > => {
+    deleteAccount = async(id: number, safeKey: string | null, headersToAdd = {}): Promise < any > => {
 
-        Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+        if (safeKey) {
+            Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+        }
         return await this.delete("/cardsavr_accounts", id, headersToAdd);
     };
 
@@ -341,9 +345,11 @@ export class CardsavrSession {
         return await this.put("/cardsavr_cards", id, body, headersToAdd);
     };
 
-    deleteCard = async(id: number, safeKey: string, headersToAdd = {}): Promise < any > => {
+    deleteCard = async(id: number, safeKey: string | null, headersToAdd = {}): Promise < any > => {
 
-        Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+        if (safeKey) {
+            Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+        }
         return await this.delete("/cardsavr_cards", id, headersToAdd);
     };
 
@@ -443,15 +449,16 @@ export class CardsavrSession {
         return await this.get(`/cardsavr_users/${id}/credential_grant/`, null, headersToAdd);
     };
 
-    createUser = async(body: any, newSafeKey: string, financial_institution = "default", headersToAdd = {}): Promise < any > => {
-
+    createUser = async(body: any, safeKey: string | null, financial_institution = "default", headersToAdd = {}): Promise < any > => {
         if (body && body.role == "cardholder" && !body.username) {
             body.username = CardsavrSessionUtilities.generateUniqueUsername();
         }
-        Object.assign(headersToAdd, this._makeSafeKeyHeader(newSafeKey, true));
         Object.assign(headersToAdd, {
             "financial-institution" : financial_institution
         });
+        if (safeKey) {
+            Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+        }
         return await this.post("/cardsavr_users", body, headersToAdd);
     };
 
@@ -483,8 +490,10 @@ export class CardsavrSession {
         return await this.get("/place_card_on_multiple_sites_jobs", filter, headersToAdd);
     };
 
-    createMultipleSitesJob = async(body: any, safeKey: string, headersToAdd = {}): Promise < any > => {
-        Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+    createMultipleSitesJob = async(body: any, safeKey: string | null, headersToAdd = {}): Promise < any > => {
+        if (safeKey) {
+            Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+        }
         return await this.post("/place_card_on_multiple_sites_jobs", body, headersToAdd);
     };
 
