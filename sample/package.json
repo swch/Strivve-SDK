@@ -10,12 +10,13 @@
   "author": "Strivve <mbudos@strivve.com> (https://www.strivve.com/)",
   "license": "ISC",
   "dependencies": {
-    "@strivve/strivve-sdk": "^2.4.1",
+    "@strivve/strivve-sdk": "^2.5.2",
     "@types/source-map-support": "^0.5.3",
     "axios": "^0.19.2",
     "body-parser": "*",
     "express": "*",
     "https": "^1.0.0",
+    "node-fetch": "^2.6.1",
     "source-map-support": "^0.5.19"
   },
   "repository": {
