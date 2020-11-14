@@ -26,7 +26,7 @@ In order to use it, the following edits will need to be made to the CardSavr-Tem
 
 ## Single Entity Job sample usage
 
-There's also some postman samples for posting aa single job with a single entity. 
+There's also some postman samples for posting a single job with a single entity.  Import Single-job-entity.postman_collection.json.
 
 - Create a new environment in Postman
 - Add a value for CARDSAVR_HOSTNAME (api.CARDSAVR_HOSTNAME.cardsavr.io)
