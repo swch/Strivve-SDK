@@ -8,6 +8,65 @@ import { Keys } from "./CardsavrSessionCrypto";
 
 type MessageHandler = (str: string) => void;
 
+interface placeCardOnSiteParams {
+    username : string,  
+    merchant_creds : {[k: string]: string}, 
+    card_id? : number | null, 
+    status? : string, 
+    safe_key? : string,
+    job_type? : string | null
+}
+
+interface placeCardOnSiteSingleCallParams {
+    agent_username : string, 
+    financial_institution : string, 
+    cardholder_data: {[k: string]: any}, 
+    merchant_creds : {[k: string]: any}, 
+    address_data? : {[k: string]: any}, 
+    card_data? : {[k: string]: any}, 
+    safe_key? : string,
+    job_type? : string | null
+}
+
+interface placeCardOnSiteAndPollParams {
+    username : string, 
+    merchant_creds : any, 
+    callback : any, 
+    card_id? : number | null, 
+    interval? : number,
+    job_type? : string | null
+}
+
+interface pollOnJobParams {
+    username : string, 
+    job_id : number, 
+    callback : MessageHandler, 
+    interval? : number
+}
+
+interface createCardParams {
+    agent_username : string, 
+    financial_institution : string, 
+    cardholder_data : {[k: string]: any}, 
+    address_data : {[k: string]: any}, 
+    card_data : {[k: string]: any}, 
+    safe_key? : string
+}
+
+interface postTFAParams {
+    username: string, 
+    tfa: string, 
+    job_id: number, 
+    envelope_id: string
+}
+
+interface postCredsParams {
+    username: string, 
+    merchant_creds: any, 
+    job_id: number, 
+    envelope_id: string
+}
+
 export class CardsavrHelper {
     
     private static instance: CardsavrHelper;
@@ -95,11 +154,8 @@ export class CardsavrHelper {
         return CardsavrHelper.instance;
     }
 
-    public async createCard(agent_username: string, financial_institution: string, 
-                            cardholder_data: {[k: string]: any}, 
-                            address_data: {[k: string]: any}, 
-                            card_data: {[k: string]: any}, 
-                            safe_key?: string) : Promise<unknown> {
+    public async createCard(create_card_config : createCardParams) : Promise<unknown> {
+        const { cardholder_data, address_data, card_data, safe_key, agent_username, financial_institution } = create_card_config
         try {
             //don't need the login data
             const cardholder_data_copy = { ...cardholder_data };
@@ -118,8 +174,7 @@ export class CardsavrHelper {
             }
             cardholder_data_copy.custom_data.cardsavr_card_data = { meta_key : meta_key };
             if (!safe_key) { //generate a safe_key if one isn't passed in
-                safe_key = await Keys.generateCardholderSafeKey(cardholder_data.email + card_data.name_on_card);
-                cardholder_data_copy.cardholder_safe_key = safe_key; 
+                cardholder_data_copy.cardholder_safe_key = await Keys.generateCardholderSafeKey(cardholder_data.email + card_data.name_on_card); 
             }
     
             const agent_session = this.getSession(agent_username);
@@ -132,8 +187,8 @@ export class CardsavrHelper {
                 card_data_copy.par = generateRandomPar(card_data_copy.pan, card_data_copy.expiration_month, card_data_copy.expiration_year, cardholder_data_copy.username);
             }
 
-            const card_response = await agent_session.createCard(card_data_copy, safe_key, 
-                {"new-cardholder-safe-key" : safe_key, 
+            const card_response = await agent_session.createCard(card_data_copy, safe_key ?? cardholder_data_copy.cardholder_safe_key, 
+                {"new-cardholder-safe-key" : safe_key ?? cardholder_data_copy.cardholder_safe_key, 
                  "financial-institution" : financial_institution,
                  "hydration" : JSON.stringify(["cardholder"])});
             return card_response.body;
@@ -148,14 +203,9 @@ export class CardsavrHelper {
         return null;
     }
 
-    public async placeCardOnSiteSingleCall(agent_username: string, 
-                                        financial_institution: string, 
-                                        cardholder_data: {[k: string]: any}, 
-                                        merchant_creds: {[k: string]: any}, 
-                                        address_data?: {[k: string]: any}, 
-                                        card_data?: {[k: string]: any}, 
-                                        safe_key?: string) : Promise<unknown> {
+    public async placeCardOnSiteSingleCall(place_card_config: placeCardOnSiteSingleCallParams) : Promise<unknown> {
     try {
+        const { cardholder_data, card_data, merchant_creds, address_data, safe_key, agent_username, financial_institution, job_type = null } = place_card_config;
         //don't need the login data
         cardholder_data.role = "cardholder";
         //set the missing settings for model
@@ -179,15 +229,14 @@ export class CardsavrHelper {
             card_data.address = address_data;
         }
         if (!safe_key) { //generate a safe_key if one isn't passed in
-            safe_key = await Keys.generateCardholderSafeKey(cardholder_data.email);
-            cardholder_data.cardholder_safe_key = safe_key; 
+            cardholder_data.cardholder_safe_key = await Keys.generateCardholderSafeKey(cardholder_data.email);; 
         }
 
         const agent_session = this.getSession(agent_username);
-        const job_data = {"status" : "REQUESTED", "user_is_present" : true, "user" : cardholder_data, "card" : card_data, "account" : merchant_creds};
+        const job_data = {"status" : "REQUESTED", "user_is_present" : true, "user" : cardholder_data, "card" : card_data, "account" : merchant_creds, job_type};
 
-        const response = await agent_session.createSingleSiteJob(job_data, safe_key, 
-            {"new-cardholder-safe-key" : safe_key, 
+        const response = await agent_session.createSingleSiteJob(job_data, safe_key ?? cardholder_data.safe_key, 
+            {"new-cardholder-safe-key" : safe_key ?? cardholder_data.safe_key, 
              "financial-institution" : financial_institution, 
              "hydration" : JSON.stringify(["user", "account"])});
         return response.body;
@@ -228,8 +277,9 @@ export class CardsavrHelper {
         return site;
     }
 
-    public async placeCardOnSite(username: string, merchant_creds: {[k: string]: string}, card_id : number | null = null, status = "REQUESTED", safe_key? : string) : Promise<any> {
+    public async placeCardOnSite(place_card_config : placeCardOnSiteParams) : Promise<any> {
         //const login = await this.loginAndCreateSession(username, undefined, grant);
+        const { username, merchant_creds, card_id = null, status = "REQUESTED", safe_key, job_type = null } = place_card_config;
         const session = this._sessions[username];
         if (session) {
             try {
@@ -250,7 +300,8 @@ export class CardsavrHelper {
                     card_id : card_id,
                     account : account,
                     user_is_present : true,
-                    status : status
+                    status : status,
+                    job_type
                 };
                 return await session.createSingleSiteJob(job_params, safe_key);
             } catch(err) {
@@ -277,7 +328,8 @@ export class CardsavrHelper {
         }
      }
 
-     public async pollOnJob(username: string, job_id: number, callback: MessageHandler, interval = 5000) : Promise<void> {
+     public async pollOnJob(poll_on_job_config : pollOnJobParams) : Promise<void> {
+        const { username, job_id, callback, interval = 5000 } = poll_on_job_config;
         try {
             const session = this.getSession(username);
             
@@ -303,19 +355,20 @@ export class CardsavrHelper {
         }
     }   
 
-    public async placeCardOnSiteAndPoll(username: string, merchant_creds: any, callback: any, card_id : number | null = null, interval = 5000) : Promise<void> {
+    public async placeCardOnSiteAndPoll(place_card_config : placeCardOnSiteAndPollParams) : Promise<void> {
+        const { username, merchant_creds, card_id = null, callback, interval = 5000, job_type = null } = place_card_config;
         try {
-            const job_data = await this.placeCardOnSite(username, merchant_creds, card_id);
+            const job_data = await this.placeCardOnSite({username, merchant_creds, card_id, job_type});
             if (job_data) {
-                this.pollOnJob(username, job_data.body.id, callback, interval);
+                this.pollOnJob({username, job_id: job_data.body.id, callback, interval});
             }
         } catch(err) {
             this.handleError(err);
         }
     }
 
-    public async postTFA(username: string, tfa: string, job_id: number, envelope_id: string) : Promise<void> {
-    
+    public async postTFA(post_tfa_config : postTFAParams) : Promise<void> {
+        const { username, tfa, job_id, envelope_id } = post_tfa_config;
         try {
             const session = this.getSession(username); //session should already be loaded
             session.sendJobInformation(job_id, envelope_id, "tfa_response", tfa);
@@ -324,7 +377,8 @@ export class CardsavrHelper {
         }
     }
 
-    public async postCreds(username: string, merchant_creds: any, job_id: number, envelope_id: string) : Promise<void> {
+    public async postCreds(post_creds_config : postCredsParams) : Promise<void> {
+        const { username, merchant_creds, job_id, envelope_id } = post_creds_config;
         try {
             const session = this.getSession(username);
             const acct = await session.getSingleSiteJobs(job_id);
