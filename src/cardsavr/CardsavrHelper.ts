@@ -53,7 +53,7 @@ export class CardsavrHelper {
     private async saveSession(username: string, session: CardsavrSession) {
         this._sessions[username] = session;
         if(localStorageAvailable()) {
-            window.localStorage.setItem(`session_v2.3.1[${username}]`, session.getSerializedSessionData());
+            window.sessionStorage.setItem(`session_v2.3.1[${username}]`, session.getSerializedSessionData());
         }
     }
 
@@ -67,7 +67,7 @@ export class CardsavrHelper {
 
     private async restoreSession(username: string, trace?: {[k: string]: unknown}) : Promise<CardsavrSession | null> {
         if (localStorageAvailable()) {
-            const session_cache_data = <string>window.localStorage.getItem(`session_v2.3.1[${username}]`);
+            const session_cache_data = <string>window.sessionStorage.getItem(`session_v2.3.1[${username}]`);
             if (session_cache_data) {
                 const session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, this.cert);
                 session.setTrace(username, trace);
@@ -75,7 +75,7 @@ export class CardsavrHelper {
                     session.deserializeSessionData(session_cache_data);
                     await session.refresh();
                 } catch (err) {
-                    window.localStorage.clear();
+                    window.sessionStorage.clear();
                     if (err.body && err.body._errors) {
                         err.body._errors.map((item: string) => console.log(item));
                     }
@@ -266,7 +266,7 @@ export class CardsavrHelper {
         session.end();
         delete this._sessions[username];
          if(localStorageAvailable()) {
-            window.localStorage.removeItem(`session_v2.3.1[${username}]`);
+            window.sessionStorage.removeItem(`session_v2.3.1[${username}]`);
         }
      }
 

@@ -154,7 +154,7 @@ export const localStorageAvailable = function() : boolean {
     }
     let storage;
     try {
-        storage = window["localStorage"];
+        storage = window["sessionStorage"];
         const x = "__storage_test__";
         storage.setItem(x, x);
         storage.removeItem(x);
