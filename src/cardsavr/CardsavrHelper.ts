@@ -7,10 +7,14 @@ import JSLibraryError from "./JSLibraryError";
 import { Keys } from "./CardsavrSessionCrypto";
 
 type MessageHandler = (str: string) => void;
+type cardholder_data = {[k: string]: any};
+type merchant_creds = {[k: string]: any};
+type address_data = {[k: string]: any};
+type card_data = {[k: string]: any};
 
 interface placeCardOnSiteParams {
     username : string,  
-    merchant_creds : {[k: string]: string}, 
+    merchant_creds : merchant_creds, 
     card_id? : number | null, 
     status? : string, 
     safe_key? : string,
@@ -20,17 +24,17 @@ interface placeCardOnSiteParams {
 interface placeCardOnSiteSingleCallParams {
     agent_username : string, 
     financial_institution : string, 
-    cardholder_data: {[k: string]: any}, 
-    merchant_creds : {[k: string]: any}, 
-    address_data? : {[k: string]: any}, 
-    card_data? : {[k: string]: any}, 
+    cardholder_data: cardholder_data, 
+    merchant_creds : merchant_creds, 
+    address_data? : address_data, 
+    card_data? : card_data, 
     safe_key? : string,
     job_type? : string | null
 }
 
 interface placeCardOnSiteAndPollParams {
     username : string, 
-    merchant_creds : any, 
+    merchant_creds : merchant_creds, 
     callback : any, 
     card_id? : number | null, 
     interval? : number,
@@ -47,9 +51,9 @@ interface pollOnJobParams {
 interface createCardParams {
     agent_username : string, 
     financial_institution : string, 
-    cardholder_data : {[k: string]: any}, 
-    address_data : {[k: string]: any}, 
-    card_data : {[k: string]: any}, 
+    cardholder_data : cardholder_data, 
+    address_data : address_data, 
+    card_data : card_data, 
     safe_key? : string
 }
 
