@@ -4,7 +4,6 @@ import { CardsavrSession } from "./CardsavrJSLibrary-2.0";
 import CardsavrSessionResponse from "./CardsavrSessionResponse";
 import { generateRandomPar, createMetaKey, localStorageAvailable, generateUniqueUsername } from "./CardsavrSessionUtilities";
 import JSLibraryError from "./JSLibraryError";
-import { Keys } from "./CardsavrSessionCrypto";
 
 type MessageHandler = (str: string) => void;
 type cardholder_data = {[k: string]: any};
