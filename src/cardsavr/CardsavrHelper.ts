@@ -77,8 +77,6 @@ export class CardsavrHelper {
 
     private _sessions: { [key:string]:CardsavrSession; } = {};
 
-    private _safe_keys: { [key:string]:string; } = {};
-
     private _jobs = new Map<number, MessageHandler>();
 
     private _user_probe!: ReturnType<typeof setTimeout>;
@@ -159,7 +157,7 @@ export class CardsavrHelper {
     }
 
     public async createCard(create_card_config : createCardParams) : Promise<unknown> {
-        const { cardholder_data, address_data, card_data, safe_key, agent_username, financial_institution } = create_card_config
+        const { cardholder_data, address_data, card_data, agent_username, financial_institution } = create_card_config
         try {
             //don't need the login data
             const cardholder_data_copy = { ...cardholder_data };
@@ -177,9 +175,6 @@ export class CardsavrHelper {
                 cardholder_data_copy.custom_data = {};
             }
             cardholder_data_copy.custom_data.cardsavr_card_data = { meta_key : meta_key };
-            if (!safe_key) { //generate a safe_key if one isn't passed in
-                cardholder_data_copy.cardholder_safe_key = await Keys.generateCardholderSafeKey(cardholder_data.email + card_data.name_on_card); 
-            }
     
             const agent_session = this.getSession(agent_username);
 
@@ -191,9 +186,8 @@ export class CardsavrHelper {
                 card_data_copy.par = generateRandomPar(card_data_copy.pan, card_data_copy.expiration_month, card_data_copy.expiration_year, cardholder_data_copy.username);
             }
 
-            const card_response = await agent_session.createCard(card_data_copy, safe_key ?? cardholder_data_copy.cardholder_safe_key, 
-                {"new-cardholder-safe-key" : safe_key ?? cardholder_data_copy.cardholder_safe_key, 
-                 "financial-institution" : financial_institution,
+            const card_response = await agent_session.createCard(card_data_copy,
+                {"financial-institution" : financial_institution,
                  "hydration" : JSON.stringify(["cardholder"])});
             return card_response.body;
     
@@ -209,7 +203,7 @@ export class CardsavrHelper {
 
     public async placeCardOnSiteSingleCall(place_card_config: placeCardOnSiteSingleCallParams) : Promise<unknown> {
     try {
-        const { cardholder_data, card_data, merchant_creds, address_data, safe_key, agent_username, financial_institution, job_type = null } = place_card_config;
+        const { cardholder_data, card_data, merchant_creds, address_data, agent_username, financial_institution, job_type = null } = place_card_config;
         //don't need the login data
         cardholder_data.role = "cardholder";
         //set the missing settings for model
@@ -232,15 +226,12 @@ export class CardsavrHelper {
             address_data.user_ref = card_data.cardholder_ref = merchant_creds.cardholder_ref;
             card_data.address = address_data;
         }
-        if (!safe_key) { //generate a safe_key if one isn't passed in
-            cardholder_data.cardholder_safe_key = await Keys.generateCardholderSafeKey(cardholder_data.email);; 
-        }
 
         const agent_session = this.getSession(agent_username);
         const job_data = {"status" : "REQUESTED", "user_is_present" : true, "user" : cardholder_data, "card" : card_data, "account" : merchant_creds, job_type};
 
-        const response = await agent_session.createSingleSiteJob(job_data, safe_key ?? cardholder_data.safe_key, 
-            {"new-cardholder-safe-key" : safe_key ?? cardholder_data.safe_key, 
+        const response = await agent_session.createSingleSiteJob(job_data, 
+            { 
              "financial-institution" : financial_institution, 
              "hydration" : JSON.stringify(["user", "account"])});
         return response.body;
@@ -283,7 +274,7 @@ export class CardsavrHelper {
 
     public async placeCardOnSite(place_card_config : placeCardOnSiteParams) : Promise<any> {
         //const login = await this.loginAndCreateSession(username, undefined, grant);
-        const { username, merchant_creds, card_id = null, status = "REQUESTED", safe_key, job_type = null } = place_card_config;
+        const { username, merchant_creds, card_id = null, status = "REQUESTED", job_type = null } = place_card_config;
         const session = this._sessions[username];
         if (session) {
             try {
@@ -307,7 +298,7 @@ export class CardsavrHelper {
                     status : status,
                     job_type
                 };
-                return await session.createSingleSiteJob(job_params, safe_key);
+                return await session.createSingleSiteJob(job_params);
             } catch(err) {
                 this.handleError(err);
             }
@@ -390,8 +381,7 @@ export class CardsavrHelper {
                 session.updateAccount( 
                     acct.body.account_id,
                     {username : merchant_creds.username, password : merchant_creds.password}, 
-                    envelope_id,
-                    this._safe_keys[username]);
+                    envelope_id);
             }
         } catch(err) {
             this.handleError(err);
