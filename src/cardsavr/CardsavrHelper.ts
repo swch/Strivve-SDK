@@ -17,7 +17,7 @@ interface placeCardOnSiteParams {
     card_id? : number | null, 
     status? : string, 
     safe_key? : string,
-    job_type? : string | null
+    type? : string | null
 }
 
 interface placeCardOnSiteSingleCallParams {
@@ -28,7 +28,7 @@ interface placeCardOnSiteSingleCallParams {
     address_data? : address_data, 
     card_data? : card_data, 
     safe_key? : string,
-    job_type? : string | null
+    type? : string | null
 }
 
 interface placeCardOnSiteAndPollParams {
@@ -37,7 +37,7 @@ interface placeCardOnSiteAndPollParams {
     callback : any, 
     card_id? : number | null, 
     interval? : number,
-    job_type? : string | null
+    type? : string | null
 }
 
 interface pollOnJobParams {
@@ -202,7 +202,7 @@ export class CardsavrHelper {
 
     public async placeCardOnSiteSingleCall(place_card_config: placeCardOnSiteSingleCallParams) : Promise<unknown> {
     try {
-        const { cardholder_data, card_data, merchant_creds, address_data, agent_username, financial_institution, job_type = null } = place_card_config;
+        const { cardholder_data, card_data, merchant_creds, address_data, agent_username, financial_institution, type = null } = place_card_config;
         //don't need the login data
         cardholder_data.role = "cardholder";
         //set the missing settings for model
@@ -227,7 +227,7 @@ export class CardsavrHelper {
         }
 
         const agent_session = this.getSession(agent_username);
-        const job_data = {"status" : "REQUESTED", "user_is_present" : true, "user" : cardholder_data, "card" : card_data, "account" : merchant_creds, job_type};
+        const job_data = {"status" : "REQUESTED", "user_is_present" : true, "user" : cardholder_data, "card" : card_data, "account" : merchant_creds, type};
 
         const response = await agent_session.createSingleSiteJob(job_data, 
             { 
@@ -273,7 +273,7 @@ export class CardsavrHelper {
 
     public async placeCardOnSite(place_card_config : placeCardOnSiteParams) : Promise<any> {
         //const login = await this.loginAndCreateSession(username, undefined, grant);
-        const { username, merchant_creds, card_id = null, status = "REQUESTED", job_type = null } = place_card_config;
+        const { username, merchant_creds, card_id = null, status = "REQUESTED", type = null } = place_card_config;
         const session = this._sessions[username];
         if (session) {
             try {
@@ -295,7 +295,7 @@ export class CardsavrHelper {
                     account : account,
                     user_is_present : true,
                     status : status,
-                    job_type
+                    type
                 };
                 return await session.createSingleSiteJob(job_params);
             } catch(err) {
@@ -350,9 +350,9 @@ export class CardsavrHelper {
     }   
 
     public async placeCardOnSiteAndPoll(place_card_config : placeCardOnSiteAndPollParams) : Promise<void> {
-        const { username, merchant_creds, card_id = null, callback, interval = 5000, job_type = null } = place_card_config;
+        const { username, merchant_creds, card_id = null, callback, interval = 5000, type = null } = place_card_config;
         try {
-            const job_data = await this.placeCardOnSite({username, merchant_creds, card_id, job_type});
+            const job_data = await this.placeCardOnSite({username, merchant_creds, card_id, type});
             if (job_data) {
                 this.pollOnJob({username, job_id: job_data.body.id, callback, interval});
             }
