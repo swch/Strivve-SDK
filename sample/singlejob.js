@@ -66,9 +66,6 @@ async function placeCard() {
                 creds_data.password = rl.question("Please re-enter your password: ", { hideEchoBack: true });
                 ch.postCreds(job.user.username, creds_data, job.id, message.envelope_id);
                 console.log("Saving credentials");
-            } else if (message.type == 'quickstart_credential_request') {
-                ch.getSession(job.user.username).updateAccount(job.account.id, creds_data, message.envelope_id).catch(err => console.log(err.body._errors));
-                console.log("Quickstart - Saving credentials");
             } else if (message.type == 'tfa_message') {
                 console.log("Please check your device for a verification link.");
             }
