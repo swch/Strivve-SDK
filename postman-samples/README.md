@@ -24,6 +24,27 @@ In order to use it, the following edits will need to be made to the CardSavr-Tem
 - The CARD-ID found in "3-5 Create Single Site Job" needs to be changed to the :id property of the card returned in the JSON response from "3-3 Create Card."
 - The ACCOUNT-ID found in "3-5 Create Single Site Job" needs to be changed to the :id property of the account returned in the JSON response from "3-4 Create Account".
 
+## Single Entity Job sample usage
+
+There's also some postman samples for posting a single job with a single entity.  Import Single-job-entity.postman_collection.json.
+
+- Create a new environment in Postman
+- Add a value for CARDSAVR_HOSTNAME (api.CARDSAVR_HOSTNAME.cardsavr.io)
+- Add a value for username/password (you'll need to get these from your account manager)
+- Add empty values for JOB_ID and ENVELOPE_ID. API calls will return these values, and you will need to fill them in.
+- Run 1-1, 1-2, and 1-4.
+- 1.4 will create a job.  Copy the id from the response and paste it into the environment value for JOB_ID.
+- Run 1.5 (job status).  It will sometimes be empty, and sometimes return messages.  Eventually you will receive a bad credentials message.
+- Copy the envelope_id in the response and populate the environment variable ENVELOPE_ID with that value.
+- Run 1.6 (saves the new credentials)
+- Run 1.5 again until you receive a request for a TFA code
+- Copy the envelope_id in the response and populate the envrionemnt variable ENVELOPE_ID with that value.
+- Run 1.7 (posts the TFA code)
+- Continue to run 1.5 until you see the complete message.  (This is a synthetic site, so nothing real is being saved).
+
+You are welcome to use 1-3 and find a non-syntheic site, and post a card on a real site.
+
+
 ## Importing The Template Into Postman
 
 1. Launch Postman application.

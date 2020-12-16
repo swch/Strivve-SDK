@@ -1,0 +1,313 @@
+{
+	"info": {
+		"_postman_id": "dc9bc418-fe58-40b7-87ca-31fb682cbf93",
+		"name": "Single Job",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1-1 Session Start",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "trace",
+						"value": "{\"key\": \"my_trace\"}"
+					}
+				],
+				"url": {
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io/session/start",
+					"protocol": "https",
+					"host": [
+						"api",
+						"{{CARDSAVR-INSTANCE}}",
+						"cardsavr",
+						"io"
+					],
+					"path": [
+						"session",
+						"start"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "1-2 Session Login",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "trace",
+						"value": "{\"key\": \"my_trace\"}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"password\": \"{{PASSWORD}}\", \"userName\": \"{{USERNAME}}\"}"
+				},
+				"url": {
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io/session/login",
+					"protocol": "https",
+					"host": [
+						"api",
+						"{{CARDSAVR-INSTANCE}}",
+						"cardsavr",
+						"io"
+					],
+					"path": [
+						"session",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2 Merchants",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "trace",
+						"value": "{\"key\": \"my_trace\"}"
+					}
+				],
+				"url": {
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io/merchant_sites",
+					"protocol": "https",
+					"host": [
+						"api",
+						"{{CARDSAVR-INSTANCE}}",
+						"cardsavr",
+						"io"
+					],
+					"path": [
+						"merchant_sites"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3 POST Job",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "financial-institution",
+						"value": "default",
+						"type": "text"
+					},
+					{
+						"key": "trace",
+						"value": "{\"key\": \"my_trace\"}"
+					},
+					{
+						"key": "",
+						"value": "",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"status\": \"REQUESTED\",\r\n  \"user\":\r\n    {\r\n      \"username\":\"UserName7\",\r\n      \"first_name\": \"FirstName\", \r\n      \"last_name\":\"LastName\",\r\n      \"phone_number\":\"555-555-1212\",\r\n      \"email\": \"test@strivve.com\",\r\n      \"role\":\"cardholder\"\r\n    },\r\n  \"card\":\r\n    {\r\n      \"cardholder_ref\": {\r\n        \"username\": \"UserName7\"\r\n      },\r\n      \"par\":\"peLpzDnEHdhiiWEtuhUgICEonxScs\",\r\n      \"pan\":\"KOnalFfwdrBXlZD\",\r\n      \"cvv\":\"oAc\",\r\n      \"expiration_month\":12,\r\n      \"expiration_year\":24,\r\n      \"name_on_card\":\"FirstName LastName\",\r\n      \"first_name\":\"FirstName\",\r\n      \"last_name\":\"LastName\",\r\n      \"address\":\r\n        {\r\n          \"user_ref\": {\r\n            \"username\": \"UserName7\"\r\n          },\r\n          \"address1\":\"SGTClNSCCMqlfjuzTmJuepDyFgvWhlCMRycXlKGiRIooOJJkoXeObOcAwJMGeqjSDWfhTHobAWMimcCynMIQcvlBFSbMQlwUFyJ\",\r\n          \"address2\":\"AyFgoCTjCLXUQVylBAfkHJOtqkkKJjuaLHnmJpSctqBOQueIvciyAUPqYoFpkiAPlkGjgPuabhAPCHFPvaxciObOmIBvBUWpngD\",\r\n          \"city\":\"Seattle\",\r\n          \"subnational\":\"WA\",\r\n          \"postal_code\":\"98177\",\r\n          \"postal_other\":\"98177-0124\",\r\n          \"country\":\"USA\",\r\n          \"is_primary\": true\r\n        }\r\n    },\r\n  \"account\":\r\n    {\r\n      \"cardholder_ref\": {\r\n        \"username\": \"UserName7\"\r\n      },\r\n      \"merchant_site_id\":1,\r\n      \"username\":\"bad_email\",\r\n      \"password\":\"good_password\"\r\n    }\r\n}"
+				},
+				"url": {
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io/place_card_on_single_site_jobs",
+					"protocol": "https",
+					"host": [
+						"api",
+						"{{CARDSAVR-INSTANCE}}",
+						"cardsavr",
+						"io"
+					],
+					"path": [
+						"place_card_on_single_site_jobs"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "4-1 Get Job Status",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "trace",
+						"value": "{\"key\": \"my_trace\"}"
+					}
+				],
+				"url": {
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io/messages/place_card_on_single_site_jobs/{{JOB_ID}}",
+					"protocol": "https",
+					"host": [
+						"api",
+						"{{CARDSAVR-INSTANCE}}",
+						"cardsavr",
+						"io"
+					],
+					"path": [
+						"messages",
+						"place_card_on_single_site_jobs",
+						"{{JOB_ID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "4-2 Resubmit Credentials",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "trace",
+						"value": "{\"key\": \"my_trace\"}"
+					},
+					{
+						"key": "envelope-id",
+						"value": "{{ENVELOPE_ID}}",
+						"type": "text"
+					},
+					{
+						"key": "",
+						"value": "",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\"account\": {\r\n\"username\": \"good_email\",\r\n\"password\": \"tfa\"\r\n}\r\n}"
+				},
+				"url": {
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io/place_card_on_single_site_jobs/{{JOB_ID}}",
+					"protocol": "https",
+					"host": [
+						"api",
+						"{{CARDSAVR-INSTANCE}}",
+						"cardsavr",
+						"io"
+					],
+					"path": [
+						"place_card_on_single_site_jobs",
+						"{{JOB_ID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "4-3 Submit TFA",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "trace",
+						"value": "{\"key\": \"my_trace\"}"
+					},
+					{
+						"key": "envelope-id",
+						"value": "{{ENVELOPE_ID}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\"account\": {\r\n\"tfa\": \"1234\"\r\n}\r\n}"
+				},
+				"url": {
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io/place_card_on_single_site_jobs/{{JOB_ID}}",
+					"protocol": "https",
+					"host": [
+						"api",
+						"{{CARDSAVR-INSTANCE}}",
+						"cardsavr",
+						"io"
+					],
+					"path": [
+						"place_card_on_single_site_jobs",
+						"{{JOB_ID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "5 End Session",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "trace",
+						"value": "{\"key\": \"my_trace\"}"
+					}
+				],
+				"url": {
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io/session/end",
+					"protocol": "https",
+					"host": [
+						"api",
+						"{{CARDSAVR-INSTANCE}}",
+						"cardsavr",
+						"io"
+					],
+					"path": [
+						"session",
+						"end"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "ba4c420a-8357-432c-be17-6ddea8218ac6",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "d6fbd228-740e-4796-9306-c7e62123c769",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"protocolProfileBehavior": {}
+}
