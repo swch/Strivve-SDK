@@ -161,7 +161,7 @@ export class CardsavrHelper {
     }
 
     public async createCard(create_card_config : createCardParams) : Promise<unknown> {
-        const { cardholder_data, address_data, card_data, agent_username, financial_institution, safe_key } = create_card_config;
+        const { cardholder_data, address_data, card_data, agent_username, financial_institution, safe_key = null } = create_card_config;
         try {
             //don't need the login data
             const cardholder_data_copy = { ...cardholder_data };

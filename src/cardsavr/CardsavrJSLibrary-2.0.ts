@@ -21,7 +21,7 @@ export class CardsavrSession {
     _debug : boolean;
     _rejectUnauthorized : boolean;
 
-    constructor(baseUrl: string, sessionKey: string, appName: string, rejectUnauthorized = false, cardsavrCert? : string) {
+    constructor(baseUrl: string, sessionKey: string, appName: string, rejectUnauthorized = true, cardsavrCert? : string) {
 
         this._headers = {}; 
         this._cardsavrCert = cardsavrCert;
