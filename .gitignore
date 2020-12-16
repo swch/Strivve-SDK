@@ -112,3 +112,6 @@ typings/
 .tern-port
 
 *creds_*.json
+
+# webstorm ide folder
+.idea/
