@@ -233,7 +233,6 @@ export class CardsavrHelper {
             address_data.user_ref = card_data.cardholder_ref = merchant_creds.cardholder_ref;
             card_data.address = address_data;
         }
-
         const agent_session = this.getSession(agent_username);
         const job_data = {"status" : "REQUESTED", "user_is_present" : true, "user" : cardholder_data, "card" : card_data, "account" : merchant_creds, type};
 

@@ -1,6 +1,6 @@
 {
   "name": "@strivve/strivve-sdk",
-  "version": "2.5.2",
+  "version": "2.6.3",
   "description": "",
   "directories": {
     "src": "src",
@@ -47,6 +47,7 @@
     "@typescript-eslint/parser": "^3.6.0",
     "axios": "^0.19.2",
     "eslint": "^7.11.0",
+    "https": "^1.0.0",
     "log-timestamp": "^0.3.0",
     "readline-sync": "^1.4.10"
   }
