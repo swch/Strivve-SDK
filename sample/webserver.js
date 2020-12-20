@@ -25,7 +25,7 @@ app.get("/create_user", function (req, res) {
                 const card_response = await ch.createCard({agent_username: app_username, financial_institution: "default", cardholder_data, address_data, card_data});
                 const handoff = { grant : card_response.cardholder.credential_grant, username : card_response.cardholder.username, card_id : card_response.id };
                 const queryString = Object.keys(handoff).map(key => key + "=" + encodeURIComponent(handoff[key])).join("&");
-                res.redirect(cu + "#select-merchants&" + queryString);
+                res.redirect(cu + "/select-merchants#" + queryString);
             }
         } catch (err) {
             console.log(err);
