@@ -25,7 +25,7 @@ placeCard().then(() => {
 async function placeCard() {
     const ch = CardsavrHelper.getInstance();
     //Setup the settings for the application
-    ch.setAppSettings(cardsavr_server, app_name, app_key);
+    ch.setAppSettings(cardsavr_server, app_name, app_key, false);
 
     const merchant_site = rl.question("Merchant hostname: ");
 
@@ -37,7 +37,12 @@ async function placeCard() {
             creds_data.merchant_site_id = site.id;
         }
         
-        const job = await ch.placeCardOnSiteSingleCall(app_username, "default", cardholder_data, creds_data, address_data, card_data);
+        const job = await ch.placeCardOnSiteSingleCall({agent_username: app_username, 
+                                                        financial_institution: "default", 
+                                                        cardholder_data, 
+                                                        merchant_creds: creds_data, 
+                                                        address_data, 
+                                                        card_data});
         await ch.loginAndCreateSession(job.user.username, undefined, job.user.credential_grant);
 
         creds_data.username = rl.question("Username: ");
@@ -46,12 +51,16 @@ async function placeCard() {
 
         const job_start = new Date().getTime(); let vbs_start = null;
 
-        await ch.pollOnJob(job.user.username, job.id, (message) => {
+        await ch.pollOnJob({username : job.user.username, 
+                            job_id : job.id, 
+                            callback : (message) => {
             if (message.type == "job_status") {
                 update = message.message;
                 if (!vbs_start) {
                     vbs_start = new Date().getTime();
                     console.log("VBS startup: " + Math.round(((vbs_start - job_start) / 1000)) + " seconds");
+                    ch.getSession(job.user.username).updateAccount(job.account.id, creds_data).catch(err => console.log(err.body._errors));
+                    console.log("Quickstart - Saving credentials");
                 }
                 console.log(`${update.status} ${update.percent_complete}% - ${update.completed_state_name}, Time remaining: ${update.job_timeout}`);
                 if (update.termination_type) {
@@ -60,16 +69,17 @@ async function placeCard() {
             } else if (message.type == 'tfa_request') {
                 const tfa = rl.question("Please enter a tfa code: ");
                 console.log("Posting TFA");
-                ch.postTFA(job.user.username, tfa, job.id, message.envelope_id);
+                ch.postTFA({username: job.user.username, tfa, job_id: job.id, envelope_id: message.envelope_id});
             } else if (message.type == 'credential_request') {
                 creds_data.username = rl.question("Please re-enter your username: ");
                 creds_data.password = rl.question("Please re-enter your password: ", { hideEchoBack: true });
-                ch.postCreds(job.user.username, creds_data, job.id, message.envelope_id);
+                ch.postCreds({username: job.user.username, merchant_creds: creds_data, job_id: job.id, envelope_id: message.envelope_id});
                 console.log("Saving credentials");
             } else if (message.type == 'tfa_message') {
                 console.log("Please check your device for a verification link.");
             }
-        }, 2000);
+        }, 
+        timeout : 2000});
     }
 }
 

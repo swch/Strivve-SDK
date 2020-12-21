@@ -55,7 +55,7 @@
         //not used, but could be used to pick a site
         const sites = await (await cardsavr_helper.getSession(result.username)).getSites({ "tags": "prod" }, { page_length : 200, sort: "name" });
 
-        cardsavr_helper.placeCardOnSiteAndPoll(result.username, creds, (message) => {
+        cardsavr_helper.placeCardOnSiteAndPoll({username: result.username, merchant_creds: creds, callback: (message) => {
           console.log(message);
           if (message.type == 'job_status') { //status updates
             status.innerHTML = message.message.status + ": " + message.message.percent_complete + "%";
@@ -76,16 +76,16 @@
               status.innerHTML = status.innerHTML.replace("AUTH", "PENDING USER APPROVAL ON DEVICE");
             }
           }
-        }, result.card_id);
+        }, card_id: result.card_id});
       }
  
       async function post_tfa(event) {
         result = get_hash_key_values();
         var cardsavr_helper = strivvesdk.CardsavrHelper.getInstance();
-        await cardsavr_helper.postTFA(result.username, 
-                                      getFormValue(event, 'tfa'), 
-                                      getFormValue(event, 'job_id'), 
-                                      getFormValue(event, 'envelope_id'));
+        await cardsavr_helper.postTFA({username: result.username, 
+                                       tfa: getFormValue(event, 'tfa'), 
+                                       job_id: getFormValue(event, 'job_id'), 
+                                       envelope_id: getFormValue(event, 'envelope_id')});
         toggle_element(["tfa"], "none");
       }
 
@@ -94,10 +94,10 @@
                  password: getFormValue(event, 'password')} //can't update site_hostname
 
         var cardsavr_helper = strivvesdk.CardsavrHelper.getInstance();
-        await cardsavr_helper.postCreds(get_hash_key_values().username, 
-                                        creds, 
-                                        getFormValue(event, 'job_id'), 
-                                        getFormValue(event, 'envelope_id'));
+        await cardsavr_helper.postCreds({username: get_hash_key_values().username, 
+                                         merchant_creds: creds, 
+                                         job_id: getFormValue(event, 'job_id'), 
+                                         envelope_id: getFormValue(event, 'envelope_id')});
         toggle_element(["username", "password"], "none");
       }
 

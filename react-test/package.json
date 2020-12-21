@@ -12,6 +12,7 @@
     "@strivve/strivve-sdk": "^2.3.3",
     "next": "9.3.5",
     "node-fetch": "^2.6.1",
+    "object-path": "^0.11.5",
     "react": "^16.13.1",
     "react-dom": "16.13.1"
   }
