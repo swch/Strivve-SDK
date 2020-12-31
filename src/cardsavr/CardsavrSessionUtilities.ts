@@ -11,12 +11,12 @@ const _stringReplaceAll = function (string: any, find: string, replace: string) 
         return string;
     }
   
-     let replaced_string = string;
+    let replaced_string = string;
     while (replaced_string.includes(find)) {
         replaced_string = replaced_string.replace(find, replace);
     }
   
-     return replaced_string;
+    return replaced_string;
 };
 
 export const generateTraceValue = (bytes? : number) : string => {
@@ -36,7 +36,7 @@ export const generateTraceValue = (bytes? : number) : string => {
   
 const stringIdPaths = ["/card_placement_results","/merchant_sites"];
 
-export const formatPath = (path:string, filter:any) => {
+export const formatPath = (path : string, filter : any) => {
 
     const validationErrors = [];
 

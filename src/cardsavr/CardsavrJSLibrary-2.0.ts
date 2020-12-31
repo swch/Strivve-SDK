@@ -165,16 +165,16 @@ export class CardsavrSession {
         return await this.sendRequest(path, "POST", body, headersToAdd, cookiesEnforced);
     };
 
-    put = async(path: string, id: any, body: any, headersToAdd = {}, cookiesEnforced = true): Promise < any > => {
+    put = async(path: string, filter: any, body: any, headersToAdd = {}, cookiesEnforced = true): Promise < any > => {
 
-        path = CardsavrSessionUtilities.formatPath(path, id);
+        path = CardsavrSessionUtilities.formatPath(path, filter);
 
         return await this.sendRequest(path, "PUT", body, headersToAdd, cookiesEnforced);
     };
 
-    delete = async(path: string, id: number, headersToAdd = {}, cookiesEnforced = true): Promise < any > => {
+    delete = async(path: string, filter: any, headersToAdd = {}, cookiesEnforced = true): Promise < any > => {
 
-        path = CardsavrSessionUtilities.formatPath(path, id);
+        path = CardsavrSessionUtilities.formatPath(path, filter);
 
         return await this.sendRequest(path, "DELETE", null, headersToAdd, cookiesEnforced);
     };
@@ -495,14 +495,28 @@ export class CardsavrSession {
             Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
         }
         return await this.post("/place_card_on_single_site_jobs", body, headersToAdd);
+    }
+
+    createSingleSiteJobs = async(body: any[], safeKey: string | null = null, headersToAdd = {}): Promise < any > => {
+        if (safeKey) {
+            Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+        }
+        return await this.post("/place_card_on_single_site_jobs", body, headersToAdd);
     };
 
     updateSingleSiteJob = async(id: number, body: any, safeKey: string | null = null, headersToAdd = {}): Promise < any > => {
-
         if (safeKey) {
             Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
         }
         return await this.put("/place_card_on_single_site_jobs", id, body, headersToAdd);
+    }
+
+    updateSingleSiteJobs = async(filter: {[key: string]: string}, body: any, safeKey: string | null = null, headersToAdd = {}): Promise < any > => {
+
+        if (safeKey) {
+            Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+        }
+        return await this.put("/place_card_on_single_site_jobs", filter, body, headersToAdd);
     };
 
 }

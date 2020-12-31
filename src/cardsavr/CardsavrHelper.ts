@@ -330,7 +330,7 @@ export class CardsavrHelper {
                         type    
                     });
                 });
-                return await session.createSingleSiteJob(jobs, safe_key);
+                return await session.createSingleSiteJobs(jobs, safe_key);
             } catch(err) {
                 this.handleError(err);
             }
