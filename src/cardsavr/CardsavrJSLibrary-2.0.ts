@@ -480,23 +480,6 @@ export class CardsavrSession {
         return await this.delete("/cardsavr_users", id, headersToAdd);
     };
 
-    getMultipleSitesJobs = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
-        if (Object.keys(pagingHeader).length > 0) {
-            pagingHeader = {
-                paging : JSON.stringify(pagingHeader)
-            };
-            Object.assign(headersToAdd, pagingHeader);
-        }
-        return await this.get("/place_card_on_multiple_sites_jobs", filter, headersToAdd);
-    };
-
-    createMultipleSitesJob = async(body: any, safeKey: string | null, headersToAdd = {}): Promise < any > => {
-        if (safeKey) {
-            Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
-        }
-        return await this.post("/place_card_on_multiple_sites_jobs", body, headersToAdd);
-    };
-
     getSingleSiteJobs = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
         if (Object.keys(pagingHeader).length > 0) {
             pagingHeader = {
