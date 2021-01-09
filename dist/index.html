@@ -2,7 +2,6 @@
 <html>
   <head>
     <title>Getting Started</title>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="strivve-sdk.js"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
   </head>
@@ -28,7 +27,6 @@
       async function session(app_name, app_key, cardsavr_server) {
         var cardsavr_helper = strivvesdk.CardsavrHelper.getInstance();
         cardsavr_helper.setAppSettings(cardsavr_server, app_name, app_key);
-
         var result = get_hash_key_values();
         try {
           var session = await cardsavr_helper.loginAndCreateSession(result.username, undefined, result.grant);
@@ -102,9 +100,10 @@
       }
 
       window.onload = function() {
-        axios({url: 'strivve_creds.json'})
-          .then(response => {
-            const config = response.data[response.data.instance];
+        fetch('strivve_creds.json')
+          .then(async response => {
+            const global_config = (await response.json());
+            const config = global_config[global_config.instance];
             session(config.app_name, config.app_key, config.cardsavr_server);
           });
 

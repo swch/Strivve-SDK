@@ -1,6 +1,6 @@
 {
   "name": "@strivve/strivve-sdk",
-  "version": "2.6.7",
+  "version": "2.6.8",
   "description": "",
   "directories": {
     "src": "src",
@@ -43,12 +43,13 @@
   },
   "dependencies": {
     "@types/lodash": "^4.14.162",
+    "@types/node-fetch": "^2.5.7",
     "@typescript-eslint/eslint-plugin": "^3.6.0",
     "@typescript-eslint/parser": "^3.6.0",
-    "axios": "^0.19.2",
     "eslint": "^7.11.0",
     "https": "^1.0.0",
     "log-timestamp": "^0.3.0",
+    "node-fetch": "^2.6.1",
     "readline-sync": "^1.4.10"
   }
 }

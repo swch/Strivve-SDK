@@ -4,12 +4,12 @@ import JSLibraryError from "./JSLibraryError";
 import CardsavrSessionResponse from "./CardsavrSessionResponse";
 import * as CardsavrSessionUtilities from "./CardsavrSessionUtilities";
 import * as CardsavrCrypto from "./CardsavrSessionCrypto";
+import fetch from "node-fetch";
+
 import {
     Agent as HTTPSAgent
 } from "https";
-import axios, {
-    AxiosRequestConfig
-} from "axios";
+import CardsavrResetError from "./CardsavrRestError";
 
 export class CardsavrSession {
 
@@ -100,6 +100,7 @@ export class CardsavrSession {
         CardsavrCrypto.Encryption.encryptSafeKeys(headers, sessionKey);
         if (requestBody) {
             requestBody = await CardsavrCrypto.Encryption.encryptRequest(sessionKey, requestBody);
+            headers["content-type"] = "application/json";
         }
         const authHeaders = await CardsavrCrypto.Signing.signRequest(path, this._appName, sessionKey, requestBody);
         Object.assign(headers, authHeaders);
@@ -112,43 +113,28 @@ export class CardsavrSession {
             }
         }
 
-        const requestConfig: AxiosRequestConfig = {
-            
-            httpsAgent : new HTTPSAgent({
-              rejectUnauthorized : this._rejectUnauthorized
-            }),
-            
-            baseURL : this._baseUrl,
-            url : path,
+        const csr = await fetch(new URL(path, this._baseUrl), {
             timeout : 10000,
             headers,
             method,
-            data : requestBody,
-            withCredentials : true
-        };
-
-        // Trust the shared cardsavr cert
-        if (this._cardsavrCert) {
-            requestConfig.httpsAgent = new HTTPSAgent({
-                ca : this._cardsavrCert
+            agent : new HTTPSAgent({
+                rejectUnauthorized : this._rejectUnauthorized,
+                ...(this._cardsavrCert && {ca : this._cardsavrCert})
+            }), 
+            body : requestBody ? JSON.stringify(requestBody) : undefined
+        })
+            .then(async res => new CardsavrSessionResponse(
+                res.status, 
+                res.statusText, 
+                res.headers, 
+                await CardsavrCrypto.Encryption.decryptResponse(sessionKey, await res.json()), 
+                path))
+            .catch(err => {
+                throw err;
             });
-        }
-
-        try {
-            const response = await axios.request(requestConfig);
-            response.data = await CardsavrCrypto.Encryption.decryptResponse(sessionKey, response.data);
-            if (this._debug) {
-                console.log(response.data);
-            }
-            return new CardsavrSessionResponse(response.status, response.statusText, response.headers, response.data, path);
-        } catch (err) {
-            if (err.response) {
-                err.response.data = await CardsavrCrypto.Encryption.decryptResponse(sessionKey, err.response.data);
-                throw new CardsavrSessionResponse(err.response.status, err.response.statusText, err.response.headers, err.response.data, path);
-            } else {
-                throw new Error(err.message);
-            }
-        }
+        
+        if (csr.statusCode >= 400) { throw new CardsavrResetError(csr); }
+        return csr;
     };
 
     get = async(path: string, filter: any, headersToAdd = {}, cookiesEnforced = true): Promise < any > => {
@@ -161,7 +147,7 @@ export class CardsavrSession {
     post = async(path: string, body: any, headersToAdd = {}, cookiesEnforced = true): Promise < any > => {
 
         path = CardsavrSessionUtilities.formatPath(path, null);
-
+        
         return await this.sendRequest(path, "POST", body, headersToAdd, cookiesEnforced);
     };
 
@@ -195,7 +181,6 @@ export class CardsavrSession {
             clientPublicKey: string,
             userName: string
         }
-
         const keyPair = await CardsavrCrypto.Keys.makeECDHkeyPair();
         const clientPublicKey = await CardsavrCrypto.Keys.makeECDHPublicKey(keyPair);
 

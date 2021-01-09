@@ -272,17 +272,20 @@ export class CardsavrHelper {
 }
 
     private handleError(err: any) {
-        if (err.body && err.body._errors) {
-            console.log("Errors returned from REST API : " + err.call);
-            err.body._errors.map((obj: any) => {
-                console.log(obj);
-            });
-            Object.keys(err.body).filter((item: string) => err.body[item]._errors !== undefined).map(obj => {
-                console.log("For entity: " + obj);
-                console.log(err.body[obj]._errors);
-            });
-        } else if (err.body && err.body.message) {
-            console.log("Message returned from REST API: " + err.body.message);
+        if (err.response) {
+            if (err.errors) {
+                console.log("Errors returned from REST API : " + err.response.call);
+                err = err.response;
+                err.body._errors.map((obj: any) => {
+                    console.log(obj);
+                });
+                Object.keys(err.body).filter((item: string) => err.body[item]._errors !== undefined).map(obj => {
+                    console.log("For entity: " + obj);
+                    console.log(err.body[obj]._errors);
+                });
+            } else if (err.response.body && err.response.body.message) {
+                console.log("Message returned from REST API: " + err.response.body.message);
+            }
         } else if (err.otherErrors || err.validationErrors) {
             console.log("SDK Errors");
             console.log(err);
