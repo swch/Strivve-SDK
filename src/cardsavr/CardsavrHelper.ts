@@ -286,9 +286,6 @@ export class CardsavrHelper {
             } else if (err.response.body && err.response.body.message) {
                 console.log("Message returned from REST API: " + err.response.body.message);
             }
-        } else if (err.otherErrors || err.validationErrors) {
-            console.log("SDK Errors");
-            console.log(err);
         } else if (err.stack) {
             console.log("no _errors from REST API, exception stack below:");
             console.log(err.stack);

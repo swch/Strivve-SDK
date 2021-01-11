@@ -1,4 +1,4 @@
-import JSLibraryError from  "./JSLibraryError";
+import CardsavrSDKError from  "./CardsavrSDKError";
 import * as crypto from "crypto";
 
 export const generateHydrationHeader = (hydrationArray: any) : any => {
@@ -59,7 +59,7 @@ export const formatPath = (path : string, filter : any) => {
         }
         else {
             validationErrors.push("Valid ID or filter not found in provided path.");
-            throw new JSLibraryError(validationErrors);
+            throw new CardsavrSDKError(validationErrors);
         }
     }
     return path;
@@ -72,7 +72,7 @@ export const createMetaKey = (card: any, postal_code: string) => {
     if (!postal_code || postal_code.length < 5) { validationErrors.push("Can't create meta_key, invalid postal code"); }
     if (!card.pan || card.pan.length === 0) { validationErrors.push("Can't create meta_key, no pan on card"); }
     if (validationErrors.length > 0) {
-        throw new JSLibraryError(validationErrors);
+        throw new CardsavrSDKError(validationErrors);
     }
     return card.first_name[0] + card.last_name[0] + postal_code.substring(0, 5) + card.pan.slice(-2);
 };
@@ -101,7 +101,7 @@ export const generateRandomPar = (pan: string, exp_month: string, exp_year: stri
     }
 
     if (validationErrors.length > 0){
-      throw new JSLibraryError(validationErrors);
+      throw new CardsavrSDKError(validationErrors);
     }
 
     // Hash up the salt for use as salt
@@ -145,7 +145,7 @@ export const getCardBrand = function(pan:string) {
 
     validationErrors.push("Card number could not be matched to a recognized brand.");
 
-    throw new JSLibraryError(validationErrors);
+    throw new CardsavrSDKError(validationErrors);
 };
 
 export const localStorageAvailable = function() : boolean {
