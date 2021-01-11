@@ -5,8 +5,8 @@ import { CardsavrHelper } from '@strivve/strivve-sdk/lib/cardsavr/CardsavrHelper
 export default function Home() {
 
   var app_name = "CardUpdatr Demo";
-  var app_key = "";
-  var cardsavr_server = "https://api.mbudos.cardsavr.io";
+  var app_key = "Ebkg9LA0uPp5FUFLgHjBaiSHM8HcSvyewEtn9mlI9ng=";
+  var cardsavr_server = "https://api.staging.cardsavr.io";
 
   useEffect(() => {
     post_job();
@@ -14,7 +14,6 @@ export default function Home() {
 
   function get_hash_key_values() {
     var hash = window.location.hash ? window.location.hash.substring(1) : "";
-    console.dir(hash);
     return hash.split('&').reduce(function (result, item) {
       var parts = item.split('='); result[parts[0]] = decodeURIComponent(parts[1]); return result;
     }, {});
@@ -23,7 +22,7 @@ export default function Home() {
   async function post_job(event) {
 
     const creds = {username: 'good_email', 
-                  password: 'notfa', 
+                  password: 'no_tfa', 
                   site_hostname: 'synthetic-1-step.herokuapp.com'}
 
     console.log("HERE1");
@@ -33,7 +32,7 @@ export default function Home() {
     console.log("HERE3");
     
     const result = get_hash_key_values();
-    console.log("HERE4");
+    console.log(result);
     await helper.loginAndCreateSession(result.username, undefined, result.grant);
     console.log("HERE5");
     
