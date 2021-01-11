@@ -113,16 +113,22 @@ export class CardsavrSession {
             }
         }
 
-        const csr = await fetch(new URL(path, this._baseUrl), {
-            timeout : 10000,
+        let csr = null;
+        let config = {
             headers,
             method,
-            agent : new HTTPSAgent({
-                rejectUnauthorized : this._rejectUnauthorized,
-                ...(this._cardsavrCert && {ca : this._cardsavrCert})
-            }), 
             body : requestBody ? JSON.stringify(requestBody) : undefined
-        })
+        }
+        if (typeof window === "undefined") {
+            //node
+            config = Object.assign(config, {
+                agent : new HTTPSAgent({
+                    rejectUnauthorized : this._rejectUnauthorized,
+                    ...(this._cardsavrCert && {ca : this._cardsavrCert})
+                }), 
+                timeout : 10000,
+            });
+            csr = await fetch(new URL(path, this._baseUrl).toString(), config)
             .then(async res => new CardsavrSessionResponse(
                 res.status, 
                 res.statusText, 
@@ -132,6 +138,19 @@ export class CardsavrSession {
             .catch(err => {
                 throw err;
             });
+        } else {
+            csr = await window.fetch(new URL(path, this._baseUrl).toString(), config)
+            .then(async res => new CardsavrSessionResponse(
+                res.status, 
+                res.statusText, 
+                res.headers, 
+                await CardsavrCrypto.Encryption.decryptResponse(sessionKey, await res.json()), 
+                path))
+            .catch(err => {
+                throw err;
+            });
+        }
+
         
         if (csr.statusCode >= 400) { throw new CardsavrResetError(csr); }
         return csr;
