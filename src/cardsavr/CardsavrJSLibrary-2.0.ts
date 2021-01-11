@@ -1,15 +1,12 @@
 "use strict";
 
-import JSLibraryError from "./JSLibraryError";
+import CardsavrSDKError from "./CardsavrSDKError";
+import CardsavrRestError from "./CardsavrRestError";
 import CardsavrSessionResponse from "./CardsavrSessionResponse";
 import * as CardsavrSessionUtilities from "./CardsavrSessionUtilities";
 import * as CardsavrCrypto from "./CardsavrSessionCrypto";
 import fetch from "node-fetch";
-
-import {
-    Agent as HTTPSAgent
-} from "https";
-import CardsavrResetError from "./CardsavrRestError";
+import { Agent as HTTPSAgent } from "https";
 
 export class CardsavrSession {
 
@@ -49,11 +46,11 @@ export class CardsavrSession {
     removeSessionHeader = (...headerKeys: string[]) : void => {
 
         if (!this._headers) {
-            throw new JSLibraryError(null, "You have not set any header values.");
+            throw new CardsavrSDKError([], "You have not set any header values.");
         } else {
             headerKeys.map(headerKey => {
                 if (!Object.prototype.hasOwnProperty.call(this._headers, headerKey)) {
-                    throw new JSLibraryError(null, "Header value could not be found.");
+                    throw new CardsavrSDKError([], "Header value could not be found.");
                 }
                 delete this._headers[headerKey];
             });
@@ -113,27 +110,47 @@ export class CardsavrSession {
             }
         }
 
-        const csr = await fetch(new URL(path, this._baseUrl), {
-            timeout : 10000,
+        let csr = null;
+        let config = {
             headers,
             method,
-            agent : new HTTPSAgent({
-                rejectUnauthorized : this._rejectUnauthorized,
-                ...(this._cardsavrCert && {ca : this._cardsavrCert})
-            }), 
             body : requestBody ? JSON.stringify(requestBody) : undefined
-        })
+        }
+        if (typeof window === "undefined") {
+            //node
+            config = Object.assign(config, {
+                agent : new HTTPSAgent({
+                    rejectUnauthorized : this._rejectUnauthorized,
+                    ...(this._cardsavrCert && {ca : this._cardsavrCert})
+                }), 
+                timeout : 10000,
+            });
+            csr = await fetch(new URL(path, this._baseUrl).toString(), config)
             .then(async res => new CardsavrSessionResponse(
                 res.status, 
                 res.statusText, 
                 res.headers, 
-                await CardsavrCrypto.Encryption.decryptResponse(sessionKey, await res.json()), 
+                res.headers.get("content-type")?.startsWith("application/json") ? 
+                    await CardsavrCrypto.Encryption.decryptResponse(sessionKey, await res.json()) : {}, 
                 path))
             .catch(err => {
                 throw err;
             });
+        } else {
+            csr = await window.fetch(new URL(path, this._baseUrl).toString(), config)
+            .then(async res => new CardsavrSessionResponse(
+                res.status, 
+                res.statusText, 
+                res.headers, 
+                res.headers.get("content-type")?.startsWith("application/json") ? 
+                    await CardsavrCrypto.Encryption.decryptResponse(sessionKey, await res.json()) : {}, 
+                path))
+            .catch(err => {
+                throw err;
+            });
+        }
         
-        if (csr.statusCode >= 400) { throw new CardsavrResetError(csr); }
+        if (csr.statusCode >= 400) { throw new CardsavrRestError(csr); }
         return csr;
     };
 
@@ -195,7 +212,7 @@ export class CardsavrSession {
         } else if (grant) {
             encryptedLoginBody["userCredentialGrant"] = grant;
         } else {
-            throw new JSLibraryError(null, "Must include either password or user credential grant to initialize session.");
+            throw new CardsavrSDKError([], "Must include either password or user credential grant to initialize session.");
         }
 
         const loginResponse = await this.sendRequest("/session/login", "post", encryptedLoginBody);

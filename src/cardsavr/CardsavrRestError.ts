@@ -1,15 +1,18 @@
+import CardsavrSDKError from "./CardsavrSDKError";
 import CardsavrSessionResponse from "./CardsavrSessionResponse";
 
-export default class CardsavrResetError extends Error {
+export default class CardsavrRestError extends CardsavrSDKError {
 
     response: CardsavrSessionResponse;
-    errors: string[];
+    statusCode: number;
+    statusText: string;
 
     constructor(response: CardsavrSessionResponse) {
-        super(`CardsavrResetError ${response.statusCode}: ${response.statusText}`); 
+        super(response.body?._errors, `CardsavrResetError ${response.statusCode}: ${response.statusText}`); 
         this.response = response;
-        this.errors = response.body?._errors;
-        Object.setPrototypeOf(this, CardsavrResetError.prototype);
+        this.statusCode = response.statusCode;
+        this.statusText = response.statusText;
+        Object.setPrototypeOf(this, CardsavrRestError.prototype);
     }
 
 }

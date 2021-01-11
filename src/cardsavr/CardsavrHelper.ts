@@ -3,7 +3,7 @@
 import { CardsavrSession } from "./CardsavrJSLibrary-2.0";
 import CardsavrSessionResponse from "./CardsavrSessionResponse";
 import { generateRandomPar, createMetaKey, localStorageAvailable, generateUniqueUsername } from "./CardsavrSessionUtilities";
-import JSLibraryError from "./JSLibraryError";
+import CardsavrSDKError from "./CardsavrSDKError";
 
 type MessageHandler = (str: string) => void;
 type cardholder_data = {[k: string]: any};
@@ -148,7 +148,7 @@ export class CardsavrHelper {
         if (session) {
             return session;
         }
-        throw new JSLibraryError(null, "Must login and create session before accessing session by username.");
+        throw new CardsavrSDKError([], "Must login and create session before accessing session by username.");
     }
 
     private async restoreSession(username: string, trace?: {[k: string]: unknown}) : Promise<CardsavrSession | null> {
@@ -338,7 +338,7 @@ export class CardsavrHelper {
                 this.handleError(err);
             }
         } else {
-            throw new JSLibraryError(null, `No session established for: ${username}.  Need to call loginAndCreateSession?`);
+            throw new CardsavrSDKError([], `No session established for: ${username}.  Need to call loginAndCreateSession?`);
         }
     }
 
@@ -360,7 +360,7 @@ export class CardsavrHelper {
                 this.handleError(err);
             }
         } else {
-            throw new JSLibraryError(null, `No session established for: ${username}.  Need to call loginAndCreateSession?`);
+            throw new CardsavrSDKError([], `No session established for: ${username}.  Need to call loginAndCreateSession?`);
         }
     }
 
