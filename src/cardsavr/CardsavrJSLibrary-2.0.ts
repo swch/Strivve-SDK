@@ -133,7 +133,8 @@ export class CardsavrSession {
                 res.status, 
                 res.statusText, 
                 res.headers, 
-                await CardsavrCrypto.Encryption.decryptResponse(sessionKey, await res.json()), 
+                res.headers.get("content-type")?.startsWith("application/json") ? 
+                    await CardsavrCrypto.Encryption.decryptResponse(sessionKey, await res.json()) : {}, 
                 path))
             .catch(err => {
                 throw err;
@@ -144,13 +145,13 @@ export class CardsavrSession {
                 res.status, 
                 res.statusText, 
                 res.headers, 
-                await CardsavrCrypto.Encryption.decryptResponse(sessionKey, await res.json()), 
+                res.headers.get("content-type")?.startsWith("application/json") ? 
+                    await CardsavrCrypto.Encryption.decryptResponse(sessionKey, await res.json()) : {}, 
                 path))
             .catch(err => {
                 throw err;
             });
         }
-
         
         if (csr.statusCode >= 400) { throw new CardsavrResetError(csr); }
         return csr;
