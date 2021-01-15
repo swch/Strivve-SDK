@@ -428,6 +428,15 @@ export class CardsavrSession {
         return await this.get(`/messages/place_card_on_single_site_jobs/${jobId}/credential_requests`, null, headersToAdd);
     };
 
+    requestJobInformation = async(jobId: number, envelope_id: string, type: string, message: string, headersToAdd = {}): Promise < any > => {
+        const body = {
+            envelope_id,
+            type,
+            message
+        };
+        return await this.post(`/messages/place_card_on_single_site_jobs/${jobId}/credential_requests`, body, headersToAdd);
+    };
+
     sendJobInformation = async(jobId: number, envelope_id: string, type: string, message: string, headersToAdd = {}): Promise < any > => {
         const body = {
             envelope_id,
