@@ -7,6 +7,18 @@
 	"item": [
 		{
 			"name": "1-1 Session Start",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = JSON.parse(responseBody)",
+							"pm.collectionVariables.set(\"JWT_TOKEN\", response.sessionToken);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"request": {
 				"method": "GET",
 				"header": [
@@ -16,7 +28,7 @@
 					}
 				],
 				"url": {
-					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io/session/start",
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/session/start",
 					"protocol": "https",
 					"host": [
 						"api",
@@ -24,6 +36,7 @@
 						"cardsavr",
 						"io"
 					],
+					"port": "{{PORT}}",
 					"path": [
 						"session",
 						"start"
@@ -78,7 +91,7 @@
 					}
 				],
 				"url": {
-					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io/merchant_sites",
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/merchant_sites?tags=prod&image_widths=128,32&image_grayscale=1",
 					"protocol": "https",
 					"host": [
 						"api",
@@ -86,8 +99,23 @@
 						"cardsavr",
 						"io"
 					],
+					"port": "{{PORT}}",
 					"path": [
 						"merchant_sites"
+					],
+					"query": [
+						{
+							"key": "tags",
+							"value": "prod"
+						},
+						{
+							"key": "image_widths",
+							"value": "128,32"
+						},
+						{
+							"key": "image_grayscale",
+							"value": "1"
+						}
 					]
 				}
 			},
@@ -95,6 +123,18 @@
 		},
 		{
 			"name": "3 POST Job",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = JSON.parse(responseBody)",
+							"pm.collectionVariables.set(\"JOB_ID\", response.id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"request": {
 				"method": "POST",
 				"header": [
@@ -119,10 +159,10 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"status\": \"REQUESTED\",\r\n  \"user\":\r\n    {\r\n      \"username\":\"UserName7\",\r\n      \"first_name\": \"FirstName\", \r\n      \"last_name\":\"LastName\",\r\n      \"phone_number\":\"555-555-1212\",\r\n      \"email\": \"test@strivve.com\",\r\n      \"role\":\"cardholder\"\r\n    },\r\n  \"card\":\r\n    {\r\n      \"cardholder_ref\": {\r\n        \"username\": \"UserName7\"\r\n      },\r\n      \"par\":\"peLpzDnEHdhiiWEtuhUgICEonxScs\",\r\n      \"pan\":\"KOnalFfwdrBXlZD\",\r\n      \"cvv\":\"oAc\",\r\n      \"expiration_month\":12,\r\n      \"expiration_year\":24,\r\n      \"name_on_card\":\"FirstName LastName\",\r\n      \"first_name\":\"FirstName\",\r\n      \"last_name\":\"LastName\",\r\n      \"address\":\r\n        {\r\n          \"user_ref\": {\r\n            \"username\": \"UserName7\"\r\n          },\r\n          \"address1\":\"SGTClNSCCMqlfjuzTmJuepDyFgvWhlCMRycXlKGiRIooOJJkoXeObOcAwJMGeqjSDWfhTHobAWMimcCynMIQcvlBFSbMQlwUFyJ\",\r\n          \"address2\":\"AyFgoCTjCLXUQVylBAfkHJOtqkkKJjuaLHnmJpSctqBOQueIvciyAUPqYoFpkiAPlkGjgPuabhAPCHFPvaxciObOmIBvBUWpngD\",\r\n          \"city\":\"Seattle\",\r\n          \"subnational\":\"WA\",\r\n          \"postal_code\":\"98177\",\r\n          \"postal_other\":\"98177-0124\",\r\n          \"country\":\"USA\",\r\n          \"is_primary\": true\r\n        }\r\n    },\r\n  \"account\":\r\n    {\r\n      \"cardholder_ref\": {\r\n        \"username\": \"UserName7\"\r\n      },\r\n      \"merchant_site_id\":1,\r\n      \"username\":\"bad_email\",\r\n      \"password\":\"good_password\"\r\n    }\r\n}"
+					"raw": "{\r\n  \"status\": \"REQUESTED\",\r\n  \"user\":\r\n    {\r\n      \"username\":\"UserName14\",\r\n      \"role\":\"cardholder\",\r\n      \"email\": \"capitalonetest@capitalonetest.com\",\r\n      \"custom_data\" : {\r\n          \"myguid\": \"asdfadfasdfasdf\"\r\n      }\r\n    },\r\n  \"card\":\r\n    {\r\n      \"cardholder_ref\": {\r\n        \"username\": \"UserName14\"\r\n      },\r\n      \"par\":\"peLpzDnEHdhiiWEtuhUgICEonxTcu\",\r\n      \"pan\":\"KOnalFfwdrBXlZD\",\r\n      \"cvv\":\"123\",\r\n      \"expiration_month\":12,\r\n      \"expiration_year\":24,\r\n      \"name_on_card\":\"FirstName LastName\",\r\n      \"first_name\":\"FirstName\",\r\n      \"last_name\":\"LastName\",\r\n      \"address\":\r\n        {\r\n          \"user_ref\": {\r\n            \"username\": \"UserName14\"\r\n          },\r\n          \"address1\":\"SGTClNSCCMqlfjuzTmJuepDyFgvWhlCMRycXlKGiRIooOJJkoXeObOcAwJMGeqjSDWfhTHobAWMimcCynMIQcvlBFSbMQlwUFyJ\",\r\n          \"address2\":\"AyFgoCTjCLXUQVylBAfkHJOtqkkKJjuaLHnmJpSctqBOQueIvciyAUPqYoFpkiAPlkGjgPuabhAPCHFPvaxciObOmIBvBUWpngD\",\r\n          \"city\":\"Seattle\",\r\n          \"subnational\":\"WA\",\r\n          \"postal_code\":\"98177\",\r\n          \"postal_other\":\"98177-0124\",\r\n          \"country\":\"USA\",\r\n          \"is_primary\": true\r\n        }\r\n    },\r\n  \"account\":\r\n    {\r\n      \"cardholder_ref\": {\r\n        \"username\": \"UserName14\"\r\n      },\r\n      \"merchant_site_id\":1,\r\n      \"username\":\"bad_email\",\r\n      \"password\":\"good_password\"\r\n    }\r\n}"
 				},
 				"url": {
-					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io/place_card_on_single_site_jobs",
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/place_card_on_single_site_jobs",
 					"protocol": "https",
 					"host": [
 						"api",
@@ -130,6 +170,109 @@
 						"cardsavr",
 						"io"
 					],
+					"port": "{{PORT}}",
+					"path": [
+						"place_card_on_single_site_jobs"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3.1 GET Job",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = JSON.parse(responseBody)",
+							"pm.collectionVariables.set(\"JOB_ID\", response.id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "financial-institution",
+						"value": "default",
+						"type": "text"
+					},
+					{
+						"key": "trace",
+						"value": "{\"key\": \"my_trace\"}"
+					},
+					{
+						"key": "",
+						"value": "",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"status\": \"REQUESTED\",\r\n  \"user\":\r\n    {\r\n      \"username\":\"UserName14\",\r\n      \"role\":\"cardholder\",\r\n      \"email\": \"capitalonetest@capitalonetest.com\",\r\n      \"custom_data\" : {\r\n          \"myguid\": \"asdfadfasdfasdf\"\r\n      }\r\n    },\r\n  \"card\":\r\n    {\r\n      \"cardholder_ref\": {\r\n        \"username\": \"UserName14\"\r\n      },\r\n      \"par\":\"peLpzDnEHdhiiWEtuhUgICEonxTcu\",\r\n      \"pan\":\"KOnalFfwdrBXlZD\",\r\n      \"cvv\":\"123\",\r\n      \"expiration_month\":12,\r\n      \"expiration_year\":24,\r\n      \"name_on_card\":\"FirstName LastName\",\r\n      \"first_name\":\"FirstName\",\r\n      \"last_name\":\"LastName\",\r\n      \"address\":\r\n        {\r\n          \"user_ref\": {\r\n            \"username\": \"UserName14\"\r\n          },\r\n          \"address1\":\"SGTClNSCCMqlfjuzTmJuepDyFgvWhlCMRycXlKGiRIooOJJkoXeObOcAwJMGeqjSDWfhTHobAWMimcCynMIQcvlBFSbMQlwUFyJ\",\r\n          \"address2\":\"AyFgoCTjCLXUQVylBAfkHJOtqkkKJjuaLHnmJpSctqBOQueIvciyAUPqYoFpkiAPlkGjgPuabhAPCHFPvaxciObOmIBvBUWpngD\",\r\n          \"city\":\"Seattle\",\r\n          \"subnational\":\"WA\",\r\n          \"postal_code\":\"98177\",\r\n          \"postal_other\":\"98177-0124\",\r\n          \"country\":\"USA\",\r\n          \"is_primary\": true\r\n        }\r\n    },\r\n  \"account\":\r\n    {\r\n      \"cardholder_ref\": {\r\n        \"username\": \"UserName14\"\r\n      },\r\n      \"merchant_site_id\":1,\r\n      \"username\":\"bad_email\",\r\n      \"password\":\"good_password\"\r\n    }\r\n}"
+				},
+				"url": {
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/place_card_on_single_site_jobs",
+					"protocol": "https",
+					"host": [
+						"api",
+						"{{CARDSAVR-INSTANCE}}",
+						"cardsavr",
+						"io"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"place_card_on_single_site_jobs"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3.2 DELETE User",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "financial-institution",
+						"value": "default",
+						"type": "text"
+					},
+					{
+						"key": "trace",
+						"value": "{\"key\": \"my_trace\"}"
+					},
+					{
+						"key": "",
+						"value": "",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"status\": \"REQUESTED\",\r\n  \"user\":\r\n    {\r\n      \"username\":\"UserName7\",\r\n      \"first_name\": \"FirstName\", \r\n      \"last_name\":\"LastName\",\r\n      \"phone_number\":\"555-555-1212\",\r\n      \"email\": \"test@strivve.com\",\r\n      \"role\":\"cardholder\"\r\n    },\r\n  \"card\":\r\n    {\r\n      \"cardholder_ref\": {\r\n        \"username\": \"UserName7\"\r\n      },\r\n      \"par\":\"peLpzDnEHdhiiWEtuhUgICEonxScs\",\r\n      \"pan\":\"KOnalFfwdrBXlZD\",\r\n      \"cvv\":123,\r\n      \"expiration_month\":12,\r\n      \"expiration_year\":24,\r\n      \"name_on_card\":\"FirstName LastName\",\r\n      \"first_name\":\"FirstName\",\r\n      \"last_name\":\"LastName\",\r\n      \"address\":\r\n        {\r\n          \"user_ref\": {\r\n            \"username\": \"UserName7\"\r\n          },\r\n          \"address1\":\"SGTClNSCCMqlfjuzTmJuepDyFgvWhlCMRycXlKGiRIooOJJkoXeObOcAwJMGeqjSDWfhTHobAWMimcCynMIQcvlBFSbMQlwUFyJ\",\r\n          \"address2\":\"AyFgoCTjCLXUQVylBAfkHJOtqkkKJjuaLHnmJpSctqBOQueIvciyAUPqYoFpkiAPlkGjgPuabhAPCHFPvaxciObOmIBvBUWpngD\",\r\n          \"city\":\"Seattle\",\r\n          \"subnational\":\"WA\",\r\n          \"postal_code\":\"98177\",\r\n          \"postal_other\":\"98177-0124\",\r\n          \"country\":\"USA\",\r\n          \"is_primary\": true\r\n        }\r\n    },\r\n  \"account\":\r\n    {\r\n      \"cardholder_ref\": {\r\n        \"username\": \"UserName7\"\r\n      },\r\n      \"merchant_site_id\":1,\r\n      \"username\":\"bad_email\",\r\n      \"password\":\"good_password\"\r\n    }\r\n}"
+				},
+				"url": {
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/place_card_on_single_site_jobs",
+					"protocol": "https",
+					"host": [
+						"api",
+						"{{CARDSAVR-INSTANCE}}",
+						"cardsavr",
+						"io"
+					],
+					"port": "{{PORT}}",
 					"path": [
 						"place_card_on_single_site_jobs"
 					]
@@ -152,7 +295,7 @@
 					}
 				],
 				"url": {
-					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io/messages/place_card_on_single_site_jobs/{{JOB_ID}}",
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/messages/place_card_on_single_site_jobs/{{JOB_ID}}",
 					"protocol": "https",
 					"host": [
 						"api",
@@ -160,6 +303,7 @@
 						"cardsavr",
 						"io"
 					],
+					"port": "{{PORT}}",
 					"path": [
 						"messages",
 						"place_card_on_single_site_jobs",
@@ -199,7 +343,7 @@
 					"raw": "{\r\n\"account\": {\r\n\"username\": \"good_email\",\r\n\"password\": \"tfa\"\r\n}\r\n}"
 				},
 				"url": {
-					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io/place_card_on_single_site_jobs/{{JOB_ID}}",
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/place_card_on_single_site_jobs/{{JOB_ID}}",
 					"protocol": "https",
 					"host": [
 						"api",
@@ -207,6 +351,7 @@
 						"cardsavr",
 						"io"
 					],
+					"port": "{{PORT}}",
 					"path": [
 						"place_card_on_single_site_jobs",
 						"{{JOB_ID}}"
@@ -216,7 +361,7 @@
 			"response": []
 		},
 		{
-			"name": "4-3 Submit TFA",
+			"name": "4-1 Submit TFA",
 			"request": {
 				"method": "PUT",
 				"header": [
@@ -270,7 +415,7 @@
 					}
 				],
 				"url": {
-					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io/session/end",
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/session/end",
 					"protocol": "https",
 					"host": [
 						"api",
@@ -278,6 +423,7 @@
 						"cardsavr",
 						"io"
 					],
+					"port": "{{PORT}}",
 					"path": [
 						"session",
 						"end"
@@ -291,7 +437,6 @@
 		{
 			"listen": "prerequest",
 			"script": {
-				"id": "ba4c420a-8357-432c-be17-6ddea8218ac6",
 				"type": "text/javascript",
 				"exec": [
 					""
@@ -301,13 +446,11 @@
 		{
 			"listen": "test",
 			"script": {
-				"id": "d6fbd228-740e-4796-9306-c7e62123c769",
 				"type": "text/javascript",
 				"exec": [
 					""
 				]
 			}
 		}
-	],
-	"protocolProfileBehavior": {}
+	]
 }
