@@ -25,24 +25,29 @@ In order to use it, the following edits will need to be made to the CardSavr-Tem
 - The ACCOUNT-ID found in "3-5 Create Single Site Job" needs to be changed to the :id property of the account returned in the JSON response from "3-4 Create Account".
 
 ## Single Entity Job sample usage
+There's also a Postman collection for using the single entity job.  To use this Postman example:
 
-There's also some postman samples for posting a single job with a single entity.  Import Single-job-entity.postman_collection.json.
+Import Single-entity-job.postman_collection.json
 
 - Create a new environment in Postman
-- Add a value for CARDSAVR_HOSTNAME (api.CARDSAVR_HOSTNAME.cardsavr.io)
-- Add a value for username/password (you'll need to get these from your account manager)
-- Add empty values for JOB_ID and ENVELOPE_ID. API calls will return these values, and you will need to fill them in.
-- Run 1-1, 1-2, and 1-4.
-- 1.4 will create a job.  Copy the id from the response and paste it into the environment value for JOB_ID.
-- Run 1.5 (job status).  It will sometimes be empty, and sometimes return messages.  Eventually you will receive a bad credentials message.
-- Copy the envelope_id in the response and populate the environment variable ENVELOPE_ID with that value.
-- Run 1.6 (saves the new credentials)
-- Run 1.5 again until you receive a request for a TFA code
-- Copy the envelope_id in the response and populate the envrionemnt variable ENVELOPE_ID with that value.
-- Run 1.7 (posts the TFA code)
-- Continue to run 1.5 until you see the complete message.  (This is a synthetic site, so nothing real is being saved).
+- Add a variable CARDSAVR-INSTANCE (this is the instance part of your API URL: api.CARDSAVR-INSTANCE.cardsavr.io)
+- Add a variable for USERNAME (contact your account manager if you do not have the username)
+- Add a variable for PASSWORD (contact your account manager if you do not have the password)
+- Add a variable for TRACE with a value of {"key": "postman_test"}
+- Add an empty variable for JOB_ID  (this value will be returned by the API during the use of the collection)
+- Run step 1-1 to start the session
+- Run step 1-2 to login
+- Run step 2 to see the merchant directory
+- Run step 3 to submit a job (the merchant creds are purposefully entered incorrectly)
+- Run step 4-1 to check the status of the job
+- You may need to run 4-1 a few times but you will eventually see a message:  "There was a problem with login credentials, please re-submit."
+- Run step 4-2 to resubmit credentials (the body for step 4-2 has the correct credentials)
+- Run step 4-1 to check the status of the job
+- You may need to run 4-1 a few times but you will eventually see a message:  "Please enter multi factor authentication from merchant site."
+- Run step 4-3 to submit TFA (for synthetic sites, the correct TFA code is hard coded in the body for 4-3 - for our synthetic sites, it's always 1234)
+- Close the session with step 5
 
-You are welcome to use 1-3 and find a non-syntheic site, and post a card on a real site.
+You are welcome to use 1-3 and find a non-syntheic site (they are available in the merchant directory), and post a card on a real site.  You will obviously need to supply real credentials and TFA codes if you do so.
 
 
 ## Importing The Template Into Postman
