@@ -534,4 +534,14 @@ export class CardsavrSession {
         return await this.put("/place_card_on_single_site_jobs", filter, body, headersToAdd);
     };
 
+    getJobResults = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
+        if (Object.keys(pagingHeader).length > 0) {
+            pagingHeader = {
+                paging : JSON.stringify(pagingHeader)
+            };
+            Object.assign(headersToAdd, pagingHeader);
+        }
+        return await this.get("/card_placement_results", filter, headersToAdd);
+    }
+
 }
