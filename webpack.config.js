@@ -27,11 +27,11 @@ module.exports = {
             amd : "lodash",
             root : "_",
         },
-        axios : {
-            commonjs : "axios",
-            commonjs2 : "axios",
-            amd : "axios",
-            root : "axios",
+        "node-fetch" : {
+            commonjs : "node-fetch",
+            commonjs2 : "node-fetch",
+            amd : "node-fetch",
+            root : "node-fetch",
         },
         crypto : {
             commonjs : "crypto",
