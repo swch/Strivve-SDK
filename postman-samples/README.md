@@ -34,7 +34,6 @@ Import Single-entity-job.postman_collection.json
 - Add a variable for USERNAME (contact your account manager if you do not have the username)
 - Add a variable for PASSWORD (contact your account manager if you do not have the password)
 - Add a variable for TRACE with a value of {"key": "postman_test"}
-- Add an empty variable for JOB_ID  (this value will be returned by the API during the use of the collection)
 - Run step 1-1 to start the session
 - Run step 1-2 to login
 - Run step 2 to see the merchant directory
@@ -44,6 +43,7 @@ Import Single-entity-job.postman_collection.json
 - Run step 4-2 to resubmit credentials (the body for step 4-2 has the correct credentials)
 - Run step 4-1 to check the status of the job
 - You may need to run 4-1 a few times but you will eventually see a message:  "Please enter multi factor authentication from merchant site."
+- Alternatively, you can call 3.1 (GET Job) which will also eventually the reflect that a TFA code is required. These status change are persistent unlike the messages, which are one time consumption.
 - Run step 4-3 to submit TFA (for synthetic sites, the correct TFA code is hard coded in the body for 4-3 - for our synthetic sites, it's always 1234)
 - Close the session with step 5
 
