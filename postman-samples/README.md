@@ -34,7 +34,6 @@ Import Single-entity-job.postman_collection.json
 - Add a variable for USERNAME (contact your account manager if you do not have the username)
 - Add a variable for PASSWORD (contact your account manager if you do not have the password)
 - Add a variable for TRACE with a value of {"key": "postman_test"}
-- Add an empty variable for JOB_ID  (this value will be returned by the API during the use of the collection)
 - Run step 1-1 to start the session
 - Run step 1-2 to login
 - Run step 2 to see the merchant directory
