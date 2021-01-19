@@ -282,6 +282,22 @@
 		},
 		{
 			"name": "4-1 Get Job Status",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = JSON.parse(responseBody)",
+							"const envelope_id = response.some(msg => {",
+							"    return msg.envelope_id;",
+							"});",
+							"",
+							"pm.collectionVariables.set(\"JOB_ID\", await response.reduce(message"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"request": {
 				"method": "GET",
 				"header": [
@@ -292,6 +308,11 @@
 					{
 						"key": "trace",
 						"value": "{\"key\": \"my_trace\"}"
+					},
+					{
+						"key": "x-cardsavr-session-jwt",
+						"value": "{{JWT_TOKEN}}",
+						"type": "text"
 					}
 				],
 				"url": {
@@ -451,6 +472,24 @@
 					""
 				]
 			}
+		}
+	],
+	"variable": [
+		{
+			"key": "JWT_TOKEN",
+			"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhMjAxZTAwZi04OTc0LTQxOWItYjg0OC1kMWY0MmFjMjczNTEiLCJpc3MiOiJhcGkuY2FwaXRhbG9uZS1kZXYuY2FyZHNhdnIuaW8iLCJhdWQiOiJhcGkuY2FwaXRhbG9uZS1kZXYuY2FyZHNhdnIuaW8iLCJpYXQiOjE2MTEwNzUxNzd9.nIHIB-lOd1G73AtKIdRTJ_AtN2dvAYiZgnYy-rWQnq8"
+		},
+		{
+			"key": "CARDHOLDER_UNIQUE_KEY",
+			"value": "zflw6o"
+		},
+		{
+			"key": "JOB_ID",
+			"value": 59
+		},
+		{
+			"key": "ENVELOPE_ID",
+			"value": "FVts9yYxpv4M3JeoGvHDnA=="
 		}
 	]
 }
