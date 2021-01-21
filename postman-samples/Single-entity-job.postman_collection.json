@@ -238,7 +238,7 @@
 		{
 			"name": "3.2 DELETE User",
 			"request": {
-				"method": "POST",
+				"method": "DELETE",
 				"header": [
 					{
 						"key": "Content-Type",
@@ -254,17 +254,16 @@
 						"value": "{\"key\": \"my_trace\"}"
 					},
 					{
-						"key": "",
-						"value": "",
-						"disabled": true
+						"key": "x-cardsavr-session-jwt",
+						"value": "{{JWT_TOKEN}}"
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"status\": \"REQUESTED\",\r\n  \"user\":\r\n    {\r\n      \"username\":\"UserName7\",\r\n      \"first_name\": \"FirstName\", \r\n      \"last_name\":\"LastName\",\r\n      \"phone_number\":\"555-555-1212\",\r\n      \"email\": \"test@strivve.com\",\r\n      \"role\":\"cardholder\"\r\n    },\r\n  \"card\":\r\n    {\r\n      \"cardholder_ref\": {\r\n        \"username\": \"UserName7\"\r\n      },\r\n      \"par\":\"peLpzDnEHdhiiWEtuhUgICEonxScs\",\r\n      \"pan\":\"KOnalFfwdrBXlZD\",\r\n      \"cvv\":123,\r\n      \"expiration_month\":12,\r\n      \"expiration_year\":24,\r\n      \"name_on_card\":\"FirstName LastName\",\r\n      \"first_name\":\"FirstName\",\r\n      \"last_name\":\"LastName\",\r\n      \"address\":\r\n        {\r\n          \"user_ref\": {\r\n            \"username\": \"UserName7\"\r\n          },\r\n          \"address1\":\"SGTClNSCCMqlfjuzTmJuepDyFgvWhlCMRycXlKGiRIooOJJkoXeObOcAwJMGeqjSDWfhTHobAWMimcCynMIQcvlBFSbMQlwUFyJ\",\r\n          \"address2\":\"AyFgoCTjCLXUQVylBAfkHJOtqkkKJjuaLHnmJpSctqBOQueIvciyAUPqYoFpkiAPlkGjgPuabhAPCHFPvaxciObOmIBvBUWpngD\",\r\n          \"city\":\"Seattle\",\r\n          \"subnational\":\"WA\",\r\n          \"postal_code\":\"98177\",\r\n          \"postal_other\":\"98177-0124\",\r\n          \"country\":\"USA\",\r\n          \"is_primary\": true\r\n        }\r\n    },\r\n  \"account\":\r\n    {\r\n      \"cardholder_ref\": {\r\n        \"username\": \"UserName7\"\r\n      },\r\n      \"merchant_site_id\":1,\r\n      \"username\":\"bad_email\",\r\n      \"password\":\"good_password\"\r\n    }\r\n}"
+					"raw": ""
 				},
 				"url": {
-					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/place_card_on_single_site_jobs",
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/cardsavr_users/",
 					"protocol": "https",
 					"host": [
 						"api",
@@ -274,7 +273,8 @@
 					],
 					"port": "{{PORT}}",
 					"path": [
-						"place_card_on_single_site_jobs"
+						"cardsavr_users",
+						""
 					]
 				}
 			},
@@ -288,11 +288,16 @@
 					"script": {
 						"exec": [
 							"const response = JSON.parse(responseBody)",
-							"const envelope_id = response.some(msg => {",
-							"    return msg.envelope_id;",
-							"});",
-							"",
-							"pm.collectionVariables.set(\"JOB_ID\", await response.reduce(message"
+							"let env_id = null;",
+							"if (response.some(msg => {",
+							"    if (msg.envelope_id) {",
+							"        env_id = msg.envelope_id;",
+							"        return true;",
+							"    }",
+							"})) {",
+							"    pm.collectionVariables.set(\"ENVELOPE_ID\", env_id);",
+							"}",
+							""
 						],
 						"type": "text/javascript"
 					}
@@ -316,7 +321,7 @@
 					}
 				],
 				"url": {
-					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/messages/place_card_on_single_site_jobs/{{JOB_ID}}",
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/messages/place_card_on_single_site_jobs/{{JOB_ID}}?",
 					"protocol": "https",
 					"host": [
 						"api",
@@ -329,6 +334,12 @@
 						"messages",
 						"place_card_on_single_site_jobs",
 						"{{JOB_ID}}"
+					],
+					"query": [
+						{
+							"key": "",
+							"value": null
+						}
 					]
 				}
 			},
@@ -353,15 +364,14 @@
 						"type": "text"
 					},
 					{
-						"key": "",
-						"value": "",
-						"type": "text",
-						"disabled": true
+						"key": "x-cardsavr-session-jwt",
+						"value": "{{JWT_TOKEN}}",
+						"type": "text"
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n\"account\": {\r\n\"username\": \"good_email\",\r\n\"password\": \"tfa\"\r\n}\r\n}"
+					"raw": "{\r\n\"account\": {    \r\n\"username\": \"good_email\",\r\n\"password\": \"tfa\"\r\n}\r\n}"
 				},
 				"url": {
 					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/place_card_on_single_site_jobs/{{JOB_ID}}",
@@ -398,6 +408,11 @@
 						"key": "envelope-id",
 						"value": "{{ENVELOPE_ID}}",
 						"type": "text"
+					},
+					{
+						"key": "x-cardsavr-session-jwt",
+						"value": "{{JWT_TOKEN}}",
+						"type": "text"
 					}
 				],
 				"body": {
@@ -405,7 +420,7 @@
 					"raw": "{\r\n\"account\": {\r\n\"tfa\": \"1234\"\r\n}\r\n}"
 				},
 				"url": {
-					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io/place_card_on_single_site_jobs/{{JOB_ID}}",
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/place_card_on_single_site_jobs/{{JOB_ID}}",
 					"protocol": "https",
 					"host": [
 						"api",
@@ -413,6 +428,7 @@
 						"cardsavr",
 						"io"
 					],
+					"port": "{{PORT}}",
 					"path": [
 						"place_card_on_single_site_jobs",
 						"{{JOB_ID}}"
@@ -433,6 +449,11 @@
 					{
 						"key": "trace",
 						"value": "{\"key\": \"my_trace\"}"
+					},
+					{
+						"key": "x-cardsavr-session-jwt",
+						"value": "{{JWT_TOKEN}}",
+						"type": "text"
 					}
 				],
 				"url": {
@@ -477,15 +498,15 @@
 	"variable": [
 		{
 			"key": "JWT_TOKEN",
-			"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhMjAxZTAwZi04OTc0LTQxOWItYjg0OC1kMWY0MmFjMjczNTEiLCJpc3MiOiJhcGkuY2FwaXRhbG9uZS1kZXYuY2FyZHNhdnIuaW8iLCJhdWQiOiJhcGkuY2FwaXRhbG9uZS1kZXYuY2FyZHNhdnIuaW8iLCJpYXQiOjE2MTEwNzUxNzd9.nIHIB-lOd1G73AtKIdRTJ_AtN2dvAYiZgnYy-rWQnq8"
+			"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI4OTFmYTM3YS1jYzJhLTQwZjQtYTY4OC1hYWE0ZTM5ODM3YzgiLCJpc3MiOiJhcGkubG9jYWxob3N0LmNhcmRzYXZyLmlvIiwiYXVkIjoiYXBpLmxvY2FsaG9zdC5jYXJkc2F2ci5pbyIsImlhdCI6MTYxMTE4ODI3M30.C5Zo2upzOwiwZCgwjFU1ecAETSJA8qR7FsV8WCEmVNA"
 		},
 		{
 			"key": "CARDHOLDER_UNIQUE_KEY",
-			"value": "zflw6o"
+			"value": "zio0za"
 		},
 		{
 			"key": "JOB_ID",
-			"value": 59
+			"value": 4169
 		},
 		{
 			"key": "ENVELOPE_ID",
