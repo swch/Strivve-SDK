@@ -8,7 +8,7 @@ export default class CardsavrRestError extends CardsavrSDKError {
     statusText: string;
 
     constructor(response: CardsavrSessionResponse) {
-        super(response.body?._errors, `CardsavrResetError ${response.statusCode}: ${response.statusText}`); 
+        super(response.body?._errors, `CardsavrRestError ${response.statusCode}: ${response.statusText}`); 
         this.response = response;
         this.statusCode = response.statusCode;
         this.statusText = response.statusText;
