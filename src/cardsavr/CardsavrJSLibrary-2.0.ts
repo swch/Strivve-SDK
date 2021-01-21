@@ -274,11 +274,8 @@ export class CardsavrSession {
         return await this.put("/cardsavr_accounts", id, body, headersToAdd);
     };
 
-    deleteAccount = async(id: number, safeKey: string | null, headersToAdd = {}): Promise < any > => {
+    deleteAccount = async(id: number, headersToAdd = {}): Promise < any > => {
 
-        if (safeKey) {
-            Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
-        }
         return await this.delete("/cardsavr_accounts", id, headersToAdd);
     };
 
@@ -347,11 +344,8 @@ export class CardsavrSession {
         return await this.put("/cardsavr_cards", id, body, headersToAdd);
     };
 
-    deleteCard = async(id: number, safeKey: string | null, headersToAdd = {}): Promise < any > => {
+    deleteCard = async(id: number, headersToAdd = {}): Promise < any > => {
 
-        if (safeKey) {
-            Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
-        }
         return await this.delete("/cardsavr_cards", id, headersToAdd);
     };
 
