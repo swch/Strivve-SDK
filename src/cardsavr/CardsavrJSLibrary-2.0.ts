@@ -149,8 +149,9 @@ export class CardsavrSession {
                 throw err;
             });
         }
-        
-        if (csr.statusCode >= 400) { throw new CardsavrRestError(csr); }
+        if (csr.statusCode >= 400) { 
+            throw new CardsavrRestError(csr); 
+        }
         return csr;
     };
 
@@ -239,7 +240,7 @@ export class CardsavrSession {
 
     refresh = async(): Promise < any > => {
 
-        return await this.get("/session/refresh", null);
+        return await this.put("/session/refresh", null, {});
     };
 
     getAccounts = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
@@ -398,13 +399,13 @@ export class CardsavrSession {
         }, headersToAdd);
     };
 
-    getUserMessages = async(userId: number, cardsavrMessagingAccessKey?: string, headersToAdd = {}): Promise < any > => {
+    getCardholderMessages = async(cardholderId: number, cardsavrMessagingAccessKey?: string, headersToAdd = {}): Promise < any > => {
         if (cardsavrMessagingAccessKey) {
             headersToAdd = Object.assign({
                 "cardsavr-messaging-access-key" : cardsavrMessagingAccessKey
             }, headersToAdd);
         }
-        return await this.get("/messages/cardsavr_users", userId, headersToAdd);
+        return await this.get("/messages/cardholders", cardholderId, headersToAdd);
     }
 
     getJobStatusUpdate = async(jobId: number, cardsavrMessagingAccessKey: string, headersToAdd = {}): Promise < any > => {
@@ -486,8 +487,8 @@ export class CardsavrSession {
 
     createCardholder = async(body: any, safeKey: string | null, financial_institution = "default", headersToAdd = {}): Promise < any > => {
 
-        if (body && !body.username) {
-            body.cid = CardsavrSessionUtilities.generateUniqueUsername();
+        if (body && !body.cuid) {
+            body.cuid = CardsavrSessionUtilities.generateUniqueUsername();
         }
 
         Object.assign(headersToAdd, {

@@ -13,7 +13,7 @@ type address_data = {[k: string]: any};
 type card_data = {[k: string]: any};
 
 interface job_data {
-    user_id : number,
+    cardholder_id : number,
     card_id? : number,
     account : merchant_creds,
     user_is_present : boolean,
@@ -22,6 +22,7 @@ interface job_data {
 }
 
 interface jobParams {
+    cardholder_id : number,
     merchant_creds : merchant_creds, 
     card_id? : number, 
     status? : string
@@ -30,6 +31,7 @@ interface jobParams {
 interface placeCardOnSiteParams {
     username : string,  
     merchant_creds : merchant_creds, 
+    cardholder_id : number,
     card_id? : number, 
     status? : string, 
     safe_key? : string,
@@ -44,7 +46,7 @@ interface placeCardOnSitesParams {
 }
 
 interface placeCardOnSiteSingleCallParams {
-    agent_username : string, 
+    username : string, 
     financial_institution : string, 
     cardholder_data: cardholder_data, 
     merchant_creds : merchant_creds, 
@@ -56,6 +58,7 @@ interface placeCardOnSiteSingleCallParams {
 
 interface placeCardOnSiteAndPollParams {
     username : string, 
+    cardholder_id : number,
     merchant_creds : merchant_creds, 
     callback : any, 
     card_id? : number, 
@@ -67,7 +70,7 @@ interface pollOnJobParams {
     username : string, 
     job_id : number,
     callback : MessageHandler, 
-    user_id? : number,
+    cardholder_id? : number,
     interval? : number
 }
 
@@ -189,7 +192,9 @@ export class CardsavrHelper {
             const address_data_copy = { ...address_data };
             const card_data_copy = { ...card_data };
             
-            cardholder_data_copy.cuid = generateUniqueUsername();
+            if (!cardholder_data_copy.cuid) {
+                cardholder_data_copy.cuid = generateUniqueUsername();
+            }
             //set the missing settings for model
             if (!cardholder_data.first_name) cardholder_data_copy.first_name = address_data.first_name;
             if (!cardholder_data.last_name) cardholder_data_copy.last_name = address_data.last_name;
@@ -198,8 +203,7 @@ export class CardsavrHelper {
             if (!cardholder_data.custom_data) {
                 cardholder_data_copy.custom_data = {};
             }
-            cardholder_data_copy.custom_data.cardsavr_card_data = { meta_key : meta_key };
-    
+
             const agent_session = this.getSession(agent_username);
 
             //card requires a user id
@@ -229,46 +233,45 @@ export class CardsavrHelper {
     }
 
     public async placeCardOnSiteSingleCall(place_card_config: placeCardOnSiteSingleCallParams) : Promise<unknown> {
-    try {
-        const { cardholder_data, card_data, merchant_creds, address_data, agent_username, financial_institution, safe_key = null, type = null } = place_card_config;
-        //set the missing settings for model
-        if (!cardholder_data.first_name && address_data) cardholder_data.first_name = address_data.first_name;
-        if (!cardholder_data.last_name && address_data) cardholder_data.last_name = address_data.last_name;
-        if (!cardholder_data.cuid) cardholder_data.cuid = generateUniqueUsername();
-        if (card_data && !card_data.name_on_card) card_data.name_on_card = `${cardholder_data.first_name} ${cardholder_data.last_name}`;
+        try {
+            const { cardholder_data, card_data, merchant_creds, address_data, username, financial_institution, safe_key = null, type = "CARD_PLACEMENT" } = place_card_config;
+            //set the missing settings for model
+            if (!cardholder_data.first_name && address_data) cardholder_data.first_name = address_data.first_name;
+            if (!cardholder_data.last_name && address_data) cardholder_data.last_name = address_data.last_name;
+            if (!cardholder_data.cuid) cardholder_data.cuid = generateUniqueUsername();
+            if (card_data && !card_data.name_on_card) card_data.name_on_card = `${cardholder_data.first_name} ${cardholder_data.last_name}`;
 
-        if (card_data && !card_data.par) {
-            card_data.par = generateRandomPar(card_data.pan, card_data.expiration_month, card_data.expiration_year, cardholder_data.cuid);
-        }
-        merchant_creds.cardholder_ref = {"cuid" : cardholder_data.cuid };
-
-        if (address_data && card_data) {
-            const meta_key: string = createMetaKey(address_data.first_name, address_data.last_name, card_data.pan, address_data.postal_code);
-            if (!cardholder_data.custom_data) {
-                cardholder_data.custom_data = {};
+            if (card_data && !card_data.par) {
+                card_data.par = generateRandomPar(card_data.pan, card_data.expiration_month, card_data.expiration_year, cardholder_data.cuid);
             }
-            cardholder_data.custom_data.cardsavr_card_data = { meta_key : meta_key };
-            address_data.cardholder_ref = card_data.cardholder_ref = merchant_creds.cardholder_ref;
-            card_data.address = address_data;
+            merchant_creds.cardholder_ref = {"cuid" : cardholder_data.cuid };
+
+            if (address_data && card_data) {
+                const meta_key: string = createMetaKey(address_data.first_name, address_data.last_name, card_data.pan, address_data.postal_code);
+                if (!cardholder_data.custom_data) {
+                    cardholder_data.custom_data = {};
+                }
+                cardholder_data.custom_data.cardsavr_card_data = { meta_key : meta_key };
+                address_data.cardholder_ref = card_data.cardholder_ref = merchant_creds.cardholder_ref;
+                card_data.address = address_data;
+            }
+            const agent_session = this.getSession(username);
+            const job_data = {"status" : "REQUESTED", "cardholder" : cardholder_data, "card" : card_data, "account" : merchant_creds, type};
+
+            const headers : {[k: string]: string} = 
+                {"financial-institution" : financial_institution, 
+                "hydration" : JSON.stringify(["user", "account"])};
+
+            const response = await agent_session.createSingleSiteJob(job_data, safe_key, headers);
+            return response.body;
+        } catch(err) {
+            this.handleError(err);
         }
-        const agent_session = this.getSession(agent_username);
-        const job_data = {"status" : "REQUESTED", "caardholder" : cardholder_data, "card" : card_data, "account" : merchant_creds, type};
-
-        const headers : {[k: string]: string} = 
-            {"financial-institution" : financial_institution, 
-             "hydration" : JSON.stringify(["user", "account"])};
-
-        const response = await agent_session.createSingleSiteJob(job_data, safe_key);
-        return response.body;
-    } catch(err) {
-        this.handleError(err);
+        return null;
     }
-    return null;
-}
 
     private handleError(err: any) {
-        console.log(err);
-        if (err instanceof CardsavrRestError) {
+        if (err instanceof CardsavrRestError || (err.type && err.type === "CardsavrRestError")) {
             if (err.errors) {
                 console.log("Errors returned from REST API : " + err.response.call);
                 err = err.response;
@@ -279,10 +282,11 @@ export class CardsavrHelper {
                     console.log("For entity: " + obj);
                     console.log(err.body[obj]._errors);
                 });
-            } else if (err.response.body && err.response.body.message) {
+            } else if (err.response.body) {
+                console.log(err.response);
                 console.log("Message returned from REST API: " + err.response.body.message);
             }
-        } else if (err instanceof CardsavrSDKError) {
+        } else if (err instanceof CardsavrSDKError || (err.type && err.type === "CardsavrSDKError")) {
             console.log("SDK errors, exception stack below:");
             console.log(err.errors);
             console.log(err.stack);
@@ -312,13 +316,13 @@ export class CardsavrHelper {
         if (session) {
             try {
                 jobs_data.forEach(job => {
-                    const account = {cardholder_id : session.getSessionUserId(),
+                    const account = {cardholder_id : job.cardholder_id,
                         username : job.merchant_creds.username, 
                         password : job.merchant_creds.password, 
                         merchant_site_id : job.merchant_creds.merchant_site_id};
 
                     jobs.push({
-                        user_id : session.getSessionUserId(),
+                        cardholder_id : job.cardholder_id,
                         card_id : job.card_id,
                         account : account,
                         user_is_present : true,
@@ -328,6 +332,7 @@ export class CardsavrHelper {
                 });
                 return await session.createSingleSiteJobs(jobs, safe_key);
             } catch(err) {
+                console.log("Exception caught in placeCardOnSites");
                 this.handleError(err);
             }
         } else {
@@ -336,7 +341,7 @@ export class CardsavrHelper {
     }
 
     public async placeCardOnSite(place_card_config : placeCardOnSiteParams) : Promise<any> {
-        const { username, merchant_creds, card_id = undefined, status = "REQUESTED", safe_key = undefined, type = undefined } = place_card_config;
+        const { username, merchant_creds, cardholder_id, card_id = undefined, status = "REQUESTED", safe_key = undefined, type = undefined } = place_card_config;
         const session = this._sessions[username];
         if (session) {
             try {
@@ -347,7 +352,7 @@ export class CardsavrHelper {
                         merchant_site_id = site.id;
                     }
                 }
-                return await this.placeCardOnSites({username, jobs_data : [{merchant_creds, card_id, status}], safe_key, type });
+                return await this.placeCardOnSites({username, jobs_data : [{merchant_creds, cardholder_id, card_id, status }], safe_key, type });
             } catch(err) {
                 this.handleError(err);
             }
@@ -373,19 +378,17 @@ export class CardsavrHelper {
     }
 
     public async pollOnJob(poll_on_job_config: pollOnJobParams) : Promise<void> {
-        const session = this.getSession(poll_on_job_config.username);
-        const params = {...poll_on_job_config, user_id : session.getSessionUserId()};
-        this.pollOnUserJob(params);
+        this.pollOnCardholderJob(poll_on_job_config);
     }
     
-    public async pollOnUserJob(poll_on_job_config : pollOnJobParams) : Promise<void> {
-        const { username, job_id, user_id, callback, interval = 5000 } = poll_on_job_config;
+    public async pollOnCardholderJob(poll_on_job_config : pollOnJobParams) : Promise<void> {
+        const { username, job_id, cardholder_id, callback, interval = 5000 } = poll_on_job_config;
         try {
             const session = this.getSession(username);
             
-            if (this._jobs.size === 0 && user_id) {
+            if (this._jobs.size === 0 && cardholder_id) {
                 this._user_probe = setInterval(async () => { 
-                    const messages = await session.getUserMessages(user_id);
+                    const messages = await session.getCardholderMessages(cardholder_id);
                     if (messages.body) {
                         messages.body.map((item: any) => {
                             const handler = this._jobs.get(+item.job_id);
@@ -407,9 +410,9 @@ export class CardsavrHelper {
     }   
 
     public async placeCardOnSiteAndPoll(place_card_config : placeCardOnSiteAndPollParams) : Promise<void> {
-        const { username, merchant_creds, card_id = undefined, callback, interval = 5000, type = undefined } = place_card_config;
+        const { username, merchant_creds, cardholder_id, card_id = undefined, callback, interval = 5000, type = undefined } = place_card_config;
         try {
-            const job_data = await this.placeCardOnSite({username, merchant_creds, card_id, type});
+            const job_data = await this.placeCardOnSite({username, merchant_creds, cardholder_id, card_id, type});
             if (job_data) {
                 this.pollOnJob({username, job_id : job_data.body.id, callback, interval});
             }
