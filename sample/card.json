@@ -1,6 +1,5 @@
 {
-    "first_name" : "mark",
-    "last_name" : "budos",
+    "name_on_card" : "mark budos",
     "pan" : "4111111111111111",
     "cvv" : "321",
     "expiration_month" : "12",
