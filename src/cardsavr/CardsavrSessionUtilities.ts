@@ -65,16 +65,16 @@ export const formatPath = (path : string, filter : any) => {
     return path;
 };
 
-export const createMetaKey = (card: any, postal_code: string) => {
+export const createMetaKey = (first_name: string, last_name: string, pan: string, postal_code: string) => {
     const validationErrors: string[] = [];
-    if (!card.first_name || card.first_name.length === 0) { validationErrors.push("Can't create meta_key, no first name on card"); }
-    if (!card.last_name || card.last_name.length === 0) { validationErrors.push("Can't create meta_key, no last name on card"); }
+    if (!first_name || first_name.length === 0) { validationErrors.push("Can't create meta_key, no first name on card"); }
+    if (!last_name || last_name.length === 0) { validationErrors.push("Can't create meta_key, no last name on card"); }
     if (!postal_code || postal_code.length < 5) { validationErrors.push("Can't create meta_key, invalid postal code"); }
-    if (!card.pan || card.pan.length === 0) { validationErrors.push("Can't create meta_key, no pan on card"); }
+    if (!pan || pan.length === 0) { validationErrors.push("Can't create meta_key, no pan on card"); }
     if (validationErrors.length > 0) {
         throw new CardsavrSDKError(validationErrors);
     }
-    return card.first_name[0] + card.last_name[0] + postal_code.substring(0, 5) + card.pan.slice(-2);
+    return first_name[0] + last_name[0] + postal_code.substring(0, 5) + pan.slice(-2);
 };
 
 export const generateUniqueUsername = (): string => {
@@ -83,20 +83,16 @@ export const generateUniqueUsername = (): string => {
 };
 
 export const generateRandomPar = (pan: string, exp_month: string, exp_year: string, salt: string) : string => {
-    const paramsArray = [pan, exp_month, exp_year, salt];
+    const paramsArray = {"pan" : pan, "exp_month" : exp_month, "exp_year" : exp_year, "salt" : salt};
     const validationErrors = [];
 
-    for(const param of paramsArray){
-        if(!param){
-            validationErrors.push("Missing required parameter: " + param);
-        }
-    }
-
-    if ((exp_month.length != 2) || isNaN(+exp_month) || (+exp_month > 12)) {
+    Object.entries(paramsArray).filter(param => !param[1]).map(param => validationErrors.push("Missing required parameter: " + param[0]));
+    
+    if (exp_month && (exp_month.length != 2) || isNaN(+exp_month) || (+exp_month > 12)) {
         validationErrors.push("Invalid expiration month received: " + exp_month);
     }
 
-    if ((exp_year.length != 2) || isNaN(+exp_year)) {
+    if (exp_year && (exp_year.length != 2) || isNaN(+exp_year)) {
         validationErrors.push("Invalid expiration year received: " + exp_year);
     }
 

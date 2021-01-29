@@ -149,8 +149,9 @@ export class CardsavrSession {
                 throw err;
             });
         }
-        
-        if (csr.statusCode >= 400) { throw new CardsavrRestError(csr); }
+        if (csr.statusCode >= 400) { 
+            throw new CardsavrRestError(csr); 
+        }
         return csr;
     };
 
@@ -190,11 +191,10 @@ export class CardsavrSession {
         return startResponse;
     };
 
-    private _login = async(sessionSalt: string, username: string, password? : string, grant? : string): Promise <unknown> => {
+    private _login = async(sessionSalt: string, username: string, password : string): Promise <unknown> => {
 
         interface EncryptedLoginBody {
             signedSalt ? : string,
-            userCredentialGrant ? : string,
             clientPublicKey: string,
             userName: string
         }
@@ -209,10 +209,8 @@ export class CardsavrSession {
         if (password) {
             const passwordKey = await CardsavrCrypto.Keys.generatePasswordKey(username, password);
             encryptedLoginBody["signedSalt"] = await CardsavrCrypto.Signing.signSaltWithPasswordKey(sessionSalt, passwordKey);
-        } else if (grant) {
-            encryptedLoginBody["userCredentialGrant"] = grant;
         } else {
-            throw new CardsavrSDKError([], "Must include either password or user credential grant to initialize session.");
+            throw new CardsavrSDKError([], "Must include password to initialize session.");
         }
 
         const loginResponse = await this.sendRequest("/session/login", "post", encryptedLoginBody);
@@ -229,10 +227,10 @@ export class CardsavrSession {
         this.setSessionHeaders({ "trace" : JSON.stringify(trace) });
     }
 
-    init = async(username : string, password ? : string, grant ? : string, trace ? : {[k: string]: unknown}): Promise < any > => {
+    init = async(username : string, password : string, trace ? : {[k: string]: unknown}): Promise < any > => {
         this.setTrace(username, trace);
         const startResponse = await this._startSession();
-        return await this._login(startResponse.body.sessionSalt, username, password, grant);
+        return await this._login(startResponse.body.sessionSalt, username, password);
     };
 
     end = async(): Promise < any > => {
@@ -242,7 +240,7 @@ export class CardsavrSession {
 
     refresh = async(): Promise < any > => {
 
-        return await this.get("/session/refresh", null);
+        return await this.put("/session/refresh", null, {});
     };
 
     getAccounts = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
@@ -401,13 +399,13 @@ export class CardsavrSession {
         }, headersToAdd);
     };
 
-    getUserMessages = async(userId: number, cardsavrMessagingAccessKey?: string, headersToAdd = {}): Promise < any > => {
+    getCardholderMessages = async(cardholderId: number, cardsavrMessagingAccessKey?: string, headersToAdd = {}): Promise < any > => {
         if (cardsavrMessagingAccessKey) {
             headersToAdd = Object.assign({
                 "cardsavr-messaging-access-key" : cardsavrMessagingAccessKey
             }, headersToAdd);
         }
-        return await this.get("/messages/cardsavr_users", userId, headersToAdd);
+        return await this.get("/messages/cardholders", cardholderId, headersToAdd);
     }
 
     getJobStatusUpdate = async(jobId: number, cardsavrMessagingAccessKey: string, headersToAdd = {}): Promise < any > => {
@@ -454,30 +452,14 @@ export class CardsavrSession {
         return await this.get("/cardsavr_users", filter, headersToAdd);
     };
 
-    getCredentialGrant = async(id: number, headersToAdd = {}): Promise < any > => {
-        return await this.get(`/cardsavr_users/${id}/credential_grant/`, null, headersToAdd);
-    };
-
-    createUser = async(body: any, safeKey: string | null, financial_institution = "default", headersToAdd = {}): Promise < any > => {
-        if (body && body.role == "cardholder" && !body.username) {
-            body.username = CardsavrSessionUtilities.generateUniqueUsername();
-        }
+    createUser = async(body: any, financial_institution = "default", headersToAdd = {}): Promise < any > => {
         Object.assign(headersToAdd, {
             "financial-institution" : financial_institution
         });
-        if (safeKey) {
-            Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
-        }
         return await this.post("/cardsavr_users", body, headersToAdd);
     };
 
-    updateUser = async(id: number, body: any, newSafeKey: string | null = null, safeKey: string | null = null, headersToAdd = {}): Promise < any > => {
-        if (newSafeKey != null) {
-            Object.assign(headersToAdd, this._makeSafeKeyHeader(newSafeKey, true));
-        }
-        if (safeKey != null) {
-            Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey, false));
-        }
+    updateUser = async(id: number, body: any, headersToAdd = {}): Promise < any > => {
         return await this.put("/cardsavr_users", id, body, headersToAdd);
     };
 
@@ -487,6 +469,53 @@ export class CardsavrSession {
 
     deleteUser = async(id: number, headersToAdd = {}): Promise < any > => {
         return await this.delete("/cardsavr_users", id, headersToAdd);
+    };
+
+    authorizeCardholder = async(grant: string, headersToAdd = {}): Promise < any > => {
+        return await this.post(`/cardholders/authorize`, { grant }, headersToAdd);
+    };
+
+    getCardholders = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
+        if (Object.keys(pagingHeader).length > 0) {
+            pagingHeader = {
+                paging : JSON.stringify(pagingHeader)
+            };
+            Object.assign(headersToAdd, pagingHeader);
+        }
+        return await this.get("/cardholders", filter, headersToAdd);
+    };
+
+    createCardholder = async(body: any, safeKey: string | null, financial_institution = "default", headersToAdd = {}): Promise < any > => {
+
+        if (body && !body.cuid) {
+            body.cuid = CardsavrSessionUtilities.generateUniqueUsername();
+        }
+
+        Object.assign(headersToAdd, {
+            "financial-institution" : financial_institution
+        });
+        if (safeKey) {
+            Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+        }
+        return await this.post("/cardholders", body, headersToAdd);
+    };
+
+    updateCardholder = async(id: number, body: any, newSafeKey: string | null = null, safeKey: string | null = null, headersToAdd = {}): Promise < any > => {
+        if (newSafeKey != null) {
+            Object.assign(headersToAdd, this._makeSafeKeyHeader(newSafeKey, true));
+        }
+        if (safeKey != null) {
+            Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey, false));
+        }
+        return await this.put("/cardholders", id, body, headersToAdd);
+    };
+
+    deleteCardholder = async(id: number, headersToAdd = {}): Promise < any > => {
+        return await this.delete("/cardholders", id, headersToAdd);
+    };
+
+    deleteCardholders = async(filter: any, headersToAdd = {}): Promise < any > => {
+        return await this.delete("/cardholders", filter, headersToAdd);
     };
 
     getSingleSiteJobs = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
