@@ -86,7 +86,7 @@ export const generateRandomPar = (pan: string, exp_month: string, exp_year: stri
     const paramsArray = {"pan" : pan, "exp_month" : exp_month, "exp_year" : exp_year, "salt" : salt};
     const validationErrors = [];
 
-    Object.entries(paramsArray).filter(param => !param[1]).map(param => validationErrors.push("Missing required parameter: " + param[0]));
+    Object.entries(paramsArray).filter(param => !param[1]).forEach(param => validationErrors.push("Missing required parameter: " + param[0]));
     
     if (exp_month && (exp_month.length != 2) || isNaN(+exp_month) || (+exp_month > 12)) {
         validationErrors.push("Invalid expiration month received: " + exp_month);

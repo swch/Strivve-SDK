@@ -128,9 +128,7 @@ export class CardsavrHelper {
                                        trace?: {[k: string]: unknown}) : Promise<CardsavrSession> {
 
         let session : CardsavrSession | null = this._sessions[username];
-        if (session) {
-            return session;
-        } else if ((session = await this.restoreSession(username, trace))) {
+        if (session || (session = await this.restoreSession(username, trace))) {
             return session;
         }
         session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, this.reject_unauthorized, this.cert);
@@ -199,11 +197,7 @@ export class CardsavrHelper {
             if (!cardholder_data.first_name) cardholder_data_copy.first_name = address_data.first_name;
             if (!cardholder_data.last_name) cardholder_data_copy.last_name = address_data.last_name;
             if (!card_data.name_on_card) card_data_copy.name_on_card = `${card_data.first_name} ${card_data.last_name}`;
-            const meta_key: string = createMetaKey(address_data.first_name, address_data.last_name, card_data.pan, address_data.postal_code);
-            if (!cardholder_data.custom_data) {
-                cardholder_data_copy.custom_data = {};
-            }
-
+            
             const agent_session = this.getSession(agent_username);
 
             //card requires a user id
@@ -247,11 +241,6 @@ export class CardsavrHelper {
             merchant_creds.cardholder_ref = {"cuid" : cardholder_data.cuid };
 
             if (address_data && card_data) {
-                const meta_key: string = createMetaKey(address_data.first_name, address_data.last_name, card_data.pan, address_data.postal_code);
-                if (!cardholder_data.custom_data) {
-                    cardholder_data.custom_data = {};
-                }
-                cardholder_data.custom_data.cardsavr_card_data = { meta_key : meta_key };
                 address_data.cardholder_ref = card_data.cardholder_ref = merchant_creds.cardholder_ref;
                 card_data.address = address_data;
             }
@@ -278,7 +267,7 @@ export class CardsavrHelper {
                 err.body._errors.map((obj: any) => {
                     console.log(obj);
                 });
-                Object.keys(err.body).filter((item: string) => err.body[item]._errors !== undefined).map(obj => {
+                Object.keys(err.body).filter((item: string) => err.body[item]._errors !== undefined).forEach(obj => {
                     console.log("For entity: " + obj);
                     console.log(err.body[obj]._errors);
                 });

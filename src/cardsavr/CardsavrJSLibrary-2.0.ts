@@ -48,7 +48,7 @@ export class CardsavrSession {
         if (!this._headers) {
             throw new CardsavrSDKError([], "You have not set any header values.");
         } else {
-            headerKeys.map(headerKey => {
+            headerKeys.forEach(headerKey => {
                 if (!Object.prototype.hasOwnProperty.call(this._headers, headerKey)) {
                     throw new CardsavrSDKError([], "Header value could not be found.");
                 }

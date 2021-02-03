@@ -118,7 +118,7 @@ export class Encryption {
     static encryptSafeKeys(headers: any, b64Key: string) {
 
         const safe_key_headers = ["new-cardholder-safe-key", "cardholder-safe-key"];
-        safe_key_headers.map(async(safe_key_header) => {
+        safe_key_headers.forEach(async(safe_key_header) => {
             if (headers[safe_key_header]) {
 
                 const encryptedObj = await this.encryptAES256(b64Key, headers[safe_key_header]);
@@ -223,15 +223,6 @@ export class Signing {
         };
     }
 
-    static async verifySignature(url: string, headers: any, b64appKey: string, body: any) {
-
-        const bodyString = body ? JSON.stringify(body) : "";
-        const stringToVerify = decodeURIComponent(url) + headers.authorization + headers.nonce + bodyString;
-        const verified = await this.hmacVerify(stringToVerify, b64appKey, headers.signature);
-
-        return verified;
-    }
-
     static async signSaltWithPasswordKey(sessionSalt: string, passwordKey: string) {
 
         return await this.hmacSign(sessionSalt, passwordKey, true);
@@ -279,40 +270,6 @@ export class Signing {
             );
 
             return WebConversions.arrayBufferToBase64(signature);
-        }
-    }
-
-    static async hmacVerify(inputString: string, b64Key: string, verificationSignature: string) {
-
-        if (!browserCrypto) {
-
-            const binaryKey = Buffer.alloc(32);
-            binaryKey.write(b64Key, "base64");
-
-            const hmac = crypto.createHmac("sha256", binaryKey);
-            hmac.update(inputString);
-            const signature = hmac.digest("base64");
-
-            return signature === verificationSignature;
-        } else {
-
-            const signingKey = await browserCrypto.subtle.importKey(
-                "raw",
-                WebConversions.base64ToArrayBuffer(b64Key), {
-                    "name" : "HMAC",
-                    hash : {
-                        name : "SHA-256"
-                    },
-                },
-                false, ["verify"]
-            );
-
-            return await browserCrypto.subtle.verify(
-                "HMAC",
-                signingKey,
-                WebConversions.base64ToArrayBuffer(verificationSignature),
-                WebConversions.stringToArrayBuffer(inputString)
-            );
         }
     }
 }

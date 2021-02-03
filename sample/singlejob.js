@@ -25,7 +25,7 @@ placeCard().then(() => {
 async function placeCard() {
     const ch = CardsavrHelper.getInstance();
     //Setup the settings for the application
-    ch.setAppSettings(cardsavr_server, app_name, app_key, true);
+    ch.setAppSettings(cardsavr_server, app_name, app_key, false);
 
     const merchant_site = rl.question("Merchant hostname: ");
 
@@ -57,7 +57,7 @@ async function placeCard() {
                             job_id : job.id, 
                             callback : (message) => {
             if (message.type == "job_status") {
-                update = message.message;
+                const update = message.message;
                 if (!vbs_start) {
                     vbs_start = new Date().getTime();
                     console.log("VBS startup: " + Math.round(((vbs_start - job_start) / 1000)) + " seconds");
