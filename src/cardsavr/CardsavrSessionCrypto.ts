@@ -160,8 +160,7 @@ export class Encryption {
             const bodyBuffer = Buffer.alloc(length);
             bodyBuffer.write(b64cipherText, "base64");
 
-            const iv = Buffer.alloc(16);
-            iv.write(b64IV, "base64");
+            const iv = Buffer.from(b64IV, 'base64');
 
             const decryptor = crypto.createDecipheriv("aes-256-cbc", binaryEncryptionKey, iv);
             const decryptedJSON = Buffer.concat([decryptor.update(bodyBuffer), decryptor.final()]);

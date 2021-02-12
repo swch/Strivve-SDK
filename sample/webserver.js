@@ -17,7 +17,7 @@ app.get("/create_user", function (req, res) {
         try {
             const ch = CardsavrHelper.getInstance();
             //Setup the settings for the application
-            ch.setAppSettings(cardsavr_server, app_name, app_key);
+            ch.setAppSettings(cardsavr_server, app_name, app_key, false);
             //Create a session for the application user (cardholder agent)
             if (await ch.loginAndCreateSession(app_username, app_password)) {
 
