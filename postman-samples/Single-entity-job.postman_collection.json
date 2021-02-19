@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "dc9bc418-fe58-40b7-87ca-31fb682cbf93",
+		"_postman_id": "d29c18e1-cbbe-4838-891e-8ce12714b445",
 		"name": "Single Job",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -48,6 +48,11 @@
 					{
 						"key": "trace",
 						"value": "{\"key\": \"my_trace\"}"
+					},
+					{
+						"key": "x-cardsavr-session-jwt",
+						"value": "{{JWT_TOKEN}}",
+						"type": "text"
 					}
 				],
 				"url": {
@@ -360,7 +365,7 @@
 			"response": []
 		},
 		{
-			"name": "4-1 Submit TFA",
+			"name": "4-3 Submit TFA",
 			"request": {
 				"method": "PUT",
 				"header": [
@@ -466,15 +471,15 @@
 	"variable": [
 		{
 			"key": "JWT_TOKEN",
-			"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI5NTkzYmU3Mi1lMTA0LTQwYzEtODYxYS05OTIwY2JkMWFjN2IiLCJpc3MiOiJhcGkuY3VzdG9tZXItZGV2LmNhcmRzYXZyLmlvIiwiYXVkIjoiYXBpLmN1c3RvbWVyLWRldi5jYXJkc2F2ci5pbyIsImlhdCI6MTYxMzEwODU3NH0.RVXNeNI-W-vsGfR9EEE4HXyVgCDmIkORofDIVDo6_78"
+			"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI5OWQ1NTU0MC0zNjliLTRiZTMtOTYxNS01YzY4ZDhiNDZjM2YiLCJpc3MiOiJhcGkubG9jYWxob3N0LmNhcmRzYXZyLmlvIiwiYXVkIjoiYXBpLmxvY2FsaG9zdC5jYXJkc2F2ci5pbyIsImlhdCI6MTYxMzc2NTEyMX0.M-0fv1aAq11vXfi2XE730OdqYSnp13tG83oEqYNOgB0"
 		},
 		{
 			"key": "CARDHOLDER_UNIQUE_KEY",
-			"value": "4al2t1"
+			"value": "mrfy69"
 		},
 		{
 			"key": "JOB_ID",
-			"value": 735
+			"value": 1018
 		},
 		{
 			"key": "ENVELOPE_ID",
