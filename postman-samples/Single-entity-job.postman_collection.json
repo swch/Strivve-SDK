@@ -7,6 +7,19 @@
 	"item": [
 		{
 			"name": "1 Session Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = JSON.parse(responseBody)",
+							"pm.collectionVariables.set(\"JWT_TOKEN\", response.sessionToken);",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"request": {
 				"method": "POST",
 				"header": [
@@ -17,14 +30,20 @@
 					{
 						"key": "trace",
 						"value": "{\"key\": \"my_trace\"}"
+					},
+					{
+						"key": "x-cardsavr-session-jwt",
+						"value": "null",
+						"type": "text",
+						"disabled": true
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\"password\": \"{{PASSWORD}}\", \"userName\": \"{{USERNAME}}\"}"
+					"raw": "{\n    \"password\": \"{{PASSWORD}}\",\n    \"userName\": \"{{USERNAME}}\"\n}"
 				},
 				"url": {
-					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io/session/login",
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/session/login",
 					"protocol": "https",
 					"host": [
 						"api",
@@ -32,6 +51,7 @@
 						"cardsavr",
 						"io"
 					],
+					"port": "{{PORT}}",
 					"path": [
 						"session",
 						"login"
@@ -117,9 +137,8 @@
 						"value": "{\"key\": \"my_trace\"}"
 					},
 					{
-						"key": "",
-						"value": "",
-						"disabled": true
+						"key": "x-cardsavr-session-jwt",
+						"value": "{{JWT_TOKEN}}"
 					}
 				],
 				"body": {
@@ -470,20 +489,20 @@
 	],
 	"variable": [
 		{
-			"key": "JWT_TOKEN",
-			"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI5OWQ1NTU0MC0zNjliLTRiZTMtOTYxNS01YzY4ZDhiNDZjM2YiLCJpc3MiOiJhcGkubG9jYWxob3N0LmNhcmRzYXZyLmlvIiwiYXVkIjoiYXBpLmxvY2FsaG9zdC5jYXJkc2F2ci5pbyIsImlhdCI6MTYxMzc2NTEyMX0.M-0fv1aAq11vXfi2XE730OdqYSnp13tG83oEqYNOgB0"
-		},
-		{
 			"key": "CARDHOLDER_UNIQUE_KEY",
 			"value": "mrfy69"
 		},
 		{
 			"key": "JOB_ID",
-			"value": 1018
+			"value": null
 		},
 		{
 			"key": "ENVELOPE_ID",
 			"value": "Aca2vZb75CvPeOWyzU2d1Q=="
+		},
+		{
+			"key": "JWT_TOKEN",
+			"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI5MzJjODlhMi0wYTAxLTRkN2MtODhlYi1jODcyNGZjZDQ1OTAiLCJpc3MiOiJhcGkubG9jYWxob3N0LmNhcmRzYXZyLmlvIiwiYXVkIjoiYXBpLmxvY2FsaG9zdC5jYXJkc2F2ci5pbyIsImlhdCI6MTYxMzkzNDI5Mn0.EIDzuALTiL0Cvc9tdZ6nZDVLlhrkhfVA0BNz6hPIw7A"
 		}
 	]
 }

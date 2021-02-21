@@ -18,13 +18,13 @@ export class CardsavrSession {
     _debug : boolean;
     _rejectUnauthorized : boolean;
 
-    constructor(baseUrl: string, sessionKey: string, appName: string, rejectUnauthorized = true, cardsavrCert? : string) {
+    constructor(baseUrl: string, sessionKey: string, appName: string, rejectUnauthorized = true, cardsavrCert? : string, debug = false) {
 
         this._headers = {}; 
         this._cardsavrCert = cardsavrCert;
         this._baseUrl = baseUrl;
         this._appName = appName;
-        this._debug = false;
+        this._debug = debug;
         this._rejectUnauthorized = rejectUnauthorized;
 
         this._sessionData = {};
@@ -103,7 +103,7 @@ export class CardsavrSession {
         Object.assign(headers, authHeaders);
 
         if (this._debug) {
-            console.log(method + " " + path);
+            console.log("REQUEST " + method + " " + path);
             console.log(headers);
             if (requestBody) {
                 console.log(unencryptedBody);
@@ -115,7 +115,7 @@ export class CardsavrSession {
             headers,
             method,
             body : requestBody ? JSON.stringify(requestBody) : undefined
-        }
+        };
         if (typeof window === "undefined") {
             //node
             config = Object.assign(config, {
@@ -152,6 +152,15 @@ export class CardsavrSession {
         if (csr.statusCode >= 400) { 
             throw new CardsavrRestError(csr); 
         }
+
+        if (this._debug) {
+            console.log("RESPONSE");
+            console.log(csr.headers);
+            if (requestBody) {
+                console.log(csr.body);
+            }
+        }
+
         return csr;
     };
 
@@ -472,7 +481,7 @@ export class CardsavrSession {
     };
 
     authorizeCardholder = async(grant: string, headersToAdd = {}): Promise < any > => {
-        return await this.post(`/cardholders/authorize`, { grant }, headersToAdd);
+        return await this.post("/cardholders/authorize", { grant }, headersToAdd);
     };
 
     getCardholders = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
@@ -566,5 +575,4 @@ export class CardsavrSession {
         }
         return await this.get("/card_placement_results", filter, headersToAdd);
     }
-
 }

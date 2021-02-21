@@ -2,7 +2,7 @@
 
 import { CardsavrSession } from "./CardsavrJSLibrary-2.0";
 import CardsavrSessionResponse from "./CardsavrSessionResponse";
-import { generateRandomPar, createMetaKey, localStorageAvailable, generateUniqueUsername } from "./CardsavrSessionUtilities";
+import { generateRandomPar, localStorageAvailable, generateUniqueUsername } from "./CardsavrSessionUtilities";
 import CardsavrSDKError from "./CardsavrSDKError";
 import CardsavrRestError from "./CardsavrRestError";
 
@@ -113,13 +113,15 @@ export class CardsavrHelper {
     private app_key = "";
     private cert?: string;
     private reject_unauthorized = true;
+    private debug = false;
 
-    public setAppSettings(cardsavr_server: string, app_name: string, app_key: string, reject_unauthorized = true, cert?: string) : CardsavrHelper {
+    public setAppSettings(cardsavr_server: string, app_name: string, app_key: string, reject_unauthorized = true, cert?: string, debug = false) : CardsavrHelper {
         this.cardsavr_server = cardsavr_server;
         this.app_name = app_name;
         this.app_key = app_key;
         this.cert = cert;
         this.reject_unauthorized = reject_unauthorized;
+        this.debug = debug;
         return this;
     }
     
@@ -131,7 +133,7 @@ export class CardsavrHelper {
         if (session || (session = await this.restoreSession(username, trace))) {
             return session;
         }
-        session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, this.reject_unauthorized, this.cert);
+        session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, this.reject_unauthorized, this.cert, this.debug);
         await session.init(username, password, trace);
         this.saveSession(username, session);
         return session;
