@@ -118,6 +118,15 @@
 						],
 						"type": "text/javascript"
 					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"{{$timestamp}}\");"
+						],
+						"type": "text/javascript"
+					}
 				}
 			],
 			"request": {
@@ -143,7 +152,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"status\": \"REQUESTED\",\r\n  \"user\":\r\n    {\r\n      \"username\":\"UserName14\",\r\n      \"role\":\"cardholder\",\r\n      \"email\": \"capitalonetest@capitalonetest.com\",\r\n      \"custom_data\" : {\r\n          \"myguid\": \"asdfadfasdfasdf\"\r\n      }\r\n    },\r\n  \"card\":\r\n    {\r\n      \"cardholder_ref\": {\r\n        \"username\": \"UserName14\"\r\n      },\r\n      \"par\":\"peLpzDnEHdhiiWEtuhUgICEonxTcu\",\r\n      \"pan\":\"KOnalFfwdrBXlZD\",\r\n      \"cvv\":\"123\",\r\n      \"expiration_month\":12,\r\n      \"expiration_year\":24,\r\n      \"name_on_card\":\"FirstName LastName\",\r\n      \"first_name\":\"FirstName\",\r\n      \"last_name\":\"LastName\",\r\n      \"address\":\r\n        {\r\n          \"user_ref\": {\r\n            \"username\": \"UserName14\"\r\n          },\r\n          \"address1\":\"SGTClNSCCMqlfjuzTmJuepDyFgvWhlCMRycXlKGiRIooOJJkoXeObOcAwJMGeqjSDWfhTHobAWMimcCynMIQcvlBFSbMQlwUFyJ\",\r\n          \"address2\":\"AyFgoCTjCLXUQVylBAfkHJOtqkkKJjuaLHnmJpSctqBOQueIvciyAUPqYoFpkiAPlkGjgPuabhAPCHFPvaxciObOmIBvBUWpngD\",\r\n          \"city\":\"Seattle\",\r\n          \"subnational\":\"WA\",\r\n          \"postal_code\":\"98177\",\r\n          \"postal_other\":\"98177-0124\",\r\n          \"country\":\"USA\",\r\n          \"is_primary\": true\r\n        }\r\n    },\r\n  \"account\":\r\n    {\r\n      \"cardholder_ref\": {\r\n        \"username\": \"UserName14\"\r\n      },\r\n      \"merchant_site_id\":1,\r\n      \"username\":\"bad_email\",\r\n      \"password\":\"good_password\"\r\n    }\r\n}"
+					"raw": "{\r\n  \"status\": \"REQUESTED\",\r\n  \"cardholder\":\r\n    {\r\n      \"cuid\":\"{{CARDHOLDER_CUID}}\"\r\n    },\r\n  \"card\":\r\n    {\r\n      \"cardholder_ref\": {\r\n        \"cuid\": \"{{CARDHOLDER_CUID}}\"\r\n      },\r\n      \"par\":\"0000000000000000000{{CARDHOLDER_CUID}}\",\r\n      \"pan\":\"000000{{CARDHOLDER_CUID}}\",\r\n      \"cvv\":\"123\",\r\n      \"expiration_month\":12,\r\n      \"expiration_year\":24,\r\n      \"name_on_card\":\"FirstName LastName\",\r\n      \"first_name\":\"FirstName\",\r\n      \"last_name\":\"LastName\",\r\n      \"address\":\r\n        {\r\n          \"cardholder_ref\": {\r\n            \"cuid\": \"{{CARDHOLDER_CUID}}\"\r\n          },\r\n          \"address1\":\"SGTClNSCCMqlfjuzTmJuepDyFgvWhlCMRycXlKGiRIooOJJkoXeObOcAwJMGeqjSDWfhTHobAWMimcCynMIQcvlBFSbMQlwUFyJ\",\r\n          \"address2\":\"AyFgoCTjCLXUQVylBAfkHJOtqkkKJjuaLHnmJpSctqBOQueIvciyAUPqYoFpkiAPlkGjgPuabhAPCHFPvaxciObOmIBvBUWpngD\",\r\n          \"city\":\"Seattle\",\r\n          \"subnational\":\"WA\",\r\n          \"postal_code\":\"98177\",\r\n          \"postal_other\":\"98177-0124\",\r\n          \"country\":\"USA\",\r\n          \"is_primary\": true\r\n        }\r\n    },\r\n  \"account\":\r\n    {\r\n      \"cardholder_ref\": {\r\n        \"cuid\": \"{{CARDHOLDER_CUID}}\"\r\n      },\r\n      \"merchant_site_id\":1,\r\n      \"username\":\"bad_email\",\r\n      \"password\":\"good_password\"\r\n    }\r\n}"
 				},
 				"url": {
 					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/place_card_on_single_site_jobs",
@@ -494,7 +503,7 @@
 		},
 		{
 			"key": "JOB_ID",
-			"value": null
+			"value": 4567
 		},
 		{
 			"key": "ENVELOPE_ID",
@@ -502,7 +511,11 @@
 		},
 		{
 			"key": "JWT_TOKEN",
-			"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI5MzJjODlhMi0wYTAxLTRkN2MtODhlYi1jODcyNGZjZDQ1OTAiLCJpc3MiOiJhcGkubG9jYWxob3N0LmNhcmRzYXZyLmlvIiwiYXVkIjoiYXBpLmxvY2FsaG9zdC5jYXJkc2F2ci5pbyIsImlhdCI6MTYxMzkzNDI5Mn0.EIDzuALTiL0Cvc9tdZ6nZDVLlhrkhfVA0BNz6hPIw7A"
+			"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlZGJlYjdlYS1lZGZmLTQxMTEtOWVhOC02MDM3NTJhODA4YzkiLCJpc3MiOiJhcGkubG9jYWxob3N0LmNhcmRzYXZyLmlvIiwiYXVkIjoiYXBpLmxvY2FsaG9zdC5jYXJkc2F2ci5pbyIsImlhdCI6MTYxMzk3NTM3Mn0.hoUBAU2KldIQDCQVTTA_K5XWJPlZxra7k0cYpE4SXZk"
+		},
+		{
+			"key": "CARDHOLDER_CUID",
+			"value": "{{$timestamp}}"
 		}
 	]
 }
