@@ -28,7 +28,7 @@
 						"value": "application/json"
 					},
 					{
-						"key": "trace",
+						"key": "x-cardsavr-trace",
 						"value": "{\"key\": \"my_trace\"}"
 					},
 					{
@@ -66,7 +66,7 @@
 				"method": "GET",
 				"header": [
 					{
-						"key": "trace",
+						"key": "x-cardsavr-trace",
 						"value": "{\"key\": \"my_trace\"}"
 					},
 					{
@@ -137,12 +137,12 @@
 						"value": "application/json"
 					},
 					{
-						"key": "financial-institution",
+						"key": "x-cardsavr-financial-institution",
 						"value": "default",
 						"type": "text"
 					},
 					{
-						"key": "trace",
+						"key": "x-cardsavr-trace",
 						"value": "{\"key\": \"my_trace\"}"
 					},
 					{
@@ -172,7 +172,7 @@
 			"response": []
 		},
 		{
-			"name": "3.1 DELETE User",
+			"name": "3.1 DELETE Cardholder",
 			"request": {
 				"method": "DELETE",
 				"header": [
@@ -225,7 +225,7 @@
 						"exec": [
 							"const response = JSON.parse(responseBody)",
 							"let env_id = null;",
-							"if (response.some(msg => {",
+							"if (response[\"credential_requests\"].filter(msg => {",
 							"    if (msg.envelope_id) {",
 							"        env_id = msg.envelope_id;",
 							"        return true;",
@@ -244,20 +244,26 @@
 				"header": [
 					{
 						"key": "Content-Type",
-						"value": "application/json"
+						"value": "application/json",
+						"description": "x-cq"
 					},
 					{
-						"key": "trace",
+						"key": "x-cardsavr-trace",
 						"value": "{\"key\": \"my_trace\"}"
 					},
 					{
 						"key": "x-cardsavr-session-jwt",
 						"value": "{{JWT_TOKEN}}",
 						"type": "text"
+					},
+					{
+						"key": "x-cardsavr-hydration",
+						"value": "[\"credential_requests\"]",
+						"type": "text"
 					}
 				],
 				"url": {
-					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/messages/place_card_on_single_site_jobs/{{JOB_ID}}?",
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/place_card_on_single_site_jobs/{{JOB_ID}}",
 					"protocol": "https",
 					"host": [
 						"api",
@@ -267,15 +273,8 @@
 					],
 					"port": "{{PORT}}",
 					"path": [
-						"messages",
 						"place_card_on_single_site_jobs",
 						"{{JOB_ID}}"
-					],
-					"query": [
-						{
-							"key": "",
-							"value": null
-						}
 					]
 				}
 			},
@@ -312,7 +311,7 @@
 						"value": "application/json"
 					},
 					{
-						"key": "trace",
+						"key": "x-cardsavr-trace",
 						"value": "{\"key\": \"my_trace\"}"
 					},
 					{
@@ -356,11 +355,11 @@
 						"value": "application/json"
 					},
 					{
-						"key": "trace",
+						"key": "x-cardsavr-trace",
 						"value": "{\"key\": \"my_trace\"}"
 					},
 					{
-						"key": "envelope-id",
+						"key": "x-cardsavr-envelope-id",
 						"value": "{{ENVELOPE_ID}}",
 						"type": "text"
 					},
@@ -402,11 +401,11 @@
 						"value": "application/json"
 					},
 					{
-						"key": "trace",
+						"key": "x-cardsavr-trace",
 						"value": "{\"key\": \"my_trace\"}"
 					},
 					{
-						"key": "envelope-id",
+						"key": "x-cardsavr-envelope-id",
 						"value": "{{ENVELOPE_ID}}",
 						"type": "text"
 					},
@@ -448,7 +447,7 @@
 						"value": "application/json"
 					},
 					{
-						"key": "trace",
+						"key": "x-cardsavr-trace",
 						"value": "{\"key\": \"my_trace\"}"
 					},
 					{
@@ -503,15 +502,15 @@
 		},
 		{
 			"key": "JOB_ID",
-			"value": 4567
+			"value": 749
 		},
 		{
 			"key": "ENVELOPE_ID",
-			"value": "Aca2vZb75CvPeOWyzU2d1Q=="
+			"value": null
 		},
 		{
 			"key": "JWT_TOKEN",
-			"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlZGJlYjdlYS1lZGZmLTQxMTEtOWVhOC02MDM3NTJhODA4YzkiLCJpc3MiOiJhcGkubG9jYWxob3N0LmNhcmRzYXZyLmlvIiwiYXVkIjoiYXBpLmxvY2FsaG9zdC5jYXJkc2F2ci5pbyIsImlhdCI6MTYxMzk3NTM3Mn0.hoUBAU2KldIQDCQVTTA_K5XWJPlZxra7k0cYpE4SXZk"
+			"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJmMzFiZmVkNC05ZjkwLTQ5NWUtODA1Mi1lZWEzNjYwYjI0YTgiLCJpc3MiOiJhcGkuZ3RvbWxpbnNvbi5jYXJkc2F2ci5pbyIsImF1ZCI6ImFwaS5ndG9tbGluc29uLmNhcmRzYXZyLmlvIiwiaWF0IjoxNjE0NjM1MDY4fQ.zkC8ASEGNGZ-vaskE4cyIvbcaXiIqB6Y_i68FXHHKaU"
 		},
 		{
 			"key": "CARDHOLDER_CUID",
