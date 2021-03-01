@@ -20,8 +20,6 @@ In order to use it, the following edits will need to be made to the CardSavr-Tem
 - The label MERCHANT-SITE-ID found in "3-4 Create Account" needs to be changed to the id of the merchant site returned from a previous GET/merchant/sites call.
 - The label LOGIN-NAME-AT-MERCHANT found in "3-4 Create Account" needs to be changed to an existing login name at the merchant site.
 - The label LOGIN-PASSWORD found in "3-4 Create Account" needs to be changed to the password of the login name at the merchant.
-- The CARD-ID found in "3-5 Create Single Site Job" needs to be changed to the :id property of the card returned in the JSON response from "3-3 Create Card."
-- The ACCOUNT-ID found in "3-5 Create Single Site Job" needs to be changed to the :id property of the account returned in the JSON response from "3-4 Create Account".
 
 ## Single Entity Job sample usage
 There's also a Postman collection for using the single entity job.  To use this Postman example:
