@@ -114,7 +114,9 @@
 					"script": {
 						"exec": [
 							"const response = JSON.parse(responseBody)",
-							"pm.collectionVariables.set(\"JOB_ID\", response.id);"
+							"pm.collectionVariables.set(\"JOB_ID\", response.id);",
+							"pm.collectionVariables.set(\"CARDHOLDER_ID\", response.cardholder_id);",
+							""
 						],
 						"type": "text/javascript"
 					}
@@ -199,7 +201,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/cardsavr_users/",
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/cardholder/{{JOB_ID}}",
 					"protocol": "https",
 					"host": [
 						"api",
@@ -209,8 +211,8 @@
 					],
 					"port": "{{PORT}}",
 					"path": [
-						"cardsavr_users",
-						""
+						"cardholder",
+						"{{JOB_ID}}"
 					]
 				}
 			},
@@ -502,7 +504,7 @@
 		},
 		{
 			"key": "JOB_ID",
-			"value": 749
+			"value": 750
 		},
 		{
 			"key": "ENVELOPE_ID",
@@ -515,6 +517,10 @@
 		{
 			"key": "CARDHOLDER_CUID",
 			"value": "{{$timestamp}}"
+		},
+		{
+			"key": "CARDHOLDER_ID",
+			"value": 24
 		}
 	]
 }
