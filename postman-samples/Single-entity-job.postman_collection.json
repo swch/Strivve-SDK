@@ -13,7 +13,7 @@
 					"script": {
 						"exec": [
 							"const response = JSON.parse(responseBody)",
-							"pm.collectionVariables.set(\"JWT_TOKEN\", response.sessionToken);",
+							"pm.collectionVariables.set(\"JWT_TOKEN\", response.session_token);",
 							""
 						],
 						"type": "text/javascript"
@@ -40,7 +40,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"password\": \"{{PASSWORD}}\",\n    \"userName\": \"{{USERNAME}}\"\n}"
+					"raw": "{\n    \"password\": \"{{PASSWORD}}\",\n    \"username\": \"{{USERNAME}}\"\n}"
 				},
 				"url": {
 					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/session/login",
@@ -201,7 +201,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/cardholder/{{JOB_ID}}",
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/cardholders/{{CARDHOLDER_ID}}",
 					"protocol": "https",
 					"host": [
 						"api",
@@ -211,8 +211,8 @@
 					],
 					"port": "{{PORT}}",
 					"path": [
-						"cardholder",
-						"{{JOB_ID}}"
+						"cardholders",
+						"{{CARDHOLDER_ID}}"
 					]
 				}
 			},
@@ -504,7 +504,7 @@
 		},
 		{
 			"key": "JOB_ID",
-			"value": 750
+			"value": 108
 		},
 		{
 			"key": "ENVELOPE_ID",
@@ -512,7 +512,7 @@
 		},
 		{
 			"key": "JWT_TOKEN",
-			"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJmMzFiZmVkNC05ZjkwLTQ5NWUtODA1Mi1lZWEzNjYwYjI0YTgiLCJpc3MiOiJhcGkuZ3RvbWxpbnNvbi5jYXJkc2F2ci5pbyIsImF1ZCI6ImFwaS5ndG9tbGluc29uLmNhcmRzYXZyLmlvIiwiaWF0IjoxNjE0NjM1MDY4fQ.zkC8ASEGNGZ-vaskE4cyIvbcaXiIqB6Y_i68FXHHKaU"
+			"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIwNDk4OTRjNC1kM2U5LTRlOWQtOWQ3OS1iNTMyMDZmMmJkN2EiLCJpc3MiOiJhcGkuY2FwaXRhbG9uZS1kZXYuY2FyZHNhdnIuaW8iLCJhdWQiOiJhcGkuY2FwaXRhbG9uZS1kZXYuY2FyZHNhdnIuaW8iLCJpYXQiOjE2MTYwMDk5NTN9.86R5abRj_Kr-Rt3wdaiaU-ZCQZerc3qHOxpicDMQ1kU"
 		},
 		{
 			"key": "CARDHOLDER_CUID",
@@ -520,7 +520,7 @@
 		},
 		{
 			"key": "CARDHOLDER_ID",
-			"value": 24
+			"value": 6
 		}
 	]
 }
