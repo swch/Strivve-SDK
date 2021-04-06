@@ -275,9 +275,9 @@ export class Signing {
 
 export class Keys {
 
-    static async generatePasswordKey(userName: string, clearTextPassword: string) {
+    static async generatePasswordKey(username: string, clearTextPassword: string) {
 
-        const salt = await Signing.sha256Hash(userName);
+        const salt = await Signing.sha256Hash(username);
         const key = await this.sha256pbkdf2(clearTextPassword, salt, 5000);
 
         return !browserCrypto ? (key as Buffer).toString("base64") : WebConversions.arrayBufferToBase64(key);
