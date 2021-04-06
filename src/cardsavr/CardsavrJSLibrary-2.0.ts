@@ -102,6 +102,14 @@ export class CardsavrSession {
         const authHeaders = await CardsavrCrypto.Signing.signRequest(path, this._appName, sessionKey, requestBody);
         Object.assign(headers, authHeaders);
 
+        //DELETE once guaranteed we don't need any old headers
+        Object.keys(headers).forEach(header => {
+            if (!header.startsWith("x-cardsavr-") && header.toLowerCase() !== "content-type") {
+                headers["x-cardsavr-" + header] = headers[header];
+                delete headers[header];
+            }
+        });
+
         if (this._debug) {
             console.log("REQUEST " + method + " " + path);
             console.log(headers);
@@ -110,7 +118,7 @@ export class CardsavrSession {
             }
         }
 
-        let csr = null;
+        let csr : CardsavrSessionResponse;
         let config = {
             headers,
             method,
@@ -156,7 +164,7 @@ export class CardsavrSession {
         if (this._debug) {
             console.log("RESPONSE");
             console.log(csr.headers);
-            if (requestBody) {
+            if (csr.body) {
                 console.log(csr.body);
             }
         }
@@ -192,39 +200,32 @@ export class CardsavrSession {
         return await this.sendRequest(path, "DELETE", null, headersToAdd, cookiesEnforced);
     };
 
-    private _startSession = async(): Promise < any > => {
-
-        //if the user doesn't supply a trace (likely) or doesn't supply a trace key, just use the username
-        const startResponse = await this.get("/session/start", null, {}, false);
-        this.setSessionToken(startResponse.body.sessionToken);
-        return startResponse;
-    };
-
-    private _login = async(sessionSalt: string, username: string, password : string): Promise <unknown> => {
+    private _login = async(username: string, password : string): Promise <unknown> => {
 
         interface EncryptedLoginBody {
-            signedSalt ? : string,
-            clientPublicKey: string,
-            userName: string
+            password_proof ? : string,
+            client_public_key: string,
+            username: string
         }
-        const keyPair = await CardsavrCrypto.Keys.makeECDHkeyPair();
-        const clientPublicKey = await CardsavrCrypto.Keys.makeECDHPublicKey(keyPair);
+        const key_pair = await CardsavrCrypto.Keys.makeECDHkeyPair();
+        const client_public_key = await CardsavrCrypto.Keys.makeECDHPublicKey(key_pair);
 
-        const encryptedLoginBody : EncryptedLoginBody = {
-            userName : username,
-            clientPublicKey : clientPublicKey
+        const encrypted_login_body : EncryptedLoginBody = {
+            username,
+            client_public_key
         };
 
         if (password) {
             const passwordKey = await CardsavrCrypto.Keys.generatePasswordKey(username, password);
-            encryptedLoginBody["signedSalt"] = await CardsavrCrypto.Signing.signSaltWithPasswordKey(sessionSalt, passwordKey);
+            encrypted_login_body["password_proof"] = await CardsavrCrypto.Signing.signSaltWithPasswordKey(this._sessionData.sessionKey, passwordKey);
         } else {
             throw new CardsavrSDKError([], "Must include password to initialize session.");
         }
 
-        const loginResponse = await this.sendRequest("/session/login", "post", encryptedLoginBody);
-        this._sessionData.sessionKey = await CardsavrCrypto.Keys.makeECDHSecretKey(loginResponse.body.serverPublicKey, keyPair);
+        const loginResponse = await this.sendRequest("/session/login", "post", encrypted_login_body);
+        this._sessionData.sessionKey = await CardsavrCrypto.Keys.makeECDHSecretKey(loginResponse.body.server_public_key, key_pair);
         this._sessionData.userId = loginResponse.body.user_id;
+        this.setSessionToken(loginResponse.body.session_token);
         return loginResponse;
     };
 
@@ -238,8 +239,7 @@ export class CardsavrSession {
 
     init = async(username : string, password : string, trace ? : {[k: string]: unknown}): Promise < any > => {
         this.setTrace(username, trace);
-        const startResponse = await this._startSession();
-        return await this._login(startResponse.body.sessionSalt, username, password);
+        return await this._login(username, password);
     };
 
     end = async(): Promise < any > => {

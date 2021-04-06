@@ -76,7 +76,7 @@ export class Encryption {
 
             // Create new body to be placed in request payload (with $IV appended for additional uniqueness)
             const newBody = {
-                "encryptedBody" : encryptedJSON.toString("base64") + "$" + IV.toString("base64")
+                "encrypted_body" : encryptedJSON.toString("base64") + "$" + IV.toString("base64")
             };
 
             return newBody;
@@ -106,7 +106,7 @@ export class Encryption {
 
             // Create new body to be placed in request payload (with $IV appended for additional uniqueness)
             const newBody = {
-                "encryptedBody" : WebConversions.arrayBufferToBase64(encryptedKey) + "$" + WebConversions.arrayBufferToBase64(iv)
+                "encrypted_body" : WebConversions.arrayBufferToBase64(encryptedKey) + "$" + WebConversions.arrayBufferToBase64(iv)
             };
 
             return newBody;
@@ -122,7 +122,7 @@ export class Encryption {
             if (headers[safe_key_header]) {
 
                 const encryptedObj = await this.encryptAES256(b64Key, headers[safe_key_header]);
-                headers[safe_key_header] = encryptedObj.encryptedBody;
+                headers[safe_key_header] = encryptedObj.encrypted_body;
 
             }
         });
@@ -130,19 +130,19 @@ export class Encryption {
 
     static async decryptResponse(key: string, body: any) {
 
-        //handle bodies that don't have an encryptedBody property
-        if (!body || !Object.prototype.hasOwnProperty.call(body, "encryptedBody")) {
+        //handle bodies that don't have an encrypted_body property
+        if (!body || !Object.prototype.hasOwnProperty.call(body, "encrypted_body")) {
             return body;
         }
 
         // Parse tuple string into encrypted body and IV components
-        const stringParts = body.encryptedBody.split("$");
+        const stringParts = body.encrypted_body.split("$");
         if (stringParts[1].length != 24) {
             // Not a proper 16-byte base64-encoded IV
             throw new Error("Response body is not properly encrypted.");
         }
-
-        return await this.decryptAES256(stringParts[0], stringParts[1], key);
+        const req = this.decryptAES256(stringParts[0], stringParts[1], key);
+        return await req;
     }
 
     static async decryptAES256(b64cipherText: string, b64IV: string, b64Key: string) {
@@ -160,7 +160,7 @@ export class Encryption {
             const bodyBuffer = Buffer.alloc(length);
             bodyBuffer.write(b64cipherText, "base64");
 
-            const iv = Buffer.from(b64IV, 'base64');
+            const iv = Buffer.from(b64IV, "base64");
 
             const decryptor = crypto.createDecipheriv("aes-256-cbc", binaryEncryptionKey, iv);
             const decryptedJSON = Buffer.concat([decryptor.update(bodyBuffer), decryptor.final()]);

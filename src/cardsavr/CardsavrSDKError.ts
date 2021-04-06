@@ -9,7 +9,7 @@ export default class CardsavrSDKError extends Error {
     this.type = "CardsavrSDKError";
 
     if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, CardsavrSDKError)
+      Error.captureStackTrace(this, CardsavrSDKError);
     }
 
     Object.setPrototypeOf(this, CardsavrSDKError.prototype);
