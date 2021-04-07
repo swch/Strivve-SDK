@@ -1,7 +1,7 @@
 {
 	"info": {
-		"_postman_id": "d29c18e1-cbbe-4838-891e-8ce12714b445",
-		"name": "Single Job",
+		"_postman_id": "3b6da46a-87a7-4592-ac60-48df7f6f4849",
+		"name": "Single Job v2 headers",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -32,8 +32,8 @@
 						"value": "{\"key\": \"my_trace\"}"
 					},
 					{
-						"key": "x-cardsavr-session-jwt",
-						"value": "null",
+						"key": "",
+						"value": "",
 						"type": "text",
 						"disabled": true
 					}
@@ -188,7 +188,7 @@
 						"type": "text"
 					},
 					{
-						"key": "trace",
+						"key": "x-cardsavr-trace",
 						"value": "{\"key\": \"my_trace\"}"
 					},
 					{
