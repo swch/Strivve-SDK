@@ -4,13 +4,17 @@ const { exit } = require("process");
 const rl = require("readline-sync");
 require('log-timestamp');
 
-const instance = rl.question("Instance: ");
-
 const config = require("./strivve_creds.json");
-const {app_name, app_key, app_username, app_password, cardsavr_server } = getFromEnv(config[instance ? instance : config.instance], process.env);
+const instance = rl.question("Instance: ") ?? config.instance;
 
-function getFromEnv(config, env) {
-    return Object.fromEntries(Object.entries(config).map(([key, value]) => env[key] ? [key, env[key]] : [key, value]));
+const {app_name, app_key, app_username, app_password, cardsavr_server } = 
+    getFromEnv(instance && config.instances ? 
+               config.instances.find(item => item.instance == config.instance) : 
+               config, 
+               process.env);
+
+function getFromEnv(top_config, env) {
+    return Object.fromEntries(Object.entries(top_config).map(([key, value]) => env[key] ? [key, env[key]] : [key, value]));
 }
 
 const cardholder_data = getFromEnv(require("./cardholder.json"), process.env);

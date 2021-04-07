@@ -381,13 +381,16 @@ export class CardsavrHelper {
                 this._user_probe = setInterval(async () => { 
                     const messages = await session.getCardholderMessages(cardholder_id);
                     if (messages.body) {
-                        messages.body.map((item: any) => {
-                            const handler = this._jobs.get(+item.job_id);
-                            if (handler) { handler(item); }
-                            
+                        messages.body.map(async (item: any) => {
                             if (item.type === "job_status") {
+                                const handler = this._jobs.get(+item.job_id);
+                                if (handler) { handler(item); }
                                 if (item.message.termination_type || item.message.percent_complete == 100) { //job is completed, stop probing
                                     this.removeJob(+item.job_id);
+                                } else if (item.message.status.startsWith("PENDING_")) {
+                                    const job = await session.getSingleSiteJobs(job_id, {}, {"x-cardsavr-hydration" : JSON.stringify(["credential_requests"]) });
+                                    console.log("JOB IS PENDING " + item.message.status + " and there are " + job.body.credential_requests.length + " credential requests returned for this job");
+                                    if (handler && job.body.credential_requests[0]) { handler(job.body.credential_requests[0]); }
                                 }
                             }
                         });

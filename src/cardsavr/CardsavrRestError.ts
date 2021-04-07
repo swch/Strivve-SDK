@@ -38,7 +38,4 @@ Plural post
     
     Response.body._errors
     Response.body[0]._errors
-*/    
-
-
-        
+*/
