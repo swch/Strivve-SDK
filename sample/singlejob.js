@@ -5,11 +5,13 @@ const rl = require("readline-sync");
 require('log-timestamp');
 
 const config = require("./strivve_creds.json");
-const instance = rl.question("Instance: ") ?? config.instance;
+
+let instance = rl.question("Instance: ");
+instance = instance ? instance : config.instance;
 
 const {app_name, app_key, app_username, app_password, cardsavr_server } = 
     getFromEnv(instance && config.instances ? 
-               config.instances.find(item => item.instance == config.instance) : 
+               config.instances.find(item => (item.instance == instance)) : 
                config, 
                process.env);
 
@@ -47,7 +49,8 @@ async function placeCard() {
                                                         cardholder_data, 
                                                         merchant_creds: creds_data, 
                                                         address_data, 
-                                                        card_data});
+                                                        card_data,
+                                                        type: "TURBO_MODE"});
         //await session.authorizeCardholder(job.cardholder.grant);
 
         creds_data.username = rl.question("Username: ");
