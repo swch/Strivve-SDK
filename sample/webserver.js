@@ -40,8 +40,13 @@ app.use(express.static(static_dir));
 app.listen(port, () => console.log(`CardUpdatr Demo app listening at ${port}`));
 
 const config = require("./strivve_creds.json");
-const {app_name, app_key, app_username, app_password, cardsavr_server } = getFromEnv(config[config.instance], process.env);
+const instance = config.instance;
+const {app_name, app_key, app_username, app_password, cardsavr_server } = 
+    getFromEnv(instance && config.instances ? 
+               config.instances.find(item => (item.instance == instance)) : 
+               config, 
+               process.env);
 
-function getFromEnv(config, env) {
-    return Object.fromEntries(Object.entries(config).map(([key, value]) => env[key] ? [key, env[key]] : [key, value]));
+function getFromEnv(top_config, env) {
+    return Object.fromEntries(Object.entries(top_config).map(([key, value]) => env[key] ? [key, env[key]] : [key, value]));
 }
