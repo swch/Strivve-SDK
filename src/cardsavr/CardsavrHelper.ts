@@ -389,7 +389,7 @@ export class CardsavrHelper {
                                 if (item.message.termination_type || item.message.percent_complete == 100) { //job is completed, stop probing
                                     this.removeJob(+item.job_id);
                                 } else if (item.message.status.startsWith("PENDING_NEWCREDS") || item.message.status.startsWith("PENDING_TFA")) {
-                                    const job = await session.getSingleSiteJobs(job_id, {}, {"x-cardsavr-hydration" : JSON.stringify(["credential_requests"]) });
+                                    const job = await session.getSingleSiteJobs(item.job_id, {}, {"x-cardsavr-hydration" : JSON.stringify(["credential_requests"]) });
                                     console.log("JOB IS PENDING " + item.message.status + " and there are " + job.body.credential_requests.length + " credential requests returned for this job");
                                     if (handler && job.body.credential_requests[0]) { handler(job.body.credential_requests[0]); }
                                 }
