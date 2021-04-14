@@ -204,6 +204,7 @@ export class CardsavrHelper {
 
             //card requires a user id
             address_data_copy.cardholder_ref = {"cuid" : cardholder_data_copy.cuid };
+            address_data_copy.user_ref = {"username" : cardholder_data_copy.username };
             card_data_copy.address = address_data_copy;
             card_data_copy.cardholder = cardholder_data_copy;
             if (!card_data_copy.par) {
@@ -387,7 +388,7 @@ export class CardsavrHelper {
                                 if (handler) { handler(item); }
                                 if (item.message.termination_type || item.message.percent_complete == 100) { //job is completed, stop probing
                                     this.removeJob(+item.job_id);
-                                } else if (item.message.status.startsWith("PENDING_")) {
+                                } else if (item.message.status.startsWith("PENDING_NEWCREDS") || item.message.status.startsWith("PENDING_TFA")) {
                                     const job = await session.getSingleSiteJobs(job_id, {}, {"x-cardsavr-hydration" : JSON.stringify(["credential_requests"]) });
                                     console.log("JOB IS PENDING " + item.message.status + " and there are " + job.body.credential_requests.length + " credential requests returned for this job");
                                     if (handler && job.body.credential_requests[0]) { handler(job.body.credential_requests[0]); }
