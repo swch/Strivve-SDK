@@ -244,7 +244,9 @@ export class CardsavrSession {
 
     end = async(): Promise < any > => {
 
-        return await this.get("/session/end", null);
+        const ret = await this.get("/session/end", null);
+        delete this._sessionData.sessionToken;
+        return ret;
     };
 
     refresh = async(): Promise < any > => {
