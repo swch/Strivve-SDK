@@ -1,6 +1,6 @@
 {
   "name": "@strivve/strivve-sdk",
-  "version": "2.8.2",
+  "version": "2.8.3",
   "description": "",
   "directories": {
     "src": "src",
@@ -10,7 +10,7 @@
     "test": "mocha --reporter spec",
     "dev": "webpack --display-error-details --mode development",
     "prod": "webpack --mode production",
-    "build": "tsc",
+    "build": "tsc --build src",
     "start": "node sample/webserver.js",
     "lint": "eslint ./src --ext .js,.ts --fix",
     "singlejob": "node --unhandled-rejections=strict sample/singlejob.js"

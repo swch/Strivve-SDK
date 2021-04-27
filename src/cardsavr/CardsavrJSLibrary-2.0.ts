@@ -7,6 +7,7 @@ import * as CardsavrSessionUtilities from "./CardsavrSessionUtilities";
 import * as CardsavrCrypto from "./CardsavrSessionCrypto";
 import fetch from "node-fetch";
 import { Agent as HTTPSAgent } from "https";
+import {version} from "../../package.json";
 
 export class CardsavrSession {
 
@@ -33,7 +34,7 @@ export class CardsavrSession {
         this.setSessionToken("null");
 
         this.setSessionHeaders({
-            "client-application" : appName,
+            "x-cardsavr-client-application" : `${appName} - Strivve SDK v${version}`,
         });
     }
 
@@ -87,7 +88,7 @@ export class CardsavrSession {
         });
     }
 
-    sendRequest = async(path: string, method: "get" | "GET" | "delete" | "DELETE" | "head" | "HEAD" | "options" | "OPTIONS" | "post" | "POST" | "put" | "PUT" | "patch" | "PATCH" | undefined, requestBody ? : any, headersToAdd = {}, cookiesEnforced = true): Promise < any > => {
+    sendRequest = async(path: string, method: "get" | "GET" | "delete" | "DELETE" | "head" | "HEAD" | "options" | "OPTIONS" | "post" | "POST" | "put" | "PUT" | "patch" | "PATCH" | undefined, requestBody ? : any, headersToAdd = {}): Promise < any > => {
 
         const headers = Object.assign({}, this._headers, headersToAdd);
         const unencryptedBody = requestBody;
@@ -101,14 +102,6 @@ export class CardsavrSession {
         }
         const authHeaders = await CardsavrCrypto.Signing.signRequest(path, this._appName, sessionKey, requestBody);
         Object.assign(headers, authHeaders);
-
-        //DELETE once guaranteed we don't need any old headers
-        Object.keys(headers).forEach(header => {
-            if (!header.startsWith("x-cardsavr-") && header.toLowerCase() !== "content-type") {
-                headers["x-cardsavr-" + header] = headers[header];
-                delete headers[header];
-            }
-        });
 
         if (this._debug) {
             console.log("REQUEST " + method + " " + path);
@@ -172,32 +165,32 @@ export class CardsavrSession {
         return csr;
     };
 
-    get = async(path: string, filter: any, headersToAdd = {}, cookiesEnforced = true): Promise < any > => {
+    get = async(path: string, filter: any, headersToAdd = {}): Promise < any > => {
 
         path = CardsavrSessionUtilities.formatPath(path, filter);
 
-        return await this.sendRequest(path, "GET", null, headersToAdd, cookiesEnforced);
+        return await this.sendRequest(path, "GET", null, headersToAdd);
     };
 
-    post = async(path: string, body: any, headersToAdd = {}, cookiesEnforced = true): Promise < any > => {
+    post = async(path: string, body: any, headersToAdd = {}): Promise < any > => {
 
         path = CardsavrSessionUtilities.formatPath(path, null);
         
-        return await this.sendRequest(path, "POST", body, headersToAdd, cookiesEnforced);
+        return await this.sendRequest(path, "POST", body, headersToAdd);
     };
 
-    put = async(path: string, filter: any, body: any, headersToAdd = {}, cookiesEnforced = true): Promise < any > => {
+    put = async(path: string, filter: any, body: any, headersToAdd = {}): Promise < any > => {
 
         path = CardsavrSessionUtilities.formatPath(path, filter);
 
-        return await this.sendRequest(path, "PUT", body, headersToAdd, cookiesEnforced);
+        return await this.sendRequest(path, "PUT", body, headersToAdd);
     };
 
-    delete = async(path: string, filter: any, headersToAdd = {}, cookiesEnforced = true): Promise < any > => {
+    delete = async(path: string, filter: any, headersToAdd = {}): Promise < any > => {
 
         path = CardsavrSessionUtilities.formatPath(path, filter);
 
-        return await this.sendRequest(path, "DELETE", null, headersToAdd, cookiesEnforced);
+        return await this.sendRequest(path, "DELETE", null, headersToAdd);
     };
 
     private _login = async(username: string, password : string): Promise <unknown> => {
@@ -234,7 +227,7 @@ export class CardsavrSession {
             trace = {};
         if (trace instanceof Object && !trace.key)
             trace.key = username;
-        this.setSessionHeaders({ "trace" : JSON.stringify(trace) });
+        this.setSessionHeaders({ "x-cardsavr-trace" : JSON.stringify(trace) });
     }
 
     init = async(username : string, password : string, trace ? : {[k: string]: unknown}): Promise < any > => {
@@ -257,7 +250,7 @@ export class CardsavrSession {
     getAccounts = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
         if (Object.keys(pagingHeader).length > 0) {
             pagingHeader = {
-                paging : JSON.stringify(pagingHeader)
+                "x-cardsavr-paging" : JSON.stringify(pagingHeader)
             };
             Object.assign(headersToAdd, pagingHeader);
         }
@@ -291,7 +284,7 @@ export class CardsavrSession {
     getAddresses = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
         if (Object.keys(pagingHeader).length > 0) {
             pagingHeader = {
-                paging : JSON.stringify(pagingHeader)
+                "x-cardsavr-paging" : JSON.stringify(pagingHeader)
             };
             Object.assign(headersToAdd, pagingHeader);
         }
@@ -313,7 +306,7 @@ export class CardsavrSession {
     getFinancialInstitutions = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
         if (Object.keys(pagingHeader).length > 0) {
             pagingHeader = {
-                paging : JSON.stringify(pagingHeader)
+                "x-cardsavr-paging" : JSON.stringify(pagingHeader)
             };
             Object.assign(headersToAdd, pagingHeader);
         }
@@ -335,7 +328,7 @@ export class CardsavrSession {
     getCards = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
         if (Object.keys(pagingHeader).length > 0) {
             pagingHeader = {
-                paging : JSON.stringify(pagingHeader)
+                "x-cardsavr-paging" : JSON.stringify(pagingHeader)
             };
             Object.assign(headersToAdd, pagingHeader);
         }
@@ -361,7 +354,7 @@ export class CardsavrSession {
     getCardPlacementResults = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
         if (Object.keys(pagingHeader).length > 0) {
             pagingHeader = {
-                paging : JSON.stringify(pagingHeader)
+                "x-cardsavr-paging" : JSON.stringify(pagingHeader)
             };
             Object.assign(headersToAdd, pagingHeader);
         }
@@ -371,7 +364,7 @@ export class CardsavrSession {
     getIntegrators = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
         if (Object.keys(pagingHeader).length > 0) {
             pagingHeader = {
-                paging : JSON.stringify(pagingHeader)
+                "x-cardsavr-paging" : JSON.stringify(pagingHeader)
             };
             Object.assign(headersToAdd, pagingHeader);
         }
@@ -397,7 +390,7 @@ export class CardsavrSession {
     getMerchantSites = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
         if (Object.keys(pagingHeader).length > 0) {
             pagingHeader = {
-                paging : JSON.stringify(pagingHeader)
+                "x-cardsavr-paging" : JSON.stringify(pagingHeader)
             };
             Object.assign(headersToAdd, pagingHeader);
         }
@@ -456,7 +449,7 @@ export class CardsavrSession {
     getUsers = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
         if (Object.keys(pagingHeader).length > 0) {
             pagingHeader = {
-                paging : JSON.stringify(pagingHeader)
+                "x-cardsavr-paging" : JSON.stringify(pagingHeader)
             };
             Object.assign(headersToAdd, pagingHeader);
         }
@@ -465,7 +458,7 @@ export class CardsavrSession {
 
     createUser = async(body: any, financial_institution = "default", headersToAdd = {}): Promise < any > => {
         Object.assign(headersToAdd, {
-            "financial-institution" : financial_institution
+            "x-cardsavr-financial-institution" : financial_institution
         });
         return await this.post("/cardsavr_users", body, headersToAdd);
     };
@@ -489,7 +482,7 @@ export class CardsavrSession {
     getCardholders = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
         if (Object.keys(pagingHeader).length > 0) {
             pagingHeader = {
-                paging : JSON.stringify(pagingHeader)
+                "x-cardsavr-paging" : JSON.stringify(pagingHeader)
             };
             Object.assign(headersToAdd, pagingHeader);
         }
@@ -503,7 +496,7 @@ export class CardsavrSession {
         }
 
         Object.assign(headersToAdd, {
-            "financial-institution" : financial_institution
+            "x-cardsavr-financial-institution" : financial_institution
         });
         if (safeKey) {
             Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
@@ -532,7 +525,7 @@ export class CardsavrSession {
     getSingleSiteJobs = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
         if (Object.keys(pagingHeader).length > 0) {
             pagingHeader = {
-                paging : JSON.stringify(pagingHeader)
+                "x-cardsavr-paging" : JSON.stringify(pagingHeader)
             };
             Object.assign(headersToAdd, pagingHeader);
         }
@@ -571,7 +564,7 @@ export class CardsavrSession {
     getJobResults = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
         if (Object.keys(pagingHeader).length > 0) {
             pagingHeader = {
-                paging : JSON.stringify(pagingHeader)
+                "x-cardsavr-paging" : JSON.stringify(pagingHeader)
             };
             Object.assign(headersToAdd, pagingHeader);
         }

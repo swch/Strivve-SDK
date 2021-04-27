@@ -216,9 +216,9 @@ export class Signing {
         const signature = await this.hmacSign(stringToSign, sessionKey);
 
         return {
-            authorization,
-            nonce,
-            signature
+            "x-cardsavr-authorization" : authorization,
+            "x-cardsavr-nonce" : nonce,
+            "x-cardsavr-signature" : signature
         };
     }
 
@@ -275,7 +275,7 @@ export class Signing {
 
 export class Keys {
 
-    static async generatePasswordKey(username: string, clearTextPassword: string) {
+    static async generatePasswordKey(username: string, clearTextPassword: string) : Promise<string> {
 
         const salt = await Signing.sha256Hash(username);
         const key = await this.sha256pbkdf2(clearTextPassword, salt, 5000);
@@ -283,7 +283,7 @@ export class Keys {
         return !browserCrypto ? (key as Buffer).toString("base64") : WebConversions.arrayBufferToBase64(key);
     }
 
-    static async generateCardholderSafeKey(username: string) {
+    static async generateCardholderSafeKey(username: string) : Promise<string> {
 
         if (!browserCrypto) {
 

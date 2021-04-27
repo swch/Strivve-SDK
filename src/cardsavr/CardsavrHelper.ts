@@ -212,8 +212,8 @@ export class CardsavrHelper {
             }
 
             const headers : {[k: string]: string} = 
-                {"financial-institution" : financial_institution, 
-                "hydration" : JSON.stringify(["cardholder"])};
+                {"x-cardsavr-financial-institution" : financial_institution, 
+                "x-cardsavr-hydration" : JSON.stringify(["cardholder"])};
 
             const card_response = await agent_session.createCard(card_data_copy, safe_key, headers);     
      
@@ -251,8 +251,8 @@ export class CardsavrHelper {
             const job_data = {"status" : "REQUESTED", "cardholder" : cardholder_data, "card" : card_data, "account" : merchant_creds, type};
 
             const headers : {[k: string]: string} = 
-                {"financial-institution" : financial_institution, 
-                "hydration" : JSON.stringify(["user", "account"])};
+                {"x-cardsavr-financial-institution" : financial_institution, 
+                "x-cardsavr-hydration" : JSON.stringify(["user", "account"])};
 
             const response = await agent_session.createSingleSiteJob(job_data, safe_key, headers);
             return response.body;
