@@ -3,7 +3,7 @@ import * as crypto from "crypto";
 
 export const generateHydrationHeader = (hydrationArray: any) : any => {
     const stringifiedHeader = JSON.stringify(hydrationArray);
-    return {"hydration" : stringifiedHeader};
+    return {"x-cardsavr-hydration" : stringifiedHeader};
 };
 
 const _stringReplaceAll = function (string: any, find: string, replace: string) {
