@@ -303,6 +303,28 @@ export class CardsavrSession {
         return await this.delete("/cardsavr_addresses", id, headersToAdd);
     };
 
+    getBins = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
+        if (Object.keys(pagingHeader).length > 0) {
+            pagingHeader = {
+                "x-cardsavr-paging" : JSON.stringify(pagingHeader)
+            };
+            Object.assign(headersToAdd, pagingHeader);
+        }
+        return await this.get("/cardsavr_bins", filter, headersToAdd);
+    };
+
+    createBin = async(body: any, headersToAdd = {}): Promise < any > => {
+        return await this.post("/cardsavr_bins", body, headersToAdd);
+    };
+
+    updateBin = async(id: number, body: any, headersToAdd = {}): Promise < any > => {
+        return await this.put("/cardsavr_bins", id, body, headersToAdd);
+    };
+
+    deleteBin = async(id: number, headersToAdd = {}): Promise < any > => {
+        return await this.delete("/cardsavr_bins", id, headersToAdd);
+    };
+
     getFinancialInstitutions = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
         if (Object.keys(pagingHeader).length > 0) {
             pagingHeader = {
