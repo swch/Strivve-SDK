@@ -60,9 +60,9 @@ export class CardsavrSession {
 
     private _makeSafeKeyHeader = (safeKey: string, newKey = false): {[key: string]: string} => {
         return newKey ? {
-            "new-cardholder-safe-key" : safeKey
+            "x-cardsavr-new-cardholder-safe-key" : safeKey
         } : {
-            "cardholder-safe-key" : safeKey
+            "x-cardsavr-cardholder-safe-key" : safeKey
         };
     };
 
