@@ -117,7 +117,7 @@ export class Encryption {
 
     static encryptSafeKeys(headers: any, b64Key: string) {
 
-        const safe_key_headers = ["new-cardholder-safe-key", "cardholder-safe-key"];
+        const safe_key_headers = ["x-cardsavr-new-cardholder-safe-key", "x-cardsavr-cardholder-safe-key"];
         safe_key_headers.forEach(async(safe_key_header) => {
             if (headers[safe_key_header]) {
 
