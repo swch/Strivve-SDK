@@ -5,6 +5,7 @@ import CardsavrSessionResponse from "./CardsavrSessionResponse";
 import { generateRandomPar, localStorageAvailable, generateUniqueUsername } from "./CardsavrSessionUtilities";
 import CardsavrSDKError from "./CardsavrSDKError";
 import CardsavrRestError from "./CardsavrRestError";
+import { forEach } from "lodash";
 
 type MessageHandler = (str: string) => void;
 type cardholder_data = {[k: string]: any};
@@ -385,18 +386,27 @@ export class CardsavrHelper {
                         messages.body.map(async (item: any) => {
                             if (item.type === "job_status") {
                                 const handler = this._jobs.get(+item.job_id);
-                                if (handler) { handler(item); }
+                                if (handler) { 
+                                    handler(item); 
+                                    if (item.message.status.startsWith("PENDING_NEWCREDS") || item.message.status.startsWith("PENDING_TFA")) {
+                                        [1,2].forEach(async idx => {
+                                            const job = await session.getSingleSiteJobs(item.job_id, {}, {"x-cardsavr-hydration" : JSON.stringify(["credential_requests"]) });
+                                            if (job.body.credential_requests[0]) {
+                                                console.log("JOB IS PENDING " + item.message.status + " and there are " + job.body.credential_requests.length + " credential requests returned for this job");
+                                                handler(job.body.credential_requests[0]);
+                                            } else if (idx == 1) { //this is because TURBO_MODE sometimes sends the pending message a little too early
+                                                await new Promise(resolve => setTimeout(resolve, 2000));
+                                            } //if idx == 2, we are kind of screwed, and we should simply keep polling until the job times out
+                                        });
+                                    }
+                                }
                                 if (item.message.termination_type || item.message.percent_complete == 100) { //job is completed, stop probing
                                     this.removeJob(+item.job_id);
-                                } else if (item.message.status.startsWith("PENDING_NEWCREDS") || item.message.status.startsWith("PENDING_TFA")) {
-                                    const job = await session.getSingleSiteJobs(item.job_id, {}, {"x-cardsavr-hydration" : JSON.stringify(["credential_requests"]) });
-                                    console.log("JOB IS PENDING " + item.message.status + " and there are " + job.body.credential_requests.length + " credential requests returned for this job");
-                                    if (handler && job.body.credential_requests[0]) { handler(job.body.credential_requests[0]); }
                                 }
                             }
                         });
                     }
-                }, interval < 1000 ? 1000 : interval);
+                }, interval < 2000 ? 2000 : interval);
             }
             this._jobs.set(job_id, callback);
         } catch(err) {
