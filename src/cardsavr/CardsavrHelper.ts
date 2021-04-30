@@ -5,7 +5,6 @@ import CardsavrSessionResponse from "./CardsavrSessionResponse";
 import { generateRandomPar, localStorageAvailable, generateUniqueUsername } from "./CardsavrSessionUtilities";
 import CardsavrSDKError from "./CardsavrSDKError";
 import CardsavrRestError from "./CardsavrRestError";
-import { forEach } from "lodash";
 
 type MessageHandler = (str: string) => void;
 type cardholder_data = {[k: string]: any};
