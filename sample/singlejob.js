@@ -88,7 +88,7 @@ async function placeCard() {
                 console.log("Please check your device for a verification link.");
             }
         }, 
-        timeout : 2000});
+        interval : 2000});
     }
 }
 

@@ -372,7 +372,7 @@ export class CardsavrHelper {
     public async pollOnJob(poll_on_job_config: pollOnJobParams) : Promise<void> {
         this.pollOnCardholderJob(poll_on_job_config);
     }
-    
+
     public async pollOnCardholderJob(poll_on_job_config : pollOnJobParams) : Promise<void> {
         const { username, job_id, cardholder_id, callback, interval = 5000 } = poll_on_job_config;
         try {
@@ -388,15 +388,18 @@ export class CardsavrHelper {
                                 if (handler) { 
                                     handler(item); 
                                     if (item.message.status.startsWith("PENDING_NEWCREDS") || item.message.status.startsWith("PENDING_TFA")) {
-                                        [1,2].forEach(async idx => {
+                                        let tries = 2;
+                                        while (tries-- >= 0) {
                                             const job = await session.getSingleSiteJobs(item.job_id, {}, {"x-cardsavr-hydration" : JSON.stringify(["credential_requests"]) });
                                             if (job.body.credential_requests[0]) {
                                                 console.log("JOB IS PENDING " + item.message.status + " and there are " + job.body.credential_requests.length + " credential requests returned for this job");
                                                 handler(job.body.credential_requests[0]);
-                                            } else if (idx == 1) { //this is because TURBO_MODE sometimes sends the pending message a little too early
+                                                break;
+                                            } else if (tries == 1) {
+                                                console.log("JOB IS PENDING " + item.message.status + " and there are no credential requests, let's try one more time");
                                                 await new Promise(resolve => setTimeout(resolve, 2000));
-                                            } //if idx == 2, we are kind of screwed, and we should simply keep polling until the job times out
-                                        });
+                                            }
+                                        }
                                     }
                                 }
                                 if (item.message.termination_type || item.message.percent_complete == 100) { //job is completed, stop probing
