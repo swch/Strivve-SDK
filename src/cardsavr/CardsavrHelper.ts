@@ -5,6 +5,7 @@ import CardsavrSessionResponse from "./CardsavrSessionResponse";
 import { generateRandomPar, localStorageAvailable, generateUniqueUsername } from "./CardsavrSessionUtilities";
 import CardsavrSDKError from "./CardsavrSDKError";
 import CardsavrRestError from "./CardsavrRestError";
+import { exception } from "console";
 
 type MessageHandler = (str: string) => void;
 type cardholder_data = {[k: string]: any};
@@ -398,6 +399,8 @@ export class CardsavrHelper {
                                             } else if (tries == 1) {
                                                 console.log("JOB IS PENDING " + item.message.status + " and there are no credential requests, let's try one more time");
                                                 await new Promise(resolve => setTimeout(resolve, 2000));
+                                            } else {
+                                                throw new CardsavrSDKError([], "Fatal error, no credential request found for this job.");
                                             }
                                         }
                                     }
