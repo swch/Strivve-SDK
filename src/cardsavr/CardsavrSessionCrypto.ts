@@ -1,6 +1,7 @@
 import * as crypto from "crypto";
 
-const browserCrypto = (typeof window === "undefined") ? false : window.crypto;
+//browserCrypto will be false for both node AND IE11 AND Advancial because they are destroying window.crypto contents
+const browserCrypto = (typeof window === "undefined" || !window.crypto?.subtle) ? false : window.crypto;
 
 class WebConversions {
 

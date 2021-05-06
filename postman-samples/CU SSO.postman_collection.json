@@ -135,7 +135,7 @@
 			"response": []
 		},
 		{
-			"name": "3 Lookup Card",
+			"name": "2.1 Lookup Card",
 			"event": [
 				{
 					"listen": "test",
@@ -190,7 +190,7 @@
 			"response": []
 		},
 		{
-			"name": "3 Lookup Cardholder",
+			"name": "2.2 Lookup Cardholder",
 			"event": [
 				{
 					"listen": "test",
@@ -245,7 +245,7 @@
 			"response": []
 		},
 		{
-			"name": "4 Session Login Copy (switch to cardholder agent!)",
+			"name": "3 Session Login (switch to cardholder agent!)",
 			"event": [
 				{
 					"listen": "test",
@@ -300,7 +300,7 @@
 			"response": []
 		},
 		{
-			"name": "5 Authorize Cardholder",
+			"name": "4 Authorize Cardholder",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -361,10 +361,22 @@
 			"response": []
 		},
 		{
-			"name": "5 Lookup Cardholder",
+			"name": "5 POST Job",
 			"event": [
 				{
 					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = JSON.parse(responseBody)",
+							"pm.collectionVariables.set(\"JOB_ID\", response.id);",
+							"pm.collectionVariables.set(\"ACCOUNT_ID\", response.account_id);",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
 					"script": {
 						"exec": [
 							""
@@ -373,15 +385,17 @@
 					}
 				}
 			],
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
 			"request": {
-				"method": "GET",
+				"method": "POST",
 				"header": [
 					{
 						"key": "Content-Type",
 						"value": "application/json"
+					},
+					{
+						"key": "x-cardsavr-financial-institution",
+						"value": "default",
+						"type": "text"
 					},
 					{
 						"key": "x-cardsavr-trace",
@@ -389,16 +403,15 @@
 					},
 					{
 						"key": "x-cardsavr-session-jwt",
-						"value": "{{JWT_TOKEN}}",
-						"type": "text"
+						"value": "{{JWT_TOKEN}}"
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": ""
+					"raw": "{\r\n  \"status\": \"REQUESTED\",\r\n  \"type\": \"TURBO_MODE\",\r\n  \"cardholder_id\": \"{{CARDHOLDER_ID}}\",\r\n  \"account\":\r\n    {\r\n      \"cardholder_id\": \"{{CARDHOLDER_ID}}\",\r\n      \"merchant_site_id\":1,\r\n      \"username\":\"good_email\", \r\n      \"password\":\"no_tfa\"\r\n    }\r\n}"
 				},
 				"url": {
-					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/cardholders/{{CARDHOLDER_ID}}",
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/place_card_on_single_site_jobs",
 					"protocol": "https",
 					"host": [
 						"api",
@@ -408,8 +421,7 @@
 					],
 					"port": "{{PORT}}",
 					"path": [
-						"cardholders",
-						"{{CARDHOLDER_ID}}"
+						"place_card_on_single_site_jobs"
 					]
 				}
 			},
@@ -419,7 +431,7 @@
 	"variable": [
 		{
 			"key": "JWT_TOKEN",
-			"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI0OThlNmI0My03YWQ0LTRiYjktYWU4Ny03NGIwMjk2MTNkODEiLCJpc3MiOiJhcGkubG9jYWxob3N0LmNhcmRzYXZyLmlvIiwiYXVkIjoiYXBpLmxvY2FsaG9zdC5jYXJkc2F2ci5pbyIsImlhdCI6MTYxODM0MzE0N30.r6U-xesY0PP0QNJ2HaocUOTufZQiTrxe7IPorS6xIsc"
+			"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJmMjgwYzgwMy05MWU1LTQ3ODgtYTEyNy0zMTUwNzJlN2EzOTIiLCJpc3MiOiJhcGkubG9jYWxob3N0LmNhcmRzYXZyLmlvIiwiYXVkIjoiYXBpLmxvY2FsaG9zdC5jYXJkc2F2ci5pbyIsImlhdCI6MTYxOTA0MDc2MX0.33yOQ8K8svUYbx_hL7LClpxuaxzrO5ZKmSYLDTQcKPw"
 		},
 		{
 			"key": "CARDHOLDER_CUID",
@@ -427,7 +439,7 @@
 		},
 		{
 			"key": "CARDHOLDER_ID",
-			"value": 235
+			"value": 807
 		},
 		{
 			"key": "ACCOUNT_ID",
@@ -435,11 +447,11 @@
 		},
 		{
 			"key": "CARD_ID",
-			"value": 201
+			"value": 441
 		},
 		{
 			"key": "GRANT",
-			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJhcGkubG9jYWxob3N0LmNhcmRzYXZyLmlvIiwic3ViIjoiQ2FyZGhvbGRlci1BY2Nlc3MtR3JhbnQ7MjM1OzE2MTgzNDMxNDE3NDIiLCJhdWQiOiJhcGkubG9jYWxob3N0LmNhcmRzYXZyLmlvIiwiZXhwIjoxNjE4MzQzNzQxLCJpYXQiOjE2MTgzNDMxNDF9.RCGRIFMscjJDMYm+rSi+bT4A0pN0ocjXEu08WWdHOcg="
+			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJhcGkubG9jYWxob3N0LmNhcmRzYXZyLmlvIiwic3ViIjoiQ2FyZGhvbGRlci1BY2Nlc3MtR3JhbnQ7ODA3OzE2MTkwNDA1NDI1MDgiLCJhdWQiOiJhcGkubG9jYWxob3N0LmNhcmRzYXZyLmlvIiwiZXhwIjoxNjE5MDQxMTQyLCJpYXQiOjE2MTkwNDA1NDJ9.L8I3b6zcnmP/1lfHp1VqX8mbvGiNz7/62RJoEyNPstU="
 		}
 	]
 }

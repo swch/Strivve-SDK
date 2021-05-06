@@ -49,8 +49,8 @@ async function placeCard() {
                                                         cardholder_data, 
                                                         merchant_creds: creds_data, 
                                                         address_data, 
-                                                        card_data,
-                                                        type: "TURBO_MODE"});
+                                                        card_data/*,
+                                                        type: "TURBO_MODE"*/});
         //await session.authorizeCardholder(job.cardholder.grant);
 
         creds_data.username = rl.question("Username: ");
