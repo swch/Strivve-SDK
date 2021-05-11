@@ -43,15 +43,17 @@ async function placeCard() {
             const site = await ch.lookupMerchantSite(app_username, merchant_site);
             creds_data.merchant_site_id = site.id;
         }
+
+        card_data.address = address_data;
         
         const job = await ch.placeCardOnSiteSingleCall({username: app_username, 
                                                         financial_institution: "default", 
-                                                        cardholder_data, 
-                                                        merchant_creds: creds_data, 
-                                                        address_data, 
-                                                        card_data/*,
-                                                        type: "TURBO_MODE"*/});
-        //await session.authorizeCardholder(job.cardholder.grant);
+                                                        job_data: {
+                                                            cardholder: cardholder_data, 
+                                                            account: creds_data, 
+                                                            card: card_data/*,
+                                                            type: "TURBO_MODE"*/
+                                                        }});
 
         creds_data.username = rl.question("Username: ");
         creds_data.password = rl.question("Password: ", { hideEchoBack: true });

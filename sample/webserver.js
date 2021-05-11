@@ -22,7 +22,9 @@ app.get("/create_user", function (req, res) {
             if (await ch.loginAndCreateSession(app_username, app_password)) {
 
                 //Save the card on a behalf of a temporary cardholder - return their username, grant, card par
-                const card_response = await ch.createCard({agent_username: app_username, financial_institution: "default", cardholder_data, address_data, card_data});
+                card_data.address = address_data;
+                card_data.cardholder = cardholder_data;
+                const card_response = await ch.createCard({agent_username: app_username, financial_institution: "default", card: card_data});
                 const handoff = { grant : card_response.cardholder.grant, card_id : card_response.id };
                 const queryString = Object.keys(handoff).map(key => key + "=" + encodeURIComponent(handoff[key])).join("&");
                 res.redirect(cu + "#" + queryString);
