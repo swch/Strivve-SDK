@@ -290,15 +290,7 @@ export class CardsavrHelper {
             try {
                 jobs_data.forEach(job => {
                     job.account.cardholder_id = job.account.cardholder_id ?? job.cardholder_id;
-
-                    jobs.push({
-                        cardholder_id : job.cardholder_id,
-                        card_id : job.card_id,
-                        account : job.account,
-                        user_is_present : true,
-                        status : job.status,
-                        type : job.type    
-                    });
+                    jobs.push(job);
                 });
                 return await session.createSingleSiteJobs(jobs, safe_key);
             } catch(err) {
