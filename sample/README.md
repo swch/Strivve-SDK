@@ -32,7 +32,7 @@ npm install @strivve/strivve-sdk
 
 ## Quick Start Guide
 
-The Strivve Javascript SDK library is built around a class, CardsavrSession. To start using the library, you must instantiate a new CardsavrSession object.  This requires the following items in a strivve_creds.json file located in the "sample" directory.  There is a sample file in the root of the repo:
+The Strivve Javascript SDK library is built around a class, CardsavrSession. To start using the library, you must instantiate a new CardsavrSession object.  This requires the following items in a strivve_creds.json file located in the "sample" directory.  There is a [sample file](../creds.sample.json) in the root of the repo (proxy settings are not implemented for this SDK):
 
 1. API url (e.g. api.acmebank.cardsavr.io)
 1. App name (app_name) and integrator key (app_key) - these can be obtained by contacting developer-support@strivve.com
