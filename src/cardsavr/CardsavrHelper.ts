@@ -94,6 +94,11 @@ export class CardsavrHelper {
         this.cardsavr_server = cardsavr_server;
         this.app_name = app_name;
         this.app_key = app_key;
+        if (!app_name) {
+            throw new CardsavrSDKError([], "No app_name provided.");
+        } else if (!app_key) {
+            throw new CardsavrSDKError([], "No app_key provided.");
+        }
         this.cert = cert;
         this.reject_unauthorized = reject_unauthorized;
         this.debug = debug;
@@ -166,7 +171,7 @@ export class CardsavrHelper {
             const cardholder_data_copy = { ...card?.cardholder };
             const address_data_copy = { ...card?.address };
             const card_data_copy = { ...card };
-            
+
             if (!cardholder_data_copy.cuid) {
                 cardholder_data_copy.cuid = generateUniqueUsername();
             }
@@ -356,35 +361,39 @@ export class CardsavrHelper {
             
             if (this._jobs.size === 0 && cardholder_id) {
                 this._user_probe = setInterval(async () => { 
-                    const messages = await session.getCardholderMessages(cardholder_id);
-                    if (messages.body) {
-                        messages.body.map(async (item: any) => {
-                            if (item.type === "job_status") {
-                                const handler = this._jobs.get(+item.job_id);
-                                if (handler) { 
-                                    handler(item); 
-                                    if (item.message.status.startsWith("PENDING_NEWCREDS") || item.message.status.startsWith("PENDING_TFA")) {
-                                        let tries = 2;
-                                        while (tries-- >= 0) {
-                                            const job = await session.getSingleSiteJobs(item.job_id, {}, {"x-cardsavr-hydration" : JSON.stringify(["credential_requests"]) });
-                                            if (job.body.credential_requests[0]) {
-                                                console.log("JOB IS PENDING " + item.message.status + " and there are " + job.body.credential_requests.length + " credential requests returned for this job");
-                                                handler(job.body.credential_requests[0]);
-                                                break;
-                                            } else if (tries == 1) {
-                                                console.log("JOB IS PENDING " + item.message.status + " and there are no credential requests, let's try one more time");
-                                                await new Promise(resolve => setTimeout(resolve, 2000));
-                                            } else {
-                                                throw new CardsavrSDKError([], "Fatal error, no credential request found for this job.");
+                    try {
+                        const messages = await session.getCardholderMessages(cardholder_id);
+                        if (messages.body) {
+                            messages.body.map(async (item: any) => {
+                                if (item.type === "job_status") {
+                                    const handler = this._jobs.get(+item.job_id);
+                                    if (handler) { 
+                                        handler(item); 
+                                        if (item.message.status.startsWith("PENDING_NEWCREDS") || item.message.status.startsWith("PENDING_TFA")) {
+                                            let tries = 2;
+                                            while (tries-- >= 0) {
+                                                const job = await session.getSingleSiteJobs(item.job_id, {}, {"x-cardsavr-hydration" : JSON.stringify(["credential_requests"]) });
+                                                if (job.body.credential_requests[0]) {
+                                                    console.log("JOB IS PENDING " + item.message.status + " and there are " + job.body.credential_requests.length + " credential requests returned for this job");
+                                                    handler(job.body.credential_requests[0]);
+                                                    break;
+                                                } else if (tries == 1) {
+                                                    console.log("JOB IS PENDING " + item.message.status + " and there are no credential requests, let's try one more time");
+                                                    await new Promise(resolve => setTimeout(resolve, 2000));
+                                                } else {
+                                                    throw new CardsavrSDKError([], "Fatal error, no credential request found for this job.");
+                                                }
                                             }
                                         }
                                     }
+                                    if (item.message.termination_type || item.message.percent_complete == 100) { //job is completed, stop probing
+                                        this.removeJob(+item.job_id);
+                                    }
                                 }
-                                if (item.message.termination_type || item.message.percent_complete == 100) { //job is completed, stop probing
-                                    this.removeJob(+item.job_id);
-                                }
-                            }
-                        });
+                            });
+                        }
+                    } catch (err) {
+                        this._jobs.clear();
                     }
                 }, interval < 2000 ? 2000 : interval);
             }

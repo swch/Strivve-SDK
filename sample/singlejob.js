@@ -31,7 +31,7 @@ placeCard().then(() => {
 async function placeCard() {
     const ch = CardsavrHelper.getInstance();
     //Setup the settings for the application
-    ch.setAppSettings(cardsavr_server, app_name, app_key, false, null, false);
+    ch.setAppSettings(cardsavr_server, app_name, app_key, false, null, true);
 
     const merchant_site = rl.question("Merchant hostname: ");
 
@@ -51,8 +51,8 @@ async function placeCard() {
                                                         job_data: {
                                                             cardholder: cardholder_data, 
                                                             account: creds_data, 
-                                                            card: card_data/*,
-                                                            type: "TURBO_MODE"*/
+                                                            card: card_data,
+                                                            type: "TURBO_MODE"
                                                         }});
 
         creds_data.username = rl.question("Username: ");
@@ -88,6 +88,7 @@ async function placeCard() {
                 console.log("Saving credentials");
             } else if (message.type == 'tfa_message') {
                 console.log("Please check your device for a verification link.");
+                ch.postTFA({username: app_username, tfa: "acknowledged", job_id: job.id, envelope_id: message.envelope_id});
             }
         }, 
         interval : 2000});
