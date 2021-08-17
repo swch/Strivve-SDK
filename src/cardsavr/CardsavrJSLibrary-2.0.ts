@@ -8,6 +8,7 @@ import * as CardsavrCrypto from "./CardsavrSessionCrypto";
 import fetch from "node-fetch";
 import { Agent as HTTPSAgent } from "https";
 import {version} from "../../package.json";
+import { HttpsProxyAgent } from "https-proxy-agent";
 
 export class CardsavrSession {
 
@@ -18,8 +19,9 @@ export class CardsavrSession {
     _appName : string;
     _debug : boolean;
     _rejectUnauthorized : boolean;
+    _proxy : string
 
-    constructor(baseUrl: string, sessionKey: string, appName: string, rejectUnauthorized = true, cardsavrCert? : string, debug = false) {
+    constructor(baseUrl: string, sessionKey: string, appName: string, rejectUnauthorized = true, cardsavrCert? : string, proxy : string, debug = false) {
 
         this._headers = {}; 
         this._cardsavrCert = cardsavrCert;
@@ -27,6 +29,11 @@ export class CardsavrSession {
         this._appName = appName;
         this._debug = debug;
         this._rejectUnauthorized = rejectUnauthorized;
+        this._proxy = proxy;
+
+        if (this._proxy && this._cardsavrCert) {
+            throw new CardsavrSDKError(["Shouldn't be providing explicit certificate with proxy configuration."]);
+        }
 
         this._sessionData = {};
 
@@ -119,12 +126,14 @@ export class CardsavrSession {
         };
         if (typeof window === "undefined") {
             //node
-            config = Object.assign(config, {
-                agent : new HTTPSAgent({
+            const agent = (this._proxy) ?
+                new HttpsProxyAgent(this._proxy) :
+                new HTTPSAgent({
                     rejectUnauthorized : this._rejectUnauthorized,
-                    ...(this._cardsavrCert && {ca : this._cardsavrCert})
-                }), 
-                timeout : 10000,
+                    ...(this._cardsavrCert && {ca : this._cardsavrCert})});
+            config = Object.assign(config, {
+                agent,
+                timeout : 10000
             });
             csr = await fetch(new URL(path, this._baseUrl).toString(), config)
             .then(async res => new CardsavrSessionResponse(
