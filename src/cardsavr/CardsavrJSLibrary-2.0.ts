@@ -19,9 +19,9 @@ export class CardsavrSession {
     _appName : string;
     _debug : boolean;
     _rejectUnauthorized : boolean;
-    _proxy : string
+    _proxy : string | undefined;
 
-    constructor(baseUrl: string, sessionKey: string, appName: string, rejectUnauthorized = true, cardsavrCert? : string, proxy : string, debug = false) {
+    constructor(baseUrl: string, sessionKey: string, appName: string, rejectUnauthorized = true, cardsavrCert? : string, proxy? : string, debug = false) {
 
         this._headers = {}; 
         this._cardsavrCert = cardsavrCert;

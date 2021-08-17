@@ -87,6 +87,7 @@ export class CardsavrHelper {
     private app_name = "";
     private app_key = "";
     private cert?: string;
+    private proxy?: string;
     private reject_unauthorized = true;
     private debug = false;
 
@@ -113,7 +114,7 @@ export class CardsavrHelper {
         if (session || (session = await this.restoreSession(username, trace))) {
             return session;
         }
-        session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, this.reject_unauthorized, this.cert, this.debug);
+        session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, this.reject_unauthorized, this.cert, this.proxy, this.debug);
         await session.init(username, password, trace);
         this.saveSession(username, session);
         return session;
