@@ -31,9 +31,7 @@ placeCard().then(() => {
 async function placeCard() {
     const ch = CardsavrHelper.getInstance();
     //Setup the settings for the application
-    const proxy = process.env.HTTP_PROXY ? `http://${process.env.HTTP_PROXY}` : undefined;
-
-    ch.setAppSettings(cardsavr_server, app_name, app_key, false, null, proxy, true);
+    ch.setAppSettings(cardsavr_server, app_name, app_key, false, null, process.env.HTTP_PROXY, true);
 
     const merchant_site = rl.question("Merchant hostname: ");
 
