@@ -91,7 +91,7 @@ export class CardsavrHelper {
     private reject_unauthorized = true;
     private debug = false;
 
-    public setAppSettings(cardsavr_server: string, app_name: string, app_key: string, reject_unauthorized = true, cert?: string, debug = false) : CardsavrHelper {
+    public setAppSettings(cardsavr_server: string, app_name: string, app_key: string, reject_unauthorized = true, cert?: string, proxy?: string, debug = false) : CardsavrHelper {
         this.cardsavr_server = cardsavr_server;
         this.app_name = app_name;
         this.app_key = app_key;
@@ -101,6 +101,7 @@ export class CardsavrHelper {
             throw new CardsavrSDKError([], "No app_key provided.");
         }
         this.cert = cert;
+        this.proxy = proxy;
         this.reject_unauthorized = reject_unauthorized;
         this.debug = debug;
         return this;
