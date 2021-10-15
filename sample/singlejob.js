@@ -9,7 +9,7 @@ const config = require("./strivve_creds.json");
 let instance = rl.question("Instance: ");
 instance = instance ? instance : config.instance;
 
-const {app_name, app_key, app_username, app_password, cardsavr_server } = 
+const {app_name, app_key, app_username, app_password, cardsavr_server, financial_institution } = 
     getFromEnv(instance && config.instances ? 
                config.instances.find(item => (item.instance == instance)) : 
                config, 
@@ -47,7 +47,7 @@ async function placeCard() {
         card_data.address = address_data;
         
         const job = await ch.placeCardOnSiteSingleCall({username: app_username, 
-                                                        financial_institution: "default", 
+                                                        financial_institution: financial_institution ?? "default", 
                                                         job_data: {
                                                             cardholder: cardholder_data, 
                                                             account: creds_data, 

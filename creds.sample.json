@@ -8,10 +8,7 @@
             "app_password" : "<REDACTED>",
             "app_username": "<REDACTED>",
             "cardsavr_server" : "<REDACTED>",
-            "proxy_server" : "<REDACTED>",
-            "proxy_port" : "<REDACTED>",
-            "proxy_username" : "<REDACTED>",
-            "proxy_password" : "<REDACTED>"        
+            "financial_institution" : "<REDACTED>"
         }
     ]
 }
