@@ -208,7 +208,7 @@ export class CardsavrHelper {
     }
 
     public async placeCardOnSiteSingleCall(place_card_config: placeCardOnSiteParams) : Promise<unknown> {
-        const { username, job_data, financial_institution = "default", safe_key = null } = place_card_config;
+        const { username, job_data, financial_institution = null, safe_key = null } = place_card_config;
         const { cardholder, card, account } = place_card_config.job_data;
         const address = card?.address;
         if (!cardholder) {

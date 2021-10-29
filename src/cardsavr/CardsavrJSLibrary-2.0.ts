@@ -487,10 +487,12 @@ export class CardsavrSession {
         return await this.get("/cardsavr_users", filter, headersToAdd);
     };
 
-    createUser = async(body: any, financial_institution = "default", headersToAdd = {}): Promise < any > => {
-        Object.assign(headersToAdd, {
-            "x-cardsavr-financial-institution" : financial_institution
-        });
+    createUser = async(body: any, financial_institution = null, headersToAdd = {}): Promise < any > => {
+        if (financial_institution) {
+            Object.assign(headersToAdd, {
+                "x-cardsavr-financial-institution" : financial_institution
+            });
+        }
         return await this.post("/cardsavr_users", body, headersToAdd);
     };
 
@@ -520,15 +522,17 @@ export class CardsavrSession {
         return await this.get("/cardholders", filter, headersToAdd);
     };
 
-    createCardholder = async(body: any, safeKey: string | null, financial_institution = "default", headersToAdd = {}): Promise < any > => {
+    createCardholder = async(body: any, safeKey: string | null, financial_institution = null, headersToAdd = {}): Promise < any > => {
 
         if (body && !body.cuid) {
             body.cuid = CardsavrSessionUtilities.generateUniqueUsername();
         }
 
-        Object.assign(headersToAdd, {
-            "x-cardsavr-financial-institution" : financial_institution
-        });
+        if (financial_institution) {
+            Object.assign(headersToAdd, {
+                "x-cardsavr-financial-institution" : financial_institution
+            });
+        }
         if (safeKey) {
             Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
         }
