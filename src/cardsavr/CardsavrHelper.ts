@@ -53,7 +53,7 @@ interface placeCardOnSiteAndPollParams extends placeCardOnSiteParams, pollOnJob 
 
 interface createCardParams {
     agent_username : string, 
-    financial_institution : string, 
+    financial_institution? : string, 
     card : card_data, 
     safe_key? : string
 }
@@ -147,10 +147,7 @@ export class CardsavrHelper {
                     await session.refresh();
                 } catch (err) {
                     window.sessionStorage.clear();
-                    if (err.body && err.body._errors) {
-                        err.body._errors.map((item: string) => console.log(item));
-                    }
-                    return null;
+                    throw err;
                 }
                 this.saveSession(username, session);
                 return session;
@@ -194,8 +191,10 @@ export class CardsavrHelper {
             }
 
             const headers : {[k: string]: string} = 
-                {"x-cardsavr-financial-institution" : financial_institution, 
-                "x-cardsavr-hydration" : JSON.stringify(["cardholder"])};
+                {"x-cardsavr-hydration" : JSON.stringify(["cardholder"])};
+            if (financial_institution) {
+                headers["x-cardsavr-financial-institution"] = financial_institution;
+            }
 
             const card_response = await agent_session.createCard(card_data_copy, safe_key, headers);     
      
@@ -235,9 +234,11 @@ export class CardsavrHelper {
             }
             const agent_session = this.getSession(username);
             
-            const headers : {[k: string]: string} = 
-                {"x-cardsavr-financial-institution" : financial_institution, 
-                 "x-cardsavr-hydration" : JSON.stringify(["user", "account"])};
+            const headers : {[k: string]: string | null} = 
+                {"x-cardsavr-hydration" : JSON.stringify(["user", "account"])};
+            if (financial_institution) {
+                headers["x-cardsavr-financial-institution"] = financial_institution;
+            }
 
             const response = await agent_session.createSingleSiteJob(job_data, safe_key, headers);
             return response.body;

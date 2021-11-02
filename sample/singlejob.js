@@ -47,7 +47,6 @@ async function placeCard() {
         card_data.address = address_data;
         
         const job = await ch.placeCardOnSiteSingleCall({username: app_username, 
-                                                        financial_institution: financial_institution ?? "default", 
                                                         job_data: {
                                                             cardholder: cardholder_data, 
                                                             account: creds_data, 
