@@ -227,11 +227,6 @@
 						"value": "application/json"
 					},
 					{
-						"key": "x-cardsavr-financial-institution",
-						"value": "default",
-						"type": "text"
-					},
-					{
 						"key": "x-cardsavr-trace",
 						"value": "{\"key\": \"my_trace\"}"
 					},
@@ -292,11 +287,6 @@
 					{
 						"key": "Content-Type",
 						"value": "application/json"
-					},
-					{
-						"key": "x-cardsavr-financial-institution",
-						"value": "default",
-						"type": "text"
 					},
 					{
 						"key": "x-cardsavr-trace",
