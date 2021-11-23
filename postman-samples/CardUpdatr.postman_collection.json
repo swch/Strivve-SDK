@@ -517,7 +517,7 @@
 			"response": []
 		},
 		{
-			"name": "5 PUT Account w/creds 2",
+			"name": "5-1 PUT Account w/creds 2",
 			"event": [
 				{
 					"listen": "test",
@@ -582,7 +582,7 @@
 			"response": []
 		},
 		{
-			"name": "6 Get Job Status (messages endpoint)",
+			"name": "6 Get Cardholder Jobs Status (messages endpoint)",
 			"event": [
 				{
 					"listen": "test",
@@ -613,7 +613,7 @@
 					}
 				],
 				"url": {
-					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/messages/place_card_on_single_site_jobs/{{JOB_ID}}",
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/messages/cardholders/{{CARDHOLDER_ID}}",
 					"protocol": "https",
 					"host": [
 						"api",
@@ -624,8 +624,8 @@
 					"port": "{{PORT}}",
 					"path": [
 						"messages",
-						"place_card_on_single_site_jobs",
-						"{{JOB_ID}}"
+						"cardholders",
+						"{{CARDHOLDER_ID}}"
 					]
 				}
 			},
