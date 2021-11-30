@@ -60,10 +60,9 @@ async function placeCard() {
 
         const job_start = new Date().getTime(); let vbs_start = null;
 
-        await ch.pollOnJob({username : app_username, 
-                            cardholder_id : job.cardholder_id,
-                            job_id : job.id, 
-                            callback : (message) => {
+        await ch.pollOnCardholder({username : app_username, 
+                                   cardholder_id : job.cardholder_id,
+                                   callback : (message) => {
             if (message.type == "job_status") {
                 const update = message.message;
                 if (!vbs_start) {

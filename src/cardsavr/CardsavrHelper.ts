@@ -6,7 +6,7 @@ import { generateRandomPar, localStorageAvailable, generateUniqueUsername } from
 import CardsavrSDKError from "./CardsavrSDKError";
 import CardsavrRestError from "./CardsavrRestError";
 
-type MessageHandler = (str: string) => void;
+type MessageHandler = (message: jobMessage) => void;
 type cardholder_data = {[k: string]: any};
 type account = {[k: string]: any};
 type card_data = {[k: string]: any};
@@ -29,6 +29,16 @@ interface placeCardParams {
     safe_key? : string,
 }
 
+interface jobMessage {
+    type: string, 
+    job_id: number, 
+    message: {
+        status : string, 
+        percent_complete : number, 
+        termination_type? : string
+    }    
+}
+
 interface placeCardOnSiteParams extends placeCardParams {
     job_data : job_data,
 }
@@ -37,9 +47,12 @@ interface placeCardOnSitesParams extends placeCardParams {
     jobs_data : job_data[]
 }
 
-interface pollOnEstablishedJob extends pollOnJob {
+interface pollOnCardholder extends pollOnJob {
     cardholder_id: number
-    job_id: number,
+}
+
+interface pollOnEstablishedJob extends pollOnCardholder {
+    job_id: number
 }
 
 interface pollOnJob {
@@ -355,56 +368,53 @@ export class CardsavrHelper {
     }
 
     public async pollOnCardholderJob(poll_on_job_config : pollOnEstablishedJob) : Promise<void> {
-        const { username, job_id, cardholder_id, callback, interval = 5000 } = poll_on_job_config;
-        if (!job_id) {
+        if (!poll_on_job_config.job_id) {
             throw new CardsavrSDKError([], "Can't poll a cardholder without a job.");
         }
+        this.pollOnCardholder(poll_on_job_config);
+
+        this._jobs.set(poll_on_job_config.job_id, poll_on_job_config.callback);
+    }   
+
+    public async pollOnCardholder(poll_on_cardholder_config: pollOnCardholder) : Promise<void> {
+        const { username, cardholder_id, callback, interval = 5000 } = poll_on_cardholder_config;
         try {
             const session = this.getSession(username);
-            
-            if (this._jobs.size === 0 && cardholder_id) {
-                this._user_probe = setInterval(async () => { 
-                    try {
-                        const messages = await session.getCardholderMessages(cardholder_id);
-                        if (messages.body) {
-                            messages.body.map(async (item: any) => {
-                                if (item.type === "job_status") {
-                                    const handler = this._jobs.get(+item.job_id);
-                                    if (handler) { 
-                                        handler(item); 
-                                        if (item.message.status.startsWith("PENDING_NEWCREDS") || item.message.status.startsWith("PENDING_TFA")) {
-                                            let tries = 2;
-                                            while (tries-- >= 0) {
-                                                const job = await session.getSingleSiteJobs(item.job_id, {}, {"x-cardsavr-hydration" : JSON.stringify(["credential_requests"]) });
-                                                if (job.body.credential_requests[0]) {
-                                                    console.log("JOB IS PENDING " + item.message.status + " and there are " + job.body.credential_requests.length + " credential requests returned for this job");
-                                                    handler(job.body.credential_requests[0]);
-                                                    break;
-                                                } else if (tries == 1) {
-                                                    console.log("JOB IS PENDING " + item.message.status + " and there are no credential requests, let's try one more time");
-                                                    await new Promise(resolve => setTimeout(resolve, 2000));
-                                                } else {
-                                                    throw new CardsavrSDKError([], "Fatal error, no credential request found for this job.");
-                                                }
-                                            }
-                                        }
-                                    }
-                                    if (item.message.termination_type || item.message.percent_complete == 100) { //job is completed, stop probing
-                                        this.removeJob(+item.job_id);
+            this._user_probe = setInterval(async () => { 
+                const messages = await session.getCardholderMessages(cardholder_id);
+                if (messages.body) {
+                    messages.body.map(async (item: jobMessage) => {
+                        if (item.type === "job_status") { //ignore non-job_status messages, get credential requests directly from the job
+                            const handler = this._jobs.get(+item.job_id) ?? callback;
+                            //if there's a handler for this job, use it.  If not, just call the global handler.
+                            handler(item);
+                            if (item.message.status.startsWith("PENDING_NEWCREDS") || item.message.status.startsWith("PENDING_TFA")) {
+                                let tries = 2;
+                                while (tries-- >= 0) {
+                                    const job = await session.getSingleSiteJobs(item.job_id, {}, {"x-cardsavr-hydration" : JSON.stringify(["credential_requests"]) });
+                                    if (job.body.credential_requests[0]) {
+                                        console.log("JOB IS PENDING " + item.message.status + " and there are " + job.body.credential_requests.length + " credential requests returned for this job");
+                                        handler(job.body.credential_requests[0]);
+                                        break;
+                                    } else if (tries == 1) {
+                                        console.log("JOB IS PENDING " + item.message.status + " and there are no credential requests, let's try one more time");
+                                        await new Promise(resolve => setTimeout(resolve, 2000));
+                                    } else {
+                                        throw new CardsavrSDKError([], "Fatal error, no credential request found for this job.");
                                     }
                                 }
-                            });
+                            }
+                            if (item.message.termination_type || item.message.percent_complete == 100) { //job is completed, stop probing
+                                this.removeJob(+item.job_id);
+                            }
                         }
-                    } catch (err) {
-                        this._jobs.clear();
-                    }
-                }, interval < 2000 ? 2000 : interval);
-            }
-            this._jobs.set(job_id, callback);
+                    });
+                }
+            }, interval < 2000 ? 2000 : interval);
         } catch(err) {
             this.handleError(err);
         }
-    }   
+    }
 
     public async placeCardOnSiteAndPoll(place_card_config : placeCardOnSiteAndPollParams) : Promise<void> {
         try {
