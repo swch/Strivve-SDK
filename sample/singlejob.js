@@ -46,14 +46,24 @@ async function placeCard() {
 
         card_data.address = address_data;
         
-        const job = await ch.placeCardOnSiteSingleCall({username: app_username, 
-                                                        job_data: {
-                                                            cardholder: cardholder_data, 
-                                                            account: creds_data, 
-                                                            card: card_data,
-                                                            type: "TURBO_MODE"
-                                                        }});
+        const job = await ch.placeCardOnSiteSingleCall({
+            username: app_username, 
+            job_data: {
+                cardholder: cardholder_data, 
+                account: creds_data, 
+                card: card_data
+            }});
 
+        const creds_data_2 = {username: "good_email", password: "no_tfa", merchant_site_id: 2, cardholder_id: job.cardholder_id}
+
+        const job2 = await ch.placeCardOnSite({
+            username: app_username,
+            job_data: {
+                cardholder_id: job.cardholder_id, 
+                account: creds_data_2, 
+                card_id: job.card_id
+            }});
+        
         creds_data.username = rl.question("Username: ");
         creds_data.password = rl.question("Password: ", { hideEchoBack: true });
         delete creds_data.merchant_site_id; //can't be posted
@@ -71,7 +81,7 @@ async function placeCard() {
                     session.updateAccount(job.account.id, creds_data).catch(err => console.log(err.body._errors));
                     console.log("Quickstart - Saving credentials");
                 }
-                console.log(`${update.status} ${update.percent_complete}% - ${update.completed_state_name}, Time remaining: ${update.job_timeout}`);
+                console.log(`${update.status} ${update.percent_complete}% - ${message.job_id}, Time remaining: ${update.job_timeout}`);
                 if (update.termination_type) {
                     console.log(update.termination_type);
                 }

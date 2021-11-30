@@ -385,7 +385,8 @@ export class CardsavrHelper {
                 if (messages.body) {
                     messages.body.map(async (item: jobMessage) => {
                         if (item.type === "job_status") { //ignore non-job_status messages, get credential requests directly from the job
-                            const handler = this._jobs.get(+item.job_id) ?? callback;
+                            const handler = this._jobs.get(+item.job_id) ?? (this._jobs.set(+item.job_id, callback)).get(+item.job_id) as MessageHandler;
+                            callback;
                             //if there's a handler for this job, use it.  If not, just call the global handler.
                             handler(item);
                             if (item.message.status.startsWith("PENDING_NEWCREDS") || item.message.status.startsWith("PENDING_TFA")) {
