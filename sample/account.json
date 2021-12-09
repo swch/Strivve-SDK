@@ -1,15 +1,18 @@
 [
     {
+        "merchant_site_id" : 1,
         "host": "dynamic-synthetic.herokuapp.com/index.html",
         "username": "good_email",
         "password": "no_tfa"
     },
     {
+        "merchant_site_id" : 2,
         "host": "dynamic-synthetic.herokuapp.com/two_step_index.html",
         "username": "good_email",
         "password": "no_tfa"
     },
     {
+        "merchant_site_id" : 5,
         "host": "safeway.com",
         "username": "jon_smith789@yahoo.com",
         "password": "Pittsburgh12"

@@ -42,26 +42,20 @@ async function placeCard(username, jobs_data) {
         const jobs_data = await Promise.all(merchant_sites.map(async merchant_site => {
             const site = await ch.lookupMerchantSite(app_username, merchant_site.host);
             merchant_site.cardholder_id = card.cardholder_id;
-            // username = merchant_site.username;
-            // password = merchant_site.password
             return {
                 account : merchant_site,
                 card_id: card.id,
                 cardholder_id: card.cardholder_id
             }
         }));
-        try {
+
             const response = await ch.placeCardOnSites({username: app_username, jobs_data});
-            response.body.map((job) => {
-                console.log(job);
+            response.body.map((job, site) => {
                 merchant_sites[site].job_id = job.id;
                 merchant_sites[site].account_id = job.account_id;
                 merchant_sites[site].state = "SUBMITTED";
                 return merchant_sites[site];
-            })
-        } catch(err) {
-            console.log(err[0]._errors);
-        }
+            });
 
         await ch.pollOnCardholder({username : app_username, 
                                    cardholder_id : card.cardholder_id,

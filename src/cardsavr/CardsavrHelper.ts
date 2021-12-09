@@ -150,20 +150,32 @@ export class CardsavrHelper {
     }
 
     private async restoreSession(username: string, trace?: {[k: string]: unknown}) : Promise<CardsavrSession | null> {
-        if (localStorageAvailable()) {
-            const session_cache_data = <string>window.sessionStorage.getItem(`session_v2.3.1[${username}]`);
-            if (session_cache_data) {
-                const session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, this.reject_unauthorized, this.cert);
-                session.setTrace(username, trace);
-                try {
-                    session.deserializeSessionData(session_cache_data);
-                    await session.refresh();
-                } catch (err) {
-                    window.sessionStorage.clear();
-                    throw err;
+        try {
+            if (localStorageAvailable()) {
+                const session_cache_data = <string>window.sessionStorage.getItem(`session_v2.3.1[${username}]`);
+                if (session_cache_data) {
+                    const session = new CardsavrSession(this.cardsavr_server, this.app_key, this.app_name, this.reject_unauthorized, this.cert);
+                    session.setTrace(username, trace);
+                    try {
+                        session.deserializeSessionData(session_cache_data);
+                        await session.refresh();
+                    } catch (err) {
+                        window.sessionStorage.clear();
+                        throw err;
+                    }
+                    this.saveSession(username, session);
+                    return session;
                 }
-                this.saveSession(username, session);
-                return session;
+            }
+        } catch(err) {
+        // @ts-ignore
+            if (err.body.isArray()) {
+                // @ts-ignore
+                err.body.map((obj: { _errors: any[]; }) => {
+                    obj._errors.map((obj: any) => {
+                        console.log(obj);
+                    });
+                });
             }
         }
         return null;
@@ -276,6 +288,10 @@ export class CardsavrHelper {
             } else if (err.response.body) {
                 console.log(err.response);
                 console.log("Message returned from REST API: " + err.response.body.message);
+                Object.keys(err.response.body).filter((item: string) => err.response.body[item]._errors !== undefined).forEach(obj => {
+                    console.log("For entity: " + obj);
+                    console.log(err.response.body[obj]._errors);
+                });
             }
         } else if (err instanceof CardsavrSDKError || (err.type && err.type === "CardsavrSDKError")) {
             console.log("SDK errors, exception stack below:");
