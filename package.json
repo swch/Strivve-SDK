@@ -13,8 +13,7 @@
     "build": "tsc --build src",
     "start": "node sample/webserver.js",
     "lint": "eslint ./src --ext .js,.ts --fix",
-    "singlejob": "node --unhandled-rejections=strict sample/singlejob.js",
-    "weeklytest": "node --unhandled-rejections=strict sample/weeklytest.js"
+    "singlejob": "node --unhandled-rejections=strict sample/singlejob.js"
   },
   "config": {
     "static_dir": "./dist/"

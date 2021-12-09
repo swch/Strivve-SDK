@@ -1,5 +1,6 @@
 #!/usr/bin/env node  --unhandled-rejections=strict
 const { CardsavrHelper } = require("@strivve/strivve-sdk/lib/cardsavr/CardsavrHelper");
+const { generateUniqueUsername } = require("@strivve/strivve-sdk/lib/cardsavr/CardsavrSessionUtilities");
 const { exit } = require("process");
 const rl = require("readline-sync");
 require('log-timestamp');
@@ -19,87 +20,60 @@ function getFromEnv(top_config, env) {
     return Object.fromEntries(Object.entries(top_config).map(([key, value]) => env[key] ? [key, env[key]] : [key, value]));
 }
 
-const cardholder_data = getFromEnv(require("./cardholder.json"), process.env);
-const address_data = getFromEnv(require("./address.json"), process.env);
 const card_data = getFromEnv(require("./card.json"), process.env);
-const creds_data = getFromEnv(require("./account.json"), process.env);
+const creds_data = require("./account.json");
 
+(async () => {
 placeCard().then(() => {
     console.log("STARTUP");
 }).catch((e) => console.log(e));
+})();
 
-async function placeCard() {
+async function placeCard(username, jobs_data) {
     const ch = CardsavrHelper.getInstance();
-    //Setup the settings for the application
     ch.setAppSettings(cardsavr_server, app_name, app_key, false, null, process.env.HTTP_PROXY, false);
 
-    const merchant_site = rl.question("Merchant hostname: ");
+    const merchant_sites = creds_data;
 
     //Create a session for the application user (cardholder agent)
     const session = await ch.loginAndCreateSession(app_username, app_password);
     if (session) {
-
-        if (merchant_site) {
-            const site = await ch.lookupMerchantSite(app_username, merchant_site);
-            creds_data.merchant_site_id = site.id;
+        const card = await ch.createCard({agent_username: app_username, card: card_data, financial_institution: "default"});
+        const jobs_data = await Promise.all(merchant_sites.map(async merchant_site => {
+            const site = await ch.lookupMerchantSite(app_username, merchant_site.host);
+            merchant_site.cardholder_id = card.cardholder_id;
+            // username = merchant_site.username;
+            // password = merchant_site.password
+            return {
+                account : merchant_site,
+                card_id: card.id,
+                cardholder_id: card.cardholder_id
+            }
+        }));
+        try {
+            const response = await ch.placeCardOnSites({username: app_username, jobs_data});
+            response.body.map((job) => {
+                console.log(job);
+                merchant_sites[site].job_id = job.id;
+                merchant_sites[site].account_id = job.account_id;
+                merchant_sites[site].state = "SUBMITTED";
+                return merchant_sites[site];
+            })
+        } catch(err) {
+            console.log(err[0]._errors);
         }
 
-        card_data.address = address_data;
-        
-        const job = await ch.placeCardOnSiteSingleCall({
-            username: app_username, 
-            job_data: {
-                cardholder: cardholder_data, 
-                account: creds_data, 
-                card: card_data
-            }});
-
-        const creds_data_2 = {username: "good_email", password: "no_tfa", merchant_site_id: 2, cardholder_id: job.cardholder_id}
-
-        const job2 = await ch.placeCardOnSite({
-            username: app_username,
-            job_data: {
-                cardholder_id: job.cardholder_id, 
-                account: creds_data_2, 
-                card_id: job.card_id
-            }});
-        
-        creds_data.username = rl.question("Username: ");
-        creds_data.password = rl.question("Password: ", { hideEchoBack: true });
-        delete creds_data.merchant_site_id; //can't be posted
-
-        const job_start = new Date().getTime(); let vbs_start = null;
-
         await ch.pollOnCardholder({username : app_username, 
-                                   cardholder_id : job.cardholder_id,
+                                   cardholder_id : card.cardholder_id,
                                    callback : (message) => {
             if (message.type == "job_status") {
                 const update = message.message;
-                if (!vbs_start) {
-                    vbs_start = new Date().getTime();
-                    console.log("VBS startup: " + Math.round(((vbs_start - job_start) / 1000)) + " seconds");
-                    session.updateAccount(job.account.id, creds_data).catch(err => console.log(err.body._errors));
-                    console.log("Quickstart - Saving credentials");
-                }
                 console.log(`${update.status} ${update.percent_complete}% - ${message.job_id}, Time remaining: ${update.job_timeout}`);
                 if (update.termination_type) {
                     console.log(update.termination_type);
                 }
-            } else if (message.type == 'tfa_request') {
-                const tfa = rl.question("Please enter a tfa code: ");
-                console.log("Posting TFA");
-                ch.postTFA({username: app_username, tfa, job_id: job.id, envelope_id: message.envelope_id});
-            } else if (message.type == 'credential_request') {
-                creds_data.username = rl.question("Please re-enter your username: ");
-                creds_data.password = rl.question("Please re-enter your password: ", { hideEchoBack: true });
-                ch.postCreds({username: app_username, merchant_creds: creds_data, job_id: job.id, envelope_id: message.envelope_id});
-                console.log("Saving credentials");
-            } else if (message.type == 'tfa_message') {
-                console.log("Please check your device for a verification link.");
-                ch.postTFA({username: app_username, tfa: "acknowledged", job_id: job.id, envelope_id: message.envelope_id});
             }
-        }, 
-        interval : 2000});
+        }});
     }
 }
 

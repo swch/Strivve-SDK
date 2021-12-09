@@ -1,5 +1,20 @@
 {
-    "name_on_card" : "mark budos",
+    "cardholder": {
+        "email" : "receives_email_updates@jobcompletion.com"
+    },
+    "address": {
+        "is_primary" : "true",
+        "address1" : "1234 1st ave",
+        "address2" : "APT 202",
+        "city" : "Seattle",
+        "subnational" : "WA",
+        "postal_code" : "98104",
+        "country" : "USA",
+        "phone_number" : "5555555555",
+        "first_name" : "Colson",
+        "last_name" : "Crim"
+    },
+    "name_on_card" : "Colson Crim",
     "pan" : "4111111111111111",
     "cvv" : "321",
     "expiration_month" : "12",
