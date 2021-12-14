@@ -276,6 +276,10 @@ export class CardsavrHelper {
             } else if (err.response.body) {
                 console.log(err.response);
                 console.log("Message returned from REST API: " + err.response.body.message);
+                Object.keys(err.response.body).filter((item: string) => err.response.body[item]._errors !== undefined).forEach(obj => {
+                    console.log("For entity: " + obj);
+                    console.log(err.response.body[obj]._errors);
+                });
             }
         } else if (err instanceof CardsavrSDKError || (err.type && err.type === "CardsavrSDKError")) {
             console.log("SDK errors, exception stack below:");
