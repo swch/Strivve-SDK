@@ -38,7 +38,7 @@ async function placeCard(username, jobs_data) {
     //Create a session for the application user (cardholder agent)
     const session = await ch.loginAndCreateSession(app_username, app_password);
     if (session) {
-        const card = await ch.createCard({agent_username: app_username, card: card_data, financial_institution: "default"});
+        const card = await ch.createCard({agent_username: app_username, card: card_data});
         const jobs_data = await Promise.all(merchant_sites.map(async merchant_site => {
             const site = await ch.lookupMerchantSite(app_username, merchant_site.host);
             merchant_site.cardholder_id = card.cardholder_id;

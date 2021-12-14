@@ -4,19 +4,19 @@
     },
     "address": {
         "is_primary" : "true",
-        "address1" : "1234 1st ave",
-        "address2" : "APT 202",
+        "address1" : "123 Main Street",
+        "address2" : null,
         "city" : "Seattle",
         "subnational" : "WA",
-        "postal_code" : "98104",
+        "postal_code" : "98133",
         "country" : "USA",
         "phone_number" : "5555555555",
-        "first_name" : "Colson",
-        "last_name" : "Crim"
+        "first_name" : "Jon",
+        "last_name" : "Smith"
     },
-    "name_on_card" : "Colson Crim",
+    "nameoncard" : "Jon Smith",
     "pan" : "4111111111111111",
-    "cvv" : "321",
-    "expiration_month" : "12",
-    "expiration_year" : "24"
+    "cvv" : "123",
+    "expiration_month" : "05",
+    "expiration_year" : "26"
 }

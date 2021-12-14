@@ -1,12 +1,12 @@
 {
     "is_primary" : "true",
-    "address1" : "1234 1st ave",
-    "address2" : "APT 202",
+    "address1" : "929 N 145th St",
+    "address2" : null,
     "city" : "Seattle",
     "subnational" : "WA",
-    "postal_code" : "98104",
+    "postal_code" : "98133",
     "country" : "USA",
     "phone_number" : "5555555555",
-    "first_name" : "Colson",
-    "last_name" : "Crim"
+    "first_name" : "Jon",
+    "last_name" : "Smith"
 }
