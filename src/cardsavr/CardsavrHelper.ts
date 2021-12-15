@@ -261,18 +261,36 @@ export class CardsavrHelper {
         return null;
     }
 
+    private crawlErrors(obj : any ) : string[] {
+        const ret: any[] = [];
+        if (obj._errors) {
+            obj._errors.map((error: any) => {
+                ret.push(error);
+            });
+        }
+        Object.keys(obj).filter((item: string) => {
+            return obj[item]._errors !== undefined;
+        }).forEach(hydrated => {
+            ret.push(this.crawlErrors(obj[hydrated]));
+        });
+        return ret;
+    }
+
     private handleError(err: any) {
         if (err instanceof CardsavrRestError || (err.type && err.type === "CardsavrRestError")) {
+            //check for error object on response
+            //if it's an array, walk each element
+            //also check the child elements of each object
             if (err.errors) {
                 console.log("Errors returned from REST API : " + err.response.call);
                 err = err.response;
-                err.body._errors.map((obj: any) => {
-                    console.log(obj);
-                });
-                Object.keys(err.body).filter((item: string) => err.body[item]._errors !== undefined).forEach(obj => {
-                    console.log("For entity: " + obj);
-                    console.log(err.body[obj]._errors);
-                });
+                if (err.body._errors) {
+                    console.log(this.crawlErrors(err.body));
+                } else if (Array.isArray(err.body)) {
+                    err.body.map((obj: { _errors: any[]; }) => {
+                        console.log(this.crawlErrors(obj));
+                    });
+                }
             } else if (err.response.body) {
                 console.log(err.response);
                 console.log("Message returned from REST API: " + err.response.body.message);
@@ -315,7 +333,7 @@ export class CardsavrHelper {
                 });
                 return await session.createSingleSiteJobs(jobs, safe_key);
             } catch(err) {
-                console.log("Exception caught in placeCardOnSites");
+                console.log("Exception(s) caught in placeCardOnSites");
                 this.handleError(err);
             }
         } else {

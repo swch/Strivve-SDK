@@ -1,9 +1,9 @@
 export default class CardsavrSDKError extends Error {
 
-  errors: string[];
+  errors: any[];
   type: string;
 
-  constructor(errors : string[], message = "JS Library Error") {
+  constructor(errors : any[], message = "JS Library Error") {
     super(message); 
     this.errors = errors;
     this.type = "CardsavrSDKError";

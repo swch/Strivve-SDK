@@ -1,6 +1,5 @@
 #!/usr/bin/env node  --unhandled-rejections=strict
 const { CardsavrHelper } = require("@strivve/strivve-sdk/lib/cardsavr/CardsavrHelper");
-const { exit } = require("process");
 const rl = require("readline-sync");
 require('log-timestamp');
 
@@ -45,7 +44,7 @@ async function placeCard() {
         }
 
         card_data.address = address_data;
-        
+
         const job = await ch.placeCardOnSiteSingleCall({
             username: app_username, 
             job_data: {
@@ -54,23 +53,9 @@ async function placeCard() {
                 card: card_data
             }});
 
-        const creds_data_2 = {username: "good_email", password: "no_tfa", merchant_site_id: 2};
-        card_data.par = null;
-        cardholder_data.cuid = null;
-        cardholder_data.cardholder_id = null;
-
-        const job2 = await ch.placeCardOnSiteSingleCall({
-            username: app_username,
-            job_data: {
-                cardholder: cardholder_data, 
-                account: creds_data_2, 
-                card: card_data
-            }});
-       
         creds_data.username = rl.question("Username: ");
         creds_data.password = rl.question("Password: ", { hideEchoBack: true });
         delete creds_data.merchant_site_id; //can't be posted
-
         const job_start = new Date().getTime(); let vbs_start = null;
 
         await ch.pollOnCardholder({username : app_username, 
