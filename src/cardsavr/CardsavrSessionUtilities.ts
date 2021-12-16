@@ -10,12 +10,12 @@ const _stringReplaceAll = function (string: any, find: string, replace: string) 
     if (!string) {
         return string;
     }
-  
+
     let replaced_string = string;
     while (replaced_string.includes(find)) {
         replaced_string = replaced_string.replace(find, replace);
     }
-  
+
     return replaced_string;
 };
 
@@ -33,7 +33,7 @@ export const generateTraceValue = (bytes? : number) : string => {
 
     return traceValue;
 };
-  
+
 const stringIdPaths = ["/card_placement_results","/merchant_sites"];
 
 export const formatPath = (path : string, filter : any) => {
@@ -47,13 +47,13 @@ export const formatPath = (path : string, filter : any) => {
         path = path.substring(0, path.length - 1);
     }
     if (filter) {
-        if (!isNaN(filter) || (typeof filter == "string" && stringIdPaths.includes(path)) ) {
+        if (!isNaN(filter) || (typeof filter === "string" && stringIdPaths.includes(path)) ) {
             path = `${path}/${filter}`;
         }
         else if (typeof filter === "object" && !Array.isArray(filter)) {
-            path += "?" + Object.keys(filter).map(k => 
+            path += "?" + Object.keys(filter).map(k =>
                 Array.isArray(filter[k]) ?
-                filter[k].map((o: string) => `${k}=${o}`).join("&") : 
+                filter[k].map((o: string) => `${k}=${o}`).join("&") :
                 `${k}=${filter[k]}`)
                 .join("&");
         }
@@ -87,7 +87,7 @@ export const generateRandomPar = (pan: string, exp_month: string, exp_year: stri
     const validationErrors = [];
 
     Object.entries(paramsArray).filter(param => !param[1]).forEach(param => validationErrors.push("Missing required parameter: " + param[0]));
-    
+
     if (exp_month && (exp_month.length != 2) || isNaN(+exp_month) || (+exp_month > 12)) {
         validationErrors.push("Invalid expiration month received: " + exp_month);
     }

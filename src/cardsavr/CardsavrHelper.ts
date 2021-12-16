@@ -14,7 +14,7 @@ type card_data = {[k: string]: any};
 interface job_data {
     account : account,
     user_is_present? : boolean,
-    cardholder?: cardholder_data, 
+    cardholder?: cardholder_data,
     cardholder_id? : number,
     card? : card_data,
     card_id? : number,
@@ -24,19 +24,19 @@ interface job_data {
 }
 
 interface placeCardParams {
-    username : string,  
-    financial_institution? : string, 
+    username : string,
+    financial_institution? : string,
     safe_key? : string,
 }
 
 interface jobMessage {
-    type: string, 
-    job_id: number, 
+    type: string,
+    job_id: number,
     message: {
-        status : string, 
-        percent_complete : number, 
+        status : string,
+        percent_complete : number,
         termination_type? : string
-    }    
+    }
 }
 
 interface placeCardOnSiteParams extends placeCardParams {
@@ -56,8 +56,8 @@ interface pollOnEstablishedJob extends pollOnCardholder {
 }
 
 interface pollOnJob {
-    username : string,  
-    callback : MessageHandler, 
+    username : string,
+    callback : MessageHandler,
     interval? : number
 }
 
@@ -65,29 +65,29 @@ interface placeCardOnSiteAndPollParams extends placeCardOnSiteParams, pollOnJob 
 }
 
 interface createCardParams {
-    agent_username : string, 
-    financial_institution? : string, 
-    card : card_data, 
+    agent_username : string,
+    financial_institution? : string,
+    card : card_data,
     safe_key? : string
 }
 
 interface postTFAParams {
-    username: string, 
-    tfa: string, 
-    job_id: number, 
+    username: string,
+    tfa: string,
+    job_id: number,
     envelope_id: string
 }
 
 interface postCredsParams {
-    username: string, 
-    merchant_creds: any, 
-    job_id: number, 
+    username: string,
+    merchant_creds: any,
+    job_id: number,
     envelope_id: string,
     safe_key?: string
 }
 
 export class CardsavrHelper {
-    
+
     private static instance: CardsavrHelper;
 
     private _sessions: { [key:string]:CardsavrSession; } = {};
@@ -119,8 +119,8 @@ export class CardsavrHelper {
         this.debug = debug;
         return this;
     }
-    
-    public async loginAndCreateSession(username: string, 
+
+    public async loginAndCreateSession(username: string,
                                        password: string,
                                        trace?: {[k: string]: unknown}) : Promise<CardsavrSession> {
 
@@ -142,7 +142,7 @@ export class CardsavrHelper {
     }
 
     public getSession(username : string) : CardsavrSession {
-        const session = this._sessions[username]; 
+        const session = this._sessions[username];
         if (session) {
             return session;
         }
@@ -191,7 +191,7 @@ export class CardsavrHelper {
             if (!cardholder_data_copy.first_name) cardholder_data_copy.first_name = address_data_copy.first_name;
             if (!cardholder_data_copy.last_name) cardholder_data_copy.last_name = address_data_copy.last_name;
             if (!cardholder_data_copy.name_on_card) card_data_copy.name_on_card = `${card_data_copy.first_name} ${card_data_copy.last_name}`;
-            
+
             const agent_session = this.getSession(agent_username);
 
             //card requires a user id
@@ -203,16 +203,16 @@ export class CardsavrHelper {
                 card_data_copy.par = generateRandomPar(card_data_copy.pan, card_data_copy.expiration_month, card_data_copy.expiration_year, cardholder_data_copy.cuid);
             }
 
-            const headers : {[k: string]: string} = 
+            const headers : {[k: string]: string} =
                 {"x-cardsavr-hydration" : JSON.stringify(["cardholder"])};
             if (financial_institution) {
                 headers["x-cardsavr-financial-institution"] = financial_institution;
             }
 
-            const card_response = await agent_session.createCard(card_data_copy, safe_key, headers);     
-     
+            const card_response = await agent_session.createCard(card_data_copy, safe_key, headers);
+
             return card_response.body;
-    
+
         } catch(err) {
             this.handleError(err);
         }
@@ -246,8 +246,8 @@ export class CardsavrHelper {
                 address.cardholder_ref = account.cardholder_ref;
             }
             const agent_session = this.getSession(username);
-            
-            const headers : {[k: string]: string | null} = 
+
+            const headers : {[k: string]: string | null} =
                 {"x-cardsavr-hydration" : JSON.stringify(["user", "account"])};
             if (financial_institution) {
                 headers["x-cardsavr-financial-institution"] = financial_institution;
@@ -381,7 +381,7 @@ export class CardsavrHelper {
     }
 
     public async pollOnJob(poll_on_job_config: pollOnEstablishedJob) : Promise<void> {
-        
+
         this.pollOnCardholderJob(poll_on_job_config);
     }
 
@@ -392,13 +392,13 @@ export class CardsavrHelper {
         this.pollOnCardholder(poll_on_job_config);
 
         this._jobs.set(poll_on_job_config.job_id, poll_on_job_config.callback);
-    }   
+    }
 
     public async pollOnCardholder(poll_on_cardholder_config: pollOnCardholder) : Promise<void> {
         const { username, cardholder_id, callback, interval = 5000 } = poll_on_cardholder_config;
         try {
             const session = this.getSession(username);
-            this._user_probe = setInterval(async () => { 
+            this._user_probe = setInterval(async () => {
                 const messages = await session.getCardholderMessages(cardholder_id);
                 if (messages.body) {
                     messages.body.map(async (item: jobMessage) => {
@@ -415,7 +415,7 @@ export class CardsavrHelper {
                                         console.log("JOB IS PENDING " + item.message.status + " and there are " + job.body.credential_requests.length + " credential requests returned for this job");
                                         handler(job.body.credential_requests[0]);
                                         break;
-                                    } else if (tries == 1) {
+                                    } else if (tries === 1) {
                                         console.log("JOB IS PENDING " + item.message.status + " and there are no credential requests, let's try one more time");
                                         await new Promise(resolve => setTimeout(resolve, 2000));
                                     } else {
@@ -423,7 +423,7 @@ export class CardsavrHelper {
                                     }
                                 }
                             }
-                            if (item.message.termination_type || item.message.percent_complete == 100) { //job is completed, stop probing
+                            if (item.message.termination_type || item.message.percent_complete === 100) { //job is completed, stop probing
                                 this.removeJob(+item.job_id);
                             }
                         }
@@ -461,10 +461,10 @@ export class CardsavrHelper {
         try {
             const session = this.getSession(username);
             const acct = await session.getSingleSiteJobs(job_id);
-            if (acct && acct.body && acct.body.account_id) { 
-                session.updateAccount( 
+            if (acct && acct.body && acct.body.account_id) {
+                session.updateAccount(
                     acct.body.account_id,
-                    {username : merchant_creds.username, password : merchant_creds.password}, 
+                    {username : merchant_creds.username, password : merchant_creds.password},
                     envelope_id,
                     safe_key);
             }
@@ -474,7 +474,7 @@ export class CardsavrHelper {
     }
 
     public async deleteAccount (agent_username: string, cardholder_id: number) : Promise<void> {
-    
+
         try {
             const session = this.getSession(agent_username);
             if (cardholder_id > 0) {
@@ -484,5 +484,5 @@ export class CardsavrHelper {
             this.handleError(err);
         }
     }
-    
-} 
+
+}
