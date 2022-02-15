@@ -225,7 +225,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\"user_id\":CARDHOLDER-ID,\"address1\":\"LINE-ONE\",\"address2\":\"OPTONAL-LINE-TWO\",\"city\":\"CITY\",\"subnational\":\"STATE\",\"postal_code\":\"ZIP\",\"postal_other\":\"ZIP-XXXX\",\"country\":\"USA\",\"is_primary\":true}"
+					"raw": "{\"cardholder_id\":CARDHOLDER-ID,\"address1\":\"LINE-ONE\",\"address2\":\"OPTONAL-LINE-TWO\",\"city\":\"CITY\",\"subnational\":\"STATE\",\"postal_code\":\"ZIP\",\"postal_other\":\"ZIP-XXXX\",\"country\":\"USA\",\"is_primary\":true}"
 				},
 				"url": {
 					"raw": "https://api.YOUR-INSTANCE-NAME.cardsavr.io/cardsavr_addresses/",
@@ -342,7 +342,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\"user_id\":CARDHOLDER-ID,\"card_id\":CARD-ID,\"account_id\":ACCOUNT-ID}"
+					"raw": "{\"cardholder_id\":CARDHOLDER-ID,\"card_id\":CARD-ID,\"account_id\":ACCOUNT-ID}"
 				},
 				"url": {
 					"raw": "https://api.YOUR-INSTANCE-NAME.cardsavr.io/place_card_on_single_site_jobs/",
