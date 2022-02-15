@@ -68,7 +68,7 @@
 			"response": []
 		},
 		{
-			"name": "1-3 Create User",
+			"name": "1-3 Create Cardholder",
 			"request": {
 				"method": "POST",
 				"header": [
@@ -100,7 +100,7 @@
 					}
 				},
 				"url": {
-					"raw": "https://api.YOUR-INSTANCE-NAME.cardsavr.io/cardsavr_users/",
+					"raw": "https://api.YOUR-INSTANCE-NAME.cardsavr.io/cardholders/",
 					"protocol": "https",
 					"host": [
 						"api",
@@ -109,7 +109,7 @@
 						"io"
 					],
 					"path": [
-						"cardsavr_users",
+						"cardholders",
 						""
 					]
 				}
