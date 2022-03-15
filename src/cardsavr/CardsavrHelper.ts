@@ -464,7 +464,7 @@ export class CardsavrHelper {
             if (acct && acct.body && acct.body.account_id) { 
                 session.updateAccount( 
                     acct.body.account_id,
-                    {username : merchant_creds.username, password : merchant_creds.password}, 
+                    {...merchant_creds}, 
                     envelope_id,
                     safe_key);
             }
