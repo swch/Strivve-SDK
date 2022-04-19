@@ -412,11 +412,11 @@ export class CardsavrHelper {
                                 while (tries-- >= 0) {
                                     const job = await session.getSingleSiteJobs(item.job_id, {}, {"x-cardsavr-hydration" : JSON.stringify(["credential_requests"]) });
                                     if (job.body.credential_requests[0]) {
-                                        console.log("JOB IS PENDING " + item.message.status + " and there are " + job.body.credential_requests.length + " credential requests returned for this job");
+                                        //console.log("JOB IS PENDING " + item.message.status + " and there are " + job.body.credential_requests.length + " credential requests returned for this job");
                                         handler(job.body.credential_requests[0]);
                                         break;
                                     } else if (tries == 1) {
-                                        console.log("JOB IS PENDING " + item.message.status + " and there are no credential requests, let's try one more time");
+                                        //console.log("JOB IS PENDING " + item.message.status + " and there are no credential requests, let's try one more time");
                                         await new Promise(resolve => setTimeout(resolve, 2000));
                                     } else {
                                         throw new CardsavrSDKError([], "Fatal error, no credential request found for this job.");
