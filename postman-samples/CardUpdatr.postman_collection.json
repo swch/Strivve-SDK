@@ -362,7 +362,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"cardholder_id\": {{CARDHOLDER_ID}},\n    \"par\":\"0000000000000000000{{CARDHOLDER_CUID}}\",\n    \"pan1\":\"000000{{CARDHOLDER_CUID}}\",\n    \"pan\":\"4147098781684501\",\n    \"cvv\":\"467\",\n    \"expiration_month\":12,\n    \"expiration_year\":24,\n    \"name_on_card\":\"Mark Budos\",\n    \"first_name\":\"Mark\",\n    \"last_name\":\"Budos\",\n    \"address\": {\n        \"cardholder_id\": {{CARDHOLDER_ID}},\n        \"address1\":\"5619 165th Pl SE\",\n        \"address2\":\"\",\n        \"city\":\"Bellevue\",\n        \"subnational\":\"WA\",\n        \"postal_code\":\"98006\",\n        \"postal_other\":\"\",\n        \"country\":\"USA\",\n        \"is_primary\": true\n    }\n}\n"
+					"raw": "{\n    \"cardholder_id\": {{CARDHOLDER_ID}},\n    \"par\":\"0000000000000000000{{CARDHOLDER_CUID}}\",\n    \"pan1\":\"000000{{CARDHOLDER_CUID}}\",\n    \"pan\":\"4111111111111111\",\n    \"cvv\":\"467\",\n    \"expiration_month\":12,\n    \"expiration_year\":24,\n    \"name_on_card\":\"Mark Budos\",\n    \"first_name\":\"Mark\",\n    \"last_name\":\"Budos\",\n    \"address\": {\n        \"cardholder_id\": {{CARDHOLDER_ID}},\n        \"address1\":\"1234 567th Pl SE\",\n        \"address2\":\"\",\n        \"city\":\"Bellevue\",\n        \"subnational\":\"WA\",\n        \"postal_code\":\"98006\",\n        \"postal_other\":\"\",\n        \"country\":\"USA\",\n        \"is_primary\": true\n    }\n}\n"
 				},
 				"url": {
 					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/cardsavr_cards",
