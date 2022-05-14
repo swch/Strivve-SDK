@@ -269,7 +269,7 @@ export class CardsavrHelper {
             });
         }
         Object.keys(obj).filter((item: string) => {
-            return obj[item]._errors !== undefined;
+            return obj[item]?._errors !== undefined;
         }).forEach(hydrated => {
             ret.push(this.crawlErrors(obj[hydrated]));
         });
