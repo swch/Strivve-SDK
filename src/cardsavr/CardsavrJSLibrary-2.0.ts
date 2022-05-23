@@ -368,7 +368,7 @@ export class CardsavrSession {
 
     createCard = async(body: any, safeKey: string | null = null, headersToAdd = {}): Promise < any > => {
         if (safeKey) {
-            Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+            Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey, true));
         }
         return await this.post("/cardsavr_cards", body, headersToAdd);
     };
