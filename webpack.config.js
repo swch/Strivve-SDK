@@ -2,6 +2,7 @@ const path = require("path");
 
 module.exports = {
     entry : "./src/cardsavr/CardsavrHelper.ts",
+    target: 'node',
     module : {
         rules : [
             {

@@ -49,7 +49,7 @@
     "@typescript-eslint/parser": "^3.6.0",
     "eslint": "^7.11.0",
     "https": "^1.0.0",
-    "https-proxy-agent": "^5.0.0",
+    "https-proxy-agent": "^5.0.1",
     "log-timestamp": "^0.3.0",
     "node-fetch": "^2.6.6",
     "readline-sync": "^1.4.10"
