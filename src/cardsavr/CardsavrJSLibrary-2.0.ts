@@ -541,7 +541,7 @@ export class CardsavrSession {
 
     updateCardholder = async(id: number, body: any, newSafeKey: string | null = null, safeKey: string | null = null, headersToAdd = {}): Promise < any > => {
         if (newSafeKey != null) {
-            Object.assign(headersToAdd, this._makeSafeKeyHeader(newSafeKey, true));
+            Object.assign(headersToAdd, this._makeSafeKeyHeader(newSafeKey));
         }
         if (safeKey != null) {
             Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey, false));
