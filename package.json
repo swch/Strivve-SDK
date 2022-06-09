@@ -1,6 +1,6 @@
 {
   "name": "@strivve/strivve-sdk",
-  "version": "2.9.16",
+  "version": "2.9.18",
   "description": "",
   "directories": {
     "src": "src",
@@ -13,7 +13,7 @@
     "build": "tsc --build src",
     "start": "node sample/webserver.js",
     "lint": "eslint ./src --ext .js,.ts --fix",
-    "singlejob": "node --unhandled-rejections=strict sample/singlejob.js"
+    "singlejob": "npm run build && node --unhandled-rejections=strict sample/singlejob.js"
   },
   "config": {
     "static_dir": "./dist/"
@@ -51,7 +51,9 @@
     "https": "^1.0.0",
     "https-proxy-agent": "^5.0.1",
     "log-timestamp": "^0.3.0",
+    "net": "^1.0.2",
     "node-fetch": "^2.6.6",
-    "readline-sync": "^1.4.10"
+    "readline-sync": "^1.4.10",
+    "tls": "^0.0.1"
   }
 }

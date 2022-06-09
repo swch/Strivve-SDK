@@ -3,7 +3,7 @@
 import CardsavrSDKError from "./CardsavrSDKError";
 import CardsavrRestError from "./CardsavrRestError";
 import CardsavrSessionResponse from "./CardsavrSessionResponse";
-import * as CardsavrSessionUtilities from "./CardsavrSessionUtilities";
+import { formatPath, APIFilter, generateUniqueUsername }  from "./CardsavrSessionUtilities";
 import * as CardsavrCrypto from "./CardsavrSessionCrypto";
 import fetch from "node-fetch";
 import { Agent as HTTPSAgent } from "https";
@@ -165,6 +165,7 @@ export class CardsavrSession {
 
         if (this._debug) {
             console.log("RESPONSE");
+            console.log(csr.statusCode);
             console.log(csr.headers);
             if (csr.body) {
                 console.log(csr.body);
@@ -174,30 +175,30 @@ export class CardsavrSession {
         return csr;
     };
 
-    get = async(path: string, filter: any, headersToAdd = {}): Promise < any > => {
+    get = async(path: string, filter: APIFilter, headersToAdd = {}): Promise < any > => {
 
-        path = CardsavrSessionUtilities.formatPath(path, filter);
+        path = formatPath(path, filter);
 
         return await this.sendRequest(path, "GET", null, headersToAdd);
     };
 
     post = async(path: string, body: any, headersToAdd = {}): Promise < any > => {
 
-        path = CardsavrSessionUtilities.formatPath(path, null);
+        path = formatPath(path, null);
         
         return await this.sendRequest(path, "POST", body, headersToAdd);
     };
 
-    put = async(path: string, filter: any, body: any, headersToAdd = {}): Promise < any > => {
+    put = async(path: string, filter: APIFilter, body: any, headersToAdd = {}): Promise < any > => {
 
-        path = CardsavrSessionUtilities.formatPath(path, filter);
+        path = formatPath(path, filter);
 
         return await this.sendRequest(path, "PUT", body, headersToAdd);
     };
 
-    delete = async(path: string, filter: any, headersToAdd = {}): Promise < any > => {
+    delete = async(path: string, filter: APIFilter, headersToAdd = {}): Promise < any > => {
 
-        path = CardsavrSessionUtilities.formatPath(path, filter);
+        path = formatPath(path, filter);
 
         return await this.sendRequest(path, "DELETE", null, headersToAdd);
     };
@@ -256,7 +257,7 @@ export class CardsavrSession {
         return await this.put("/session/refresh", null, {});
     };
 
-    getAccounts = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
+    getAccounts = async(filter: APIFilter, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
         if (Object.keys(pagingHeader).length > 0) {
             pagingHeader = {
                 "x-cardsavr-paging" : JSON.stringify(pagingHeader)
@@ -290,7 +291,7 @@ export class CardsavrSession {
         return await this.delete("/cardsavr_accounts", id, headersToAdd);
     };
 
-    getAddresses = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
+    getAddresses = async(filter: APIFilter, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
         if (Object.keys(pagingHeader).length > 0) {
             pagingHeader = {
                 "x-cardsavr-paging" : JSON.stringify(pagingHeader)
@@ -312,7 +313,7 @@ export class CardsavrSession {
         return await this.delete("/cardsavr_addresses", id, headersToAdd);
     };
 
-    getBins = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
+    getBins = async(filter: APIFilter, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
         if (Object.keys(pagingHeader).length > 0) {
             pagingHeader = {
                 "x-cardsavr-paging" : JSON.stringify(pagingHeader)
@@ -334,7 +335,7 @@ export class CardsavrSession {
         return await this.delete("/cardsavr_bins", id, headersToAdd);
     };
 
-    getFinancialInstitutions = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
+    getFinancialInstitutions = async(filter: APIFilter, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
         if (Object.keys(pagingHeader).length > 0) {
             pagingHeader = {
                 "x-cardsavr-paging" : JSON.stringify(pagingHeader)
@@ -356,7 +357,7 @@ export class CardsavrSession {
         return await this.delete("/financial_institutions", id, headersToAdd);
     };
 
-    getCards = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
+    getCards = async(filter: APIFilter, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
         if (Object.keys(pagingHeader).length > 0) {
             pagingHeader = {
                 "x-cardsavr-paging" : JSON.stringify(pagingHeader)
@@ -366,14 +367,14 @@ export class CardsavrSession {
         return await this.get("/cardsavr_cards", filter, headersToAdd);
     };
 
-    createCard = async(body: any, safeKey: string | null = null, headersToAdd = {}): Promise < any > => {
+    createCard = async(body: APIFilter, safeKey: string | null = null, headersToAdd = {}): Promise < any > => {
         if (safeKey) {
-            Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey, true));
+            Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
         }
         return await this.post("/cardsavr_cards", body, headersToAdd);
     };
 
-    updateCard = async(id: number, body: any, headersToAdd = {}): Promise < any > => {
+    updateCard = async(id: number, body: any, safe_key: string | null, headersToAdd = {}): Promise < any > => {
         return await this.put("/cardsavr_cards", id, body, headersToAdd);
     };
 
@@ -382,7 +383,7 @@ export class CardsavrSession {
         return await this.delete("/cardsavr_cards", id, headersToAdd);
     };
 
-    getCardPlacementResults = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
+    getCardPlacementResults = async(filter: APIFilter, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
         if (Object.keys(pagingHeader).length > 0) {
             pagingHeader = {
                 "x-cardsavr-paging" : JSON.stringify(pagingHeader)
@@ -392,7 +393,7 @@ export class CardsavrSession {
         return await this.get("/card_placement_results", filter, headersToAdd);
     };
 
-    getIntegrators = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
+    getIntegrators = async(filter: APIFilter, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
         if (Object.keys(pagingHeader).length > 0) {
             pagingHeader = {
                 "x-cardsavr-paging" : JSON.stringify(pagingHeader)
@@ -414,11 +415,11 @@ export class CardsavrSession {
         return await this.delete("/integrators", id, headersToAdd);
     };
 
-    getSites = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
+    getSites = async(filter: APIFilter, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
         return this.getMerchantSites(filter, pagingHeader, headersToAdd);
     };
 
-    getMerchantSites = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
+    getMerchantSites = async(filter: APIFilter, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
         if (Object.keys(pagingHeader).length > 0) {
             pagingHeader = {
                 "x-cardsavr-paging" : JSON.stringify(pagingHeader)
@@ -477,7 +478,7 @@ export class CardsavrSession {
         return await this.post(`/messages/place_card_on_single_site_jobs/${jobId}/credential_responses`, body, headersToAdd);
     };
 
-    getUsers = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
+    getUsers = async(filter: APIFilter, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
         if (Object.keys(pagingHeader).length > 0) {
             pagingHeader = {
                 "x-cardsavr-paging" : JSON.stringify(pagingHeader)
@@ -512,7 +513,7 @@ export class CardsavrSession {
         return await this.post("/cardholders/authorize", { grant }, headersToAdd);
     };
 
-    getCardholders = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
+    getCardholders = async(filter: APIFilter, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
         if (Object.keys(pagingHeader).length > 0) {
             pagingHeader = {
                 "x-cardsavr-paging" : JSON.stringify(pagingHeader)
@@ -525,7 +526,7 @@ export class CardsavrSession {
     createCardholder = async(body: any, safeKey: string | null = null, financial_institution: string | null = null, headersToAdd = {}): Promise < any > => {
 
         if (body && !body.cuid) {
-            body.cuid = CardsavrSessionUtilities.generateUniqueUsername();
+            body.cuid = generateUniqueUsername();
         }
 
         if (financial_institution) {
@@ -541,7 +542,7 @@ export class CardsavrSession {
 
     updateCardholder = async(id: number, body: any, newSafeKey: string | null = null, safeKey: string | null = null, headersToAdd = {}): Promise < any > => {
         if (newSafeKey != null) {
-            Object.assign(headersToAdd, this._makeSafeKeyHeader(newSafeKey));
+            Object.assign(headersToAdd, this._makeSafeKeyHeader(newSafeKey, true));
         }
         if (safeKey != null) {
             Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey, false));
@@ -553,11 +554,11 @@ export class CardsavrSession {
         return await this.delete("/cardholders", id, headersToAdd);
     };
 
-    deleteCardholders = async(filter: any, headersToAdd = {}): Promise < any > => {
+    deleteCardholders = async(filter: APIFilter, headersToAdd = {}): Promise < any > => {
         return await this.delete("/cardholders", filter, headersToAdd);
     };
 
-    getSingleSiteJobs = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
+    getSingleSiteJobs = async(filter: APIFilter, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
         if (Object.keys(pagingHeader).length > 0) {
             pagingHeader = {
                 "x-cardsavr-paging" : JSON.stringify(pagingHeader)
@@ -581,7 +582,7 @@ export class CardsavrSession {
         return await this.post("/place_card_on_single_site_jobs", body, headersToAdd);
     };
 
-    updateSingleSiteJob = async(id: number, body: any, safeKey: string | null = null, headersToAdd = {}): Promise < any > => {
+    updateSingleSiteJob = async(id: number | null, body: any, safeKey: string | null = null, headersToAdd = {}): Promise < any > => {
         if (safeKey) {
             Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
         }
@@ -596,7 +597,7 @@ export class CardsavrSession {
         return await this.put("/place_card_on_single_site_jobs", filter, body, headersToAdd);
     };
 
-    getJobResults = async(filter: any, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
+    getJobResults = async(filter: APIFilter, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
         if (Object.keys(pagingHeader).length > 0) {
             pagingHeader = {
                 "x-cardsavr-paging" : JSON.stringify(pagingHeader)

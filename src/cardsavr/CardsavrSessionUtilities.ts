@@ -36,7 +36,9 @@ export const generateTraceValue = (bytes? : number) : string => {
   
 const stringIdPaths = ["/card_placement_results","/merchant_sites"];
 
-export const formatPath = (path : string, filter : any) => {
+export type APIFilter = number | {[key: string]: string | string[]} | null;
+
+export const formatPath = (path : string, filter : APIFilter) : string => {
 
     const validationErrors = [];
 
@@ -47,18 +49,19 @@ export const formatPath = (path : string, filter : any) => {
         path = path.substring(0, path.length - 1);
     }
     if (filter) {
-        if (!isNaN(filter) || (typeof filter == "string" && stringIdPaths.includes(path)) ) {
+        // runtime check
+        if (typeof filter === "number") {
             path = `${path}/${filter}`;
         }
         else if (typeof filter === "object" && !Array.isArray(filter)) {
             path += "?" + Object.keys(filter).map(k => 
                 Array.isArray(filter[k]) ?
-                filter[k].map((o: string) => `${k}=${o}`).join("&") : 
+                (filter[k] as string[]).map((o: string) => `${k}=${o}`).join("&") : 
                 `${k}=${filter[k]}`)
                 .join("&");
         }
         else {
-            validationErrors.push("Valid ID or filter not found in provided path.");
+            validationErrors.push("Valid ID or filter not found in provided path: " + filter + " type: " + (typeof filter));
             throw new CardsavrSDKError(validationErrors);
         }
     }

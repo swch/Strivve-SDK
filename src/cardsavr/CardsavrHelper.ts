@@ -32,11 +32,12 @@ interface placeCardParams {
 interface jobMessage {
     type: string, 
     job_id: number, 
-    message: {
+    message?: {
         status : string, 
         percent_complete : number, 
         termination_type? : string
-    }    
+    },
+    error_message? : string
 }
 
 interface placeCardOnSiteParams extends placeCardParams {
@@ -196,7 +197,6 @@ export class CardsavrHelper {
 
             //card requires a user id
             address_data_copy.cardholder_ref = {"cuid" : cardholder_data_copy.cuid };
-            address_data_copy.user_ref = {"username" : cardholder_data_copy.username };
             card_data_copy.address = address_data_copy;
             card_data_copy.cardholder = cardholder_data_copy;
             if (!card_data_copy.par) {
@@ -221,7 +221,8 @@ export class CardsavrHelper {
 
     public async placeCardOnSiteSingleCall(place_card_config: placeCardOnSiteParams) : Promise<unknown> {
         const { username, job_data, financial_institution = null, safe_key = null } = place_card_config;
-        const { cardholder, card, account } = place_card_config.job_data;
+        const job_data_copy = JSON.parse(JSON.stringify(job_data));
+        const { cardholder, card, account } = job_data_copy;
         const address = card?.address;
         if (!cardholder) {
             throw new CardsavrSDKError([], "Cannot create a job without a cardholder.");
@@ -232,8 +233,7 @@ export class CardsavrHelper {
             if (!cardholder.last_name && address) cardholder.last_name = address.last_name;
             if (!cardholder.cuid) cardholder.cuid = generateUniqueUsername();
             if (card && !card.name_on_card) card.name_on_card = `${cardholder.first_name} ${cardholder.last_name}`;
-            place_card_config.job_data.type = place_card_config.job_data.type ?? "CARD_PLACEMENT";
-
+            
             if (card && !card.par) {
                 card.par = generateRandomPar(card.pan, card.expiration_month, card.expiration_year, cardholder.cuid);
             }
@@ -248,12 +248,11 @@ export class CardsavrHelper {
             const agent_session = this.getSession(username);
             
             const headers : {[k: string]: string | null} = 
-                {"x-cardsavr-hydration" : JSON.stringify(["user", "account"])};
+                {"x-cardsavr-hydration" : JSON.stringify(["cardholder", "account", "card"])};
             if (financial_institution) {
                 headers["x-cardsavr-financial-institution"] = financial_institution;
             }
-
-            const response = await agent_session.createSingleSiteJob(job_data, safe_key, headers);
+            const response = await agent_session.createSingleSiteJob(job_data_copy, safe_key, headers);
             return response.body;
         } catch(err) {
             this.handleError(err);
@@ -371,7 +370,7 @@ export class CardsavrHelper {
          if(localStorageAvailable()) {
             window.sessionStorage.removeItem(`session_v2.3.1[${username}]`);
         }
-     }
+    }
 
     public removeJob(jobId: number) : void {
         this._jobs.delete(jobId);
@@ -396,6 +395,7 @@ export class CardsavrHelper {
 
     public async pollOnCardholder(poll_on_cardholder_config: pollOnCardholder) : Promise<void> {
         const { username, cardholder_id, callback, interval = 5000 } = poll_on_cardholder_config;
+        
         try {
             const session = this.getSession(username);
             this._user_probe = setInterval(async () => { 
@@ -407,7 +407,7 @@ export class CardsavrHelper {
                             callback;
                             //if there's a handler for this job, use it.  If not, just call the global handler.
                             handler(item);
-                            if (item.message.status.startsWith("PENDING_NEWCREDS") || item.message.status.startsWith("PENDING_TFA")) {
+                            if (item.message?.status.startsWith("PENDING_NEWCREDS") || item.message?.status.startsWith("PENDING_TFA")) {
                                 let tries = 2;
                                 while (tries-- >= 0) {
                                     const job = await session.getSingleSiteJobs(item.job_id, {}, {"x-cardsavr-hydration" : JSON.stringify(["credential_requests"]) });
@@ -423,7 +423,7 @@ export class CardsavrHelper {
                                     }
                                 }
                             }
-                            if (item.message.termination_type || item.message.percent_complete == 100) { //job is completed, stop probing
+                            if (item.message?.termination_type || item.message?.percent_complete == 100) { //job is completed, stop probing
                                 this.removeJob(+item.job_id);
                             }
                         }
@@ -484,5 +484,165 @@ export class CardsavrHelper {
             this.handleError(err);
         }
     }
-    
+
+    public createCardholderQuery(username: string, cardholder_id : number) : CardholderQuery {
+        const session = this.getSession(username);
+        return new CardholderQuery(cardholder_id, session);
+    }
+
 } 
+
+export class CardholderQuery {
+
+    cardholder_id: number;
+    session: CardsavrSession;
+    interval: number;
+    event_emitter: EventEmitter;
+    private _user_probe?: ReturnType<typeof setTimeout>;
+    private creds_callbacks: { [key: number] : MessageHandler } = {};
+    
+    constructor(cardholder_id: number, 
+                session : CardsavrSession,
+                interval = 2000) {
+        this.cardholder_id = cardholder_id;
+        this.session = session;
+        this.interval = interval;
+        this.event_emitter = new EventEmitter();
+    }
+
+    public resetSession(session : CardsavrSession) : void {
+        this.session = session;
+    }
+
+    private async credsRequestHandler(message : jobMessage) {
+        if (message.message?.status.startsWith("PENDING_NEWCREDS") || message.message?.status.startsWith("PENDING_TFA")) {
+            let tries = 2;
+            while (tries-- >= 0) {
+                const job = await this.session.getSingleSiteJobs(message.job_id, {}, {"x-cardsavr-hydration" : JSON.stringify(["credential_requests"]) });
+                if (job.body.credential_requests[0]) {
+                    this.event_emitter.emit(`${message.job_id}:${message.message?.status.toLowerCase()}`, job.body.credential_requests[0]);
+                    this.event_emitter.emit(`${message.job_id}:}`, job.body.credential_requests[0]);
+                    break;
+                } else if (tries == 1) {
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                } else {
+                    this.event_emitter.emit(`${message.job_id}:${message.message?.status.toLowerCase()}`, 
+                        { job_id : message.job_id, type : "error", error_message : "No credential requests for this job." }
+                    );
+                }
+            }
+        } else if (message.message?.termination_type && this.creds_callbacks[message.job_id]) {
+            this.removeListener(message.job_id,  this.creds_callbacks[message.job_id], "job_status");
+            delete this.creds_callbacks[message.job_id];
+        }
+    }
+
+    public addListener(job_id : number, 
+        handler : MessageHandler,
+        type?: string) : void { 
+        this.event_emitter.on(`${job_id}:${type ?? ""}`, handler);
+
+        if (!this.creds_callbacks[job_id]) {
+            this.creds_callbacks[job_id] = ((message : jobMessage) => this.credsRequestHandler(message));
+            this.addListener(job_id, this.creds_callbacks[job_id], "job_status");
+        }
+        if (Object.keys(this.event_emitter.callbacks).length > 0) {
+            this.runProbe();
+        }
+    }
+
+    public removeListener(job_id : number, 
+        handler : MessageHandler,
+        type?: string) : void { 
+        this.event_emitter.remove(`${job_id}:${type ?? ""}`, handler);
+        if (Object.keys(this.event_emitter.callbacks).length === 0) {
+            this.stopProbe();
+        }
+    }
+
+    public removeAll() : void {
+        this.event_emitter.removeAll();
+        this.stopProbe();
+    }
+
+    private stopProbe() {
+        if (this._user_probe) {
+            clearInterval(this._user_probe);
+            this._user_probe = undefined;
+        }
+    }
+
+    private runProbe() {
+        if (this._user_probe) {
+            return;
+        }
+        let tries = 0;
+        this._user_probe = setInterval(async () => { 
+            try {
+                //console.log("GET");
+                const messages = await this.session.getCardholderMessages(this.cardholder_id);
+                // if there's an error, we should say so, stop the probe, and send a status message that says the message channel is no longer available.
+                tries = 0;
+                if (messages.body) {
+                    messages.body.map(async (item: jobMessage) => {
+                        this.event_emitter.emit(`${item.job_id}:${item.type}`, item);
+                        this.event_emitter.emit(`${item.job_id}:`, item);
+                    });
+                }
+            } catch (err) {
+                if (tries++ > 10) {
+                    this.event_emitter.emitAll({ job_id : -1, type : "error", error_message : `CardSavr connection no longer available for cardholder_id: ${this.cardholder_id}.` });
+                    this.removeAll();
+                }
+            }
+        }, this.interval);
+    }
+}
+
+export class EventEmitter {
+    
+    callbacks: {[k: string]: MessageHandler[]};
+    
+    constructor() {
+        this.callbacks = {};
+    }
+
+    on (event: string, cb: MessageHandler) : void {
+        if (!this.callbacks[event]) this.callbacks[event] = [];
+        this.callbacks[event].push(cb);
+        //console.log(this.callbacks);
+    }
+
+    remove (event: string, cb: MessageHandler) : void {
+        //console.log("REMOVE: " + event);
+        if (this.callbacks[event]) {
+            //console.log("FOUND CALLBACKS FOR: " + event);
+            this.callbacks[event] = this.callbacks[event].filter(item => item != cb);
+            
+            if (this.callbacks[event].length === 0) {
+                //console.log("DELETE: " + event);
+                delete this.callbacks[event];
+            }
+            //console.log(this.callbacks);
+        }
+    }
+
+    emitAll (data : jobMessage) : void {
+        Object.values(this.callbacks).map(cbs => cbs.forEach(cb => {
+           return cb(data);
+        }));
+    }
+
+    removeAll () : void {
+        this.callbacks = {};
+    }
+
+    emit (event: string, data: jobMessage) : void {
+        const cbs = this.callbacks[event];
+        if(cbs){
+            cbs.forEach(cb => {
+                return cb(data);
+            });
+        }
+    }
+}
