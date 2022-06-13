@@ -93,10 +93,6 @@ export class CardsavrHelper {
 
     private _sessions: { [key:string]:CardsavrSession; } = {};
 
-    private _jobs = new Map<number, MessageHandler>();
-
-    private _user_probe!: ReturnType<typeof setTimeout>;
-
     private cardsavr_server = "";
     private app_name = "";
     private app_key = "";
@@ -369,80 +365,6 @@ export class CardsavrHelper {
         delete this._sessions[username];
          if(localStorageAvailable()) {
             window.sessionStorage.removeItem(`session_v2.3.1[${username}]`);
-        }
-    }
-
-    public removeJob(jobId: number) : void {
-        this._jobs.delete(jobId);
-        if (this._jobs.size === 0) {
-            clearInterval(this._user_probe);
-        }
-    }
-
-    public async pollOnJob(poll_on_job_config: pollOnEstablishedJob) : Promise<void> {
-        
-        this.pollOnCardholderJob(poll_on_job_config);
-    }
-
-    public async pollOnCardholderJob(poll_on_job_config : pollOnEstablishedJob) : Promise<void> {
-        if (!poll_on_job_config.job_id) {
-            throw new CardsavrSDKError([], "Can't poll a cardholder without a job.");
-        }
-        this.pollOnCardholder(poll_on_job_config);
-
-        this._jobs.set(poll_on_job_config.job_id, poll_on_job_config.callback);
-    }   
-
-    public async pollOnCardholder(poll_on_cardholder_config: pollOnCardholder) : Promise<void> {
-        const { username, cardholder_id, callback, interval = 5000 } = poll_on_cardholder_config;
-        
-        try {
-            const session = this.getSession(username);
-            this._user_probe = setInterval(async () => { 
-                const messages = await session.getCardholderMessages(cardholder_id);
-                if (messages.body) {
-                    messages.body.map(async (item: jobMessage) => {
-                        if (item.type === "job_status") { //ignore non-job_status messages, get credential requests directly from the job
-                            const handler = this._jobs.get(+item.job_id) ?? (this._jobs.set(+item.job_id, callback)).get(+item.job_id) as MessageHandler;
-                            callback;
-                            //if there's a handler for this job, use it.  If not, just call the global handler.
-                            handler(item);
-                            if (item.message?.status.startsWith("PENDING_NEWCREDS") || item.message?.status.startsWith("PENDING_TFA")) {
-                                let tries = 2;
-                                while (tries-- >= 0) {
-                                    const job = await session.getSingleSiteJobs(item.job_id, {}, {"x-cardsavr-hydration" : JSON.stringify(["credential_requests"]) });
-                                    if (job.body.credential_requests[0]) {
-                                        //console.log("JOB IS PENDING " + item.message.status + " and there are " + job.body.credential_requests.length + " credential requests returned for this job");
-                                        handler(job.body.credential_requests[0]);
-                                        break;
-                                    } else if (tries == 1) {
-                                        //console.log("JOB IS PENDING " + item.message.status + " and there are no credential requests, let's try one more time");
-                                        await new Promise(resolve => setTimeout(resolve, 2000));
-                                    } else {
-                                        throw new CardsavrSDKError([], "Fatal error, no credential request found for this job.");
-                                    }
-                                }
-                            }
-                            if (item.message?.termination_type || item.message?.percent_complete == 100) { //job is completed, stop probing
-                                this.removeJob(+item.job_id);
-                            }
-                        }
-                    });
-                }
-            }, interval < 2000 ? 2000 : interval);
-        } catch(err) {
-            this.handleError(err);
-        }
-    }
-
-    public async placeCardOnSiteAndPoll(place_card_config : placeCardOnSiteAndPollParams) : Promise<void> {
-        try {
-            const job = await this.placeCardOnSite(place_card_config);
-            if (job) {
-                this.pollOnJob({...place_card_config, job_id : job.job_id, cardholder_id : job.cardholder_id});
-            }
-        } catch(err) {
-            this.handleError(err);
         }
     }
 

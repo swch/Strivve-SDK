@@ -102,41 +102,6 @@ async function placeCard() {
         query.addListener(job.id, status_handler, "job_status");
         query.addListener(job.id, tfa_handler, "pending_tfa");
         query.addListener(job.id, new_creds_handler, "pending_newcreds");
-
-/*
-        await ch.pollOnCardholder({username : app_username, 
-                                   cardholder_id : job.cardholder_id,
-                                   callback : (message) => {
-            if (message.type == "job_status") {
-                const update = message.message;
-                if (!vbs_start) {
-
-                    vbs_start = new Date().getTime();
-                    console.log("VBS startup: " + Math.round(((vbs_start - job_start) / 1000)) + " seconds");
-                    session.updateAccount(job.account.id, { account_identification: { username: creds_data.username, password: creds_data.password } }, null, safe_key).catch(err => console.log(err.errors));
-                    console.log("Quickstart - Saving credentials");
-                }
-                console.log(`${message.job_id} ${update.status} ${update.percent_complete}% - ${message.job_id}, Time remaining: ${update.job_timeout}`);
-                if (update.termination_type) {
-                    console.log(update.termination_type);
-                    placeCard();
-                }
-            } else if (message.type == 'tfa_request') {
-                const tfa = rl.question("Please enter a tfa code: ");
-                console.log("Posting TFA");
-                ch.postTFA({username: app_username, tfa, job_id: message.job_id, envelope_id: message.envelope_id});
-            } else if (message.type == 'credential_request') {
-                creds_data.username = rl.question("Please re-enter your username: ");
-                creds_data.password = rl.question("Please re-enter your password: ", { hideEchoBack: true });
-                ch.postCreds({username: app_username, merchant_creds: { creds_data: creds_data.username, password: creds_data.password }, job_id: message.job_id, envelope_id: message.envelope_id});
-                console.log("Saving credentials");
-            } else if (message.type == 'tfa_message') {
-                console.log("Please check your device for a verification link.");
-                ch.postTFA({username: app_username, tfa: "acknowledged", job_id: message.job_id, envelope_id: message.envelope_id});
-            }
-        }, 
-        interval : 2000});
-*/
     }
 }
 

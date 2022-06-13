@@ -513,6 +513,13 @@ export class CardsavrSession {
         return await this.post("/cardholders/authorize", { grant }, headersToAdd);
     };
 
+    getCardholder = async(filter: number, safeKey: string | null, headersToAdd = {}): Promise < any > => {
+        if (safeKey) {
+            Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+        }
+        return await this.get("/cardholders", filter, headersToAdd);
+    };
+
     getCardholders = async(filter: APIFilter, pagingHeader = {}, headersToAdd = {}): Promise < any > => {
         if (Object.keys(pagingHeader).length > 0) {
             pagingHeader = {
