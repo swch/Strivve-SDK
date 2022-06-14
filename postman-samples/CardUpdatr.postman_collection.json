@@ -2,7 +2,8 @@
 	"info": {
 		"_postman_id": "a06d3931-05bc-40ca-9349-45865ed4908f",
 		"name": "CardUpdatr",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "8696428"
 	},
 	"item": [
 		{
@@ -78,8 +79,8 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"{{$timestamp}}\");",
-							"//pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"1234123419\");",
+							"//pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"{{$timestamp}}\");",
+							"pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"1234123419\");",
 							""
 						],
 						"type": "text/javascript"
@@ -101,14 +102,14 @@
 					},
 					{
 						"key": "x-cardsavr-financial-institution",
-						"value": "testFI123",
+						"value": "test_fi",
 						"type": "text",
 						"disabled": true
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"email\" : \"foo@foo.com\",\n    \"cuid\" : \"{{CARDHOLDER_CUID}}\",\n    \"custom_data\" : {\n        \"my_namespace\" : {\n            \"token\" : \"asdfasde\"\n        }\n    }\n}",
+					"raw": "{\n    \"email\" : \"foo@foo.com\",\n    \"cuid\" : \"{{CARDHOLDER_CUID}}\",\n    \"type\" : \"persistent\",\n    \"custom_data\" : {\n        \"my_namespace\" : {\n            \"token\" : \"asdfasde\"\n        }\n    }\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -134,7 +135,94 @@
 			"response": []
 		},
 		{
-			"name": "2.1 Authorize Cardholder",
+			"name": "2.1 Get Cardholder",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = JSON.parse(responseBody)",
+							"pm.collectionVariables.set(\"CARDHOLDER_ID\", response.id);",
+							"pm.collectionVariables.set(\"GRANT\", response.grant);"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"//pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"{{$timestamp}}\");",
+							"pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"1234123419\");",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-cardsavr-session-jwt",
+						"value": "{{JWT_TOKEN}}",
+						"type": "text"
+					},
+					{
+						"key": "x-cardsavr-trace",
+						"value": "{\"key\": \"my_trace\"}",
+						"type": "text"
+					},
+					{
+						"key": "x-cardsavr-financial-institution",
+						"value": "test_fi",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "x-cardsavr-hydration",
+						"value": "[\"grant\"]",
+						"type": "text"
+					},
+					{
+						"key": "x-cardsavr-cardholder-safe-key",
+						"value": "{{CARDHOLDER_SAFE_KEY}}1",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\" : \"foo@foo.com\",\n    \"cuid\" : \"{{CARDHOLDER_CUID}}\",\n    \"type\" : \"persistent\",\n    \"custom_data\" : {\n        \"my_namespace\" : {\n            \"token\" : \"asdfasde\"\n        }\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/cardholders/{{CARDHOLDER_ID}}",
+					"protocol": "https",
+					"host": [
+						"api",
+						"{{CARDSAVR-INSTANCE}}",
+						"cardsavr",
+						"io"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"cardholders",
+						"{{CARDHOLDER_ID}}"
+					]
+				},
+				"description": "\t"
+			},
+			"response": []
+		},
+		{
+			"name": "2.2 Authorize Cardholder",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -195,7 +283,7 @@
 			"response": []
 		},
 		{
-			"name": "2 POST Job",
+			"name": "3 POST Job",
 			"event": [
 				{
 					"listen": "test",
@@ -233,14 +321,20 @@
 					{
 						"key": "x-cardsavr-session-jwt",
 						"value": "{{JWT_TOKEN}}"
+					},
+					{
+						"key": "x-cardsavr-cardholder-safe-key",
+						"value": "{{CARDHOLDER_SAFE_KEY}}",
+						"type": "text",
+						"disabled": true
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"status\": \"REQUESTED\",\r\n    \"cardholder_id\": \"{{CARDHOLDER_ID}}\",\r\n    \"account\": {\r\n        \"cardholder_id\": \"{{CARDHOLDER_ID}}\",\r\n        \"merchant_site_id\": {{SITE_ID}}\r\n    }\r\n}"
+					"raw": "{\r\n    \"status\": \"REQUESTED\",\r\n    \"cardholder_id\": \"{{CARDHOLDER_ID}}\",\r\n    \"type_override\": \"RPA_LOOPBACK:CARD_PLACEMENT\",\r\n    \"queue_name_override\" : \"vbs_localstatck_queue\",\r\n    \"account\": {\r\n        \"cardholder_id\": \"{{CARDHOLDER_ID}}\",\r\n        \"merchant_site_id\": {{SITE_ID}}\r\n    }\r\n}\r\n"
 				},
 				"url": {
-					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/place_card_on_single_site_jobs",
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/place_card_on_single_site_job",
 					"protocol": "https",
 					"host": [
 						"api",
@@ -250,14 +344,14 @@
 					],
 					"port": "{{PORT}}",
 					"path": [
-						"place_card_on_single_site_jobs"
+						"place_card_on_single_site_job"
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "2-1 POST Job (second one)",
+			"name": "3.1 POST Job (second one)",
 			"event": [
 				{
 					"listen": "test",
@@ -319,7 +413,7 @@
 			"response": []
 		},
 		{
-			"name": "3 Create Card",
+			"name": "4 Create Card",
 			"event": [
 				{
 					"listen": "test",
@@ -362,7 +456,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"cardholder_id\": {{CARDHOLDER_ID}},\n    \"par\":\"0000000000000000000{{CARDHOLDER_CUID}}\",\n    \"pan1\":\"000000{{CARDHOLDER_CUID}}\",\n    \"pan\":\"4111111111111111\",\n    \"cvv\":\"467\",\n    \"expiration_month\":12,\n    \"expiration_year\":24,\n    \"name_on_card\":\"Mark Budos\",\n    \"first_name\":\"Mark\",\n    \"last_name\":\"Budos\",\n    \"address\": {\n        \"cardholder_id\": {{CARDHOLDER_ID}},\n        \"address1\":\"1234 567th Pl SE\",\n        \"address2\":\"\",\n        \"city\":\"Bellevue\",\n        \"subnational\":\"WA\",\n        \"postal_code\":\"98006\",\n        \"postal_other\":\"\",\n        \"country\":\"USA\",\n        \"is_primary\": true\n    }\n}\n"
+					"raw": "{\n    \"cardholder_id\": {{CARDHOLDER_ID}},\n    \"par\":\"0000000000000000000{{CARDHOLDER_CUID}}\",\n    \"pan1\":\"000000{{CARDHOLDER_CUID}}\",\n    \"pan\":\"4147098781684501\",\n    \"cvv\":\"467\",\n    \"expiration_month\":12,\n    \"expiration_year\":24,\n    \"name_on_card\":\"Mark Budos\",\n    \"first_name\":\"Mark\",\n    \"last_name\":\"Budos\",\n    \"address\": {\n        \"cardholder_id\": {{CARDHOLDER_ID}},\n        \"address1\":\"5619 165th Pl SE\",\n        \"address2\":\"\",\n        \"city\":\"Bellevue\",\n        \"subnational\":\"WA\",\n        \"postal_code\":\"98006\",\n        \"postal_other\":\"\",\n        \"country\":\"USA\",\n        \"is_primary\": true\n    }\n}\n"
 				},
 				"url": {
 					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/cardsavr_cards",
@@ -382,7 +476,7 @@
 			"response": []
 		},
 		{
-			"name": "4 PUT Jobs w/card",
+			"name": "5 PUT Jobs w/card",
 			"event": [
 				{
 					"listen": "test",
@@ -452,7 +546,7 @@
 			"response": []
 		},
 		{
-			"name": "5 PUT Account w/creds",
+			"name": "6 PUT Account w/creds",
 			"event": [
 				{
 					"listen": "test",
@@ -517,7 +611,7 @@
 			"response": []
 		},
 		{
-			"name": "5-1 PUT Account w/creds 2",
+			"name": "6.1 PUT Account w/creds 2",
 			"event": [
 				{
 					"listen": "test",
@@ -582,7 +676,7 @@
 			"response": []
 		},
 		{
-			"name": "6 Get Cardholder Jobs Status (messages endpoint)",
+			"name": "7 Get Cardholder Jobs Status (messages endpoint)",
 			"event": [
 				{
 					"listen": "test",
@@ -632,7 +726,7 @@
 			"response": []
 		},
 		{
-			"name": "6.1 Get Job",
+			"name": "7.1 Get Job",
 			"event": [
 				{
 					"listen": "test",
@@ -696,7 +790,7 @@
 			"response": []
 		},
 		{
-			"name": "6.1 Get Job 2",
+			"name": "7.1 Get Job 2",
 			"event": [
 				{
 					"listen": "test",
@@ -765,7 +859,7 @@
 			"response": []
 		},
 		{
-			"name": "6-2 Resubmit Credentials",
+			"name": "7.2 Resubmit Credentials",
 			"request": {
 				"method": "PUT",
 				"header": [
@@ -811,7 +905,7 @@
 			"response": []
 		},
 		{
-			"name": "6-2 Resubmit Credentials 2",
+			"name": "7.2 Resubmit Credentials 2",
 			"request": {
 				"method": "PUT",
 				"header": [
@@ -857,7 +951,7 @@
 			"response": []
 		},
 		{
-			"name": "6-3 Submit TFA",
+			"name": "7.3 Submit TFA",
 			"request": {
 				"method": "PUT",
 				"header": [
@@ -903,7 +997,7 @@
 			"response": []
 		},
 		{
-			"name": "6-3 Submit TFA 2",
+			"name": "7.3 Submit TFA 2",
 			"request": {
 				"method": "PUT",
 				"header": [
@@ -993,6 +1087,10 @@
 		{
 			"key": "GRANT",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJhcGkubG9jYWxob3N0LmNhcmRzYXZyLmlvIiwic3ViIjoiQ2FyZGhvbGRlci1BY2Nlc3MtR3JhbnQ7ODQ1OzE2MTkwNDk1MjI4OTgiLCJhdWQiOiJhcGkubG9jYWxob3N0LmNhcmRzYXZyLmlvIiwiZXhwIjoxNjE5MDUwMTIyLCJpYXQiOjE2MTkwNDk1MjJ9.f2ikqXh6BXz3hFM1AYQa9eJjLfOvrtQveOKoSJ0Govg="
+		},
+		{
+			"key": "CARDHOLDER_SAFE_KEY",
+			"value": ""
 		}
 	]
 }
