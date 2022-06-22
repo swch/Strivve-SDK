@@ -326,7 +326,7 @@ export class CardsavrHelper {
                     job.account.cardholder_id = job.account.cardholder_id ?? job.cardholder_id;
                     jobs.push(job);
                 });
-                return await session.createSingleSiteJobs(jobs, safe_key);
+                return await session.createSingleSiteJobs(jobs, safe_key, {"x-cardsavr-hydration" : JSON.stringify(["account"])});
             } catch(err) {
                 console.log("Exception(s) caught in placeCardOnSites");
                 this.handleError(err);
