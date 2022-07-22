@@ -473,6 +473,17 @@ export class CardholderQuery {
         }
     }
 
+    public removeListeners(job_id : number) : void {
+        Object.keys(this.event_emitter.callbacks).map(key => {
+            const [job_id_str, type] = key.split(":");
+            if (job_id_str === `${job_id}`) {
+                this.event_emitter.callbacks[key].map(handler => {
+                    this.removeListener(job_id, handler, type);
+                });
+            }
+        });
+    }
+
     public removeListener(job_id : number, 
         handler : MessageHandler,
         type?: string) : void { 

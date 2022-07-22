@@ -78,9 +78,7 @@ async function placeCard() {
             console.log(`${update.status} ${update.percent_complete}% - ${message.job_id}, Time remaining: ${update.job_timeout}`);
             if (update.termination_type) {
                 console.log("TERMINATE WITH: " + update.termination_type);
-                query.removeListener(job.id, status_handler, "job_status");
-                query.removeListener(job.id, tfa_handler, "pending_tfa");
-                query.removeListener(job.id, new_creds_handler, "pending_newcreds");
+                query.removeListeners(job.id);
                 await new Promise(resolve => setTimeout(resolve, 5000));
                 placeCard();
             }
