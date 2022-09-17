@@ -65,6 +65,18 @@
 			"name": "2 Create Cardholder",
 			"event": [
 				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"{{$timestamp}}\");",
+							"pm.collectionVariables.set(\"CARDHOLDER_SAFE_KEY\", \"MBNL8Chib96EYdXNt3+etblMg2RAHUYM1d7ScSd8nf8=\");",
+							"//pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"1234123419\");",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
 					"listen": "test",
 					"script": {
 						"exec": [
@@ -74,21 +86,10 @@
 						],
 						"type": "text/javascript"
 					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"//pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"{{$timestamp}}\");",
-							"pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"1234123419\");",
-							""
-						],
-						"type": "text/javascript"
-					}
 				}
 			],
 			"request": {
-				"method": "POST",
+				"method": "PUT",
 				"header": [
 					{
 						"key": "x-cardsavr-session-jwt",
@@ -101,15 +102,14 @@
 						"type": "text"
 					},
 					{
-						"key": "x-cardsavr-financial-institution",
-						"value": "test_fi",
-						"type": "text",
-						"disabled": true
+						"key": "x-cardsavr-cardholder-safe-key",
+						"value": "{{CARDHOLDER_SAFE_KEY}}",
+						"type": "text"
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"email\" : \"foo@foo.com\",\n    \"cuid\" : \"{{CARDHOLDER_CUID}}\",\n    \"type\" : \"persistent\",\n    \"custom_data\" : {\n        \"my_namespace\" : {\n            \"token\" : \"asdfasde\"\n        }\n    }\n}",
+					"raw": "{\n    \"email\" : \"foo@foo.com\",\n    \"cuid\" : \"{{CARDHOLDER_CUID}}\",\n    \"custom_data\" : {\n        \"my_namespace\" : {\n            \"token\" : \"asdfasde\"\n        }\n    }\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -189,8 +189,9 @@
 					},
 					{
 						"key": "x-cardsavr-cardholder-safe-key",
-						"value": "{{CARDHOLDER_SAFE_KEY}}1",
-						"type": "text"
+						"value": "{{CARDHOLDER_SAFE_KEY}}",
+						"type": "text",
+						"disabled": true
 					}
 				],
 				"body": {
@@ -325,16 +326,20 @@
 					{
 						"key": "x-cardsavr-cardholder-safe-key",
 						"value": "{{CARDHOLDER_SAFE_KEY}}",
-						"type": "text",
-						"disabled": true
+						"type": "text"
+					},
+					{
+						"key": "x-cardsavr-hydration",
+						"value": "[\"account\"]",
+						"type": "text"
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"status\": \"REQUESTED\",\r\n    \"cardholder_id\": \"{{CARDHOLDER_ID}}\",\r\n    \"type_override\": \"RPA_LOOPBACK:CARD_PLACEMENT\",\r\n    \"queue_name_override\" : \"vbs_localstatck_queue\",\r\n    \"account\": {\r\n        \"cardholder_id\": \"{{CARDHOLDER_ID}}\",\r\n        \"merchant_site_id\": {{SITE_ID}}\r\n    }\r\n}\r\n"
+					"raw": "{\r\n        \"status\": \"REQUESTED\",\r\n        \"cardholder_id\": \"{{CARDHOLDER_ID}}\",\r\n        \"account\": {\r\n            \"cardholder_id\": \"{{CARDHOLDER_ID}}\",\r\n            \"merchant_site_id\": {{SITE_ID}}\r\n        }\r\n    }"
 				},
 				"url": {
-					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/place_card_on_single_site_job",
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/place_card_on_single_site_jobs",
 					"protocol": "https",
 					"host": [
 						"api",
@@ -344,7 +349,7 @@
 					],
 					"port": "{{PORT}}",
 					"path": [
-						"place_card_on_single_site_job"
+						"place_card_on_single_site_jobs"
 					]
 				}
 			},
@@ -452,11 +457,16 @@
 						"key": "x-cardsavr-session-jwt",
 						"value": "{{JWT_TOKEN}}",
 						"type": "text"
+					},
+					{
+						"key": "x-cardsavr-cardholder-safe-key",
+						"value": "{{CARDHOLDER_SAFE_KEY}}",
+						"type": "text"
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"cardholder_id\": {{CARDHOLDER_ID}},\n    \"par\":\"0000000000000000000{{CARDHOLDER_CUID}}\",\n    \"pan1\":\"000000{{CARDHOLDER_CUID}}\",\n    \"pan\":\"4147098781684501\",\n    \"cvv\":\"467\",\n    \"expiration_month\":12,\n    \"expiration_year\":24,\n    \"name_on_card\":\"Mark Budos\",\n    \"first_name\":\"Mark\",\n    \"last_name\":\"Budos\",\n    \"address\": {\n        \"cardholder_id\": {{CARDHOLDER_ID}},\n        \"address1\":\"5619 165th Pl SE\",\n        \"address2\":\"\",\n        \"city\":\"Bellevue\",\n        \"subnational\":\"WA\",\n        \"postal_code\":\"98006\",\n        \"postal_other\":\"\",\n        \"country\":\"USA\",\n        \"is_primary\": true\n    }\n}\n"
+					"raw": "{\n    \"cardholder_id\": {{CARDHOLDER_ID}},\n    \"pan\":\"000000{{CARDHOLDER_CUID}}\",\n    \"pan1\":\"4147098781684501\",\n    \"cvv\":\"467\",\n    \"expiration_month\":\"12\",\n    \"expiration_year\":\"24\",\n    \"name_on_card\":\"Mark Budos\",\n    \"first_name\":\"Mark\",\n    \"last_name\":\"Budos\",\n    \"address\": {\n        \"cardholder_id\": {{CARDHOLDER_ID}},\n        \"address1\":\"5619 165th Pl SE\",\n        \"address2\":\"\",\n        \"city\":\"Bellevue\",\n        \"subnational\":\"WA\",\n        \"postal_code\":\"98006\",\n        \"postal_other\":\"\",\n        \"country\":\"USA\",\n        \"is_primary\": true\n    }\n}\n"
 				},
 				"url": {
 					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/cardsavr_cards",
@@ -884,7 +894,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"account\": {\r\n        \"username\": \"{{SITE_USERNAME_2}}\",\r\n        \"password\": \"{{SITE_PASSWORD_2}}\"\r\n    }\r\n}"
+					"raw": "{\r\n    \"account\": {\r\n        \"account_identification\": {\r\n            \"username\":\"{{SITE_USERNAME}}\",\r\n            \"password\":\"{{SITE_PASSWORD}}\"\r\n        }\r\n    }\r\n}"
 				},
 				"url": {
 					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/place_card_on_single_site_jobs/{{JOB_ID}}",
@@ -1025,7 +1035,7 @@
 					"raw": "{\r\n\"account\": {\r\n\"tfa\": \"1234\"\r\n}\r\n}"
 				},
 				"url": {
-					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/place_card_on_single_site_jobs/{{JOB_ID}}",
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/place_card_on_single_site_jobs/{{JOB2_ID}}",
 					"protocol": "https",
 					"host": [
 						"api",
@@ -1036,7 +1046,7 @@
 					"port": "{{PORT}}",
 					"path": [
 						"place_card_on_single_site_jobs",
-						"{{JOB_ID}}"
+						"{{JOB2_ID}}"
 					]
 				}
 			},

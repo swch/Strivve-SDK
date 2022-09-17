@@ -74,10 +74,15 @@
 						"key": "x-cardsavr-session-jwt",
 						"value": "{{JWT_TOKEN}}",
 						"type": "text"
+					},
+					{
+						"key": "x-cardsavr-paging",
+						"value": "{\"page\": \"1\", \"page_length\": \"10000000\"} ",
+						"type": "default"
 					}
 				],
 				"url": {
-					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/merchant_sites?tags=prod&image_widths=128,32&image_grayscale=1",
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/merchant_sites?image_widths=128,32&image_grayscale=1",
 					"protocol": "https",
 					"host": [
 						"api",
@@ -90,10 +95,6 @@
 						"merchant_sites"
 					],
 					"query": [
-						{
-							"key": "tags",
-							"value": "prod"
-						},
 						{
 							"key": "image_widths",
 							"value": "128,32"
