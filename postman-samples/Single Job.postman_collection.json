@@ -584,16 +584,6 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"const response = JSON.parse(responseBody)",
-							"let env_id = null;",
-							"if (response[\"credential_requests\"].filter(msg => {",
-							"    if (msg.envelope_id) {",
-							"        env_id = msg.envelope_id;",
-							"        return true;",
-							"    }",
-							"})) {",
-							"    pm.collectionVariables.set(\"ENVELOPE_ID\", env_id);",
-							"}",
 							""
 						],
 						"type": "text/javascript"
