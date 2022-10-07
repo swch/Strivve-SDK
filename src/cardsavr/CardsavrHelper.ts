@@ -48,23 +48,6 @@ interface placeCardOnSitesParams extends placeCardParams {
     jobs_data : job_data[]
 }
 
-interface pollOnCardholder extends pollOnJob {
-    cardholder_id: number
-}
-
-interface pollOnEstablishedJob extends pollOnCardholder {
-    job_id: number
-}
-
-interface pollOnJob {
-    username : string,  
-    callback : MessageHandler, 
-    interval? : number
-}
-
-interface placeCardOnSiteAndPollParams extends placeCardOnSiteParams, pollOnJob {
-}
-
 interface createCardParams {
     agent_username : string, 
     financial_institution? : string, 
@@ -512,7 +495,6 @@ export class CardholderQuery {
         let tries = 0;
         this._user_probe = setInterval(async () => { 
             try {
-                //console.log("GET");
                 const messages = await this.session.getCardholderMessages(this.cardholder_id);
                 // if there's an error, we should say so, stop the probe, and send a status message that says the message channel is no longer available.
                 tries = 0;

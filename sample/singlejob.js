@@ -49,9 +49,7 @@ async function placeCard() {
 
         card_data.address = address_data;
         const safe_key = cardholder_data.type === "persistent" ? "MBNL8Chib96EYdXNt3+etblMg2RAHUYM1d7ScSd8nf8=" : "";
-        if (cardholder_data.cuid) {
-            creds_data.customer_key = creds_data.merchant_site_id + "$" + cardholder_data.cuid;
-        }
+
         const job = await ch.placeCardOnSiteSingleCall({ 
             username: app_username, 
             job_data: {
@@ -62,8 +60,6 @@ async function placeCard() {
             },
             safe_key
         });
-        creds_data.username = rl.question("Username: ");
-        creds_data.password = rl.question("Password: ", { hideEchoBack: true });
         const job_start = new Date().getTime(); let vbs_start = null;
 
         const query = ch.createCardholderQuery(app_username, job.cardholder_id);
@@ -73,7 +69,6 @@ async function placeCard() {
             if (!vbs_start) {
                 vbs_start = new Date().getTime();
                 console.log("VBS startup: " + Math.round(((vbs_start - job_start) / 1000)) + " seconds");
-                session.updateAccount(job.account.id, { account_identification: { username: creds_data.username, password: creds_data.password } }, null, safe_key).catch(err => console.log(err));
             }
             console.log(`${update.status} ${update.percent_complete}% - ${message.job_id}, Time remaining: ${update.job_timeout}`);
             if (update.termination_type) {
@@ -86,15 +81,14 @@ async function placeCard() {
 
         const tfa_handler = async (message) => {
             const tfa = rl.question("Please enter a tfa code: ");
-            ch.postTFA({username: app_username, tfa, job_id: message.job_id, envelope_id: message.envelope_id});
+            await ch.postTFA({username: app_username, tfa, job_id: message.job_id, envelope_id: message.envelope_id});
             console.log("Posting TFA");
         }
 
         const new_creds_handler = async (message) => {
             creds_data.username = rl.question("Please re-enter your username: ");
             creds_data.password = rl.question("Please re-enter your password: ", { hideEchoBack: true });
-            ch.postCreds({username: app_username, merchant_creds: { username: creds_data.username, password: creds_data.password }, job_id: message.job_id, envelope_id: message.envelope_id});
-            console.log("Posting New Creds");
+            await ch.postCreds({username: app_username, merchant_creds: { username: creds_data.username, password: creds_data.password }, job_id: message.job_id, envelope_id: message.envelope_id});
         }
 
         query.addListener(job.id, status_handler, "job_status");

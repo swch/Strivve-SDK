@@ -11,7 +11,7 @@
     "dev": "webpack --display-error-details --mode development",
     "prod": "webpack --mode production",
     "build": "tsc --build src",
-    "start": "node sample/webserver.js",
+    "start": "npm run build && node --unhandled-rejections=strict sample/singlejob.js",
     "lint": "eslint ./src --ext .js,.ts --fix",
     "singlejob": "npm run build && node --unhandled-rejections=strict sample/singlejob.js"
   },
