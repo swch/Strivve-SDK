@@ -281,7 +281,7 @@ export class CardsavrSession {
             Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
         }
         if (envelope_id) { //envelope_id required to send a credential_re
-            Object.assign(headersToAdd, { "envelope-id" : envelope_id });
+            Object.assign(headersToAdd, { "x-cardsavr-envelope-id" : envelope_id });
         }
         return await this.put("/cardsavr_accounts", id, body, headersToAdd);
     };
