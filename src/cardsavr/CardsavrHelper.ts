@@ -365,14 +365,12 @@ export class CardsavrHelper {
         const { username, merchant_creds, job_id, envelope_id, safe_key = undefined } = post_creds_config;
         try {
             const session = this.getSession(username);
-            const acct = await session.getSingleSiteJobs(job_id);
-            if (acct && acct.body && acct.body.account_id) { 
-                session.updateAccount( 
-                    acct.body.account_id,
-                    {...merchant_creds}, 
-                    envelope_id,
-                    safe_key);
-            }
+            session.updateSingleSiteJob( 
+                job_id,
+                { account : {...merchant_creds} }, 
+                safe_key,
+                envelope_id ? { "x-cardsavr-envelope-id" : envelope_id } : undefined
+        );
         } catch(err) {
             this.handleError(err);
         }
