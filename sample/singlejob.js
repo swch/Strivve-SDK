@@ -55,7 +55,7 @@ async function placeCard() {
             job_data: {
                 cardholder: cardholder_data, 
                 account: creds_data, 
-                card: card_data,
+                card: card_data//,
                 //type_override: "RPA_LOOPBACK:CARD_PLACEMENT"
             },
             safe_key
@@ -80,15 +80,18 @@ async function placeCard() {
         }
 
         const tfa_handler = async (message) => {
-            const tfa = rl.question("Please enter a tfa code: ");
+            console.log(message);
+            const tfa = message.type === "tfa_message" ? "acknowledged" : rl.question("Please enter a tfa code: ");
             await ch.postTFA({username: app_username, tfa, job_id: message.job_id, envelope_id: message.envelope_id});
             console.log("Posting TFA");
         }
 
         const new_creds_handler = async (message) => {
-            creds_data.username = rl.question("Please re-enter your username: ");
-            creds_data.password = rl.question("Please re-enter your password: ", { hideEchoBack: true });
-            await ch.postCreds({username: app_username, merchant_creds: { username: creds_data.username, password: creds_data.password }, job_id: message.job_id, envelope_id: message.envelope_id});
+            console.log(message);
+            const new_creds_data = { ...creds_data }
+            new_creds_data.username = rl.question("Please re-enter your username: ");
+            new_creds_data.password = rl.question("Please re-enter your password: ", { hideEchoBack: true });
+            await ch.postCreds({username: app_username, merchant_creds: { username: new_creds_data.username, password: new_creds_data.password }, job_id: message.job_id, envelope_id: message.envelope_id});
         }
 
         query.addListener(job.id, status_handler, "job_status");
