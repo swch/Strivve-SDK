@@ -156,6 +156,11 @@ export class CardsavrHelper {
         return CardsavrHelper.instance;
     }
 
+    public async getCard(card_id : string, agent_username : string): Promise<unknown> {
+        const agent_session = this.getSession(agent_username);
+        return await agent_session.getCards({ids: card_id});     
+    }
+
     public async createCard(create_card_config : createCardParams) : Promise<unknown> {
         const { card, agent_username, financial_institution, safe_key = null } = create_card_config;
         try {
@@ -196,6 +201,11 @@ export class CardsavrHelper {
             this.handleError(err);
         }
         return null;
+    }
+
+    public async updateCard(card_id : number, body : any, agent_username: string, safe_key: string): Promise<unknown> {
+        const agent_session = this.getSession(agent_username);
+        return await agent_session.updateCard(card_id, body, safe_key);     
     }
 
     public async placeCardOnSiteSingleCall(place_card_config: placeCardOnSiteParams) : Promise<unknown> {
