@@ -13,7 +13,8 @@
     "build": "tsc --build src",
     "start": "npm run build && node --unhandled-rejections=strict sample/singlejob.js",
     "lint": "eslint ./src --ext .js,.ts --fix",
-    "singlejob": "npm run build && node --unhandled-rejections=strict sample/singlejob.js"
+    "singlejob": "npm run build && node --unhandled-rejections=strict sample/singlejob.js",
+    "prepublishOnly": "npm run build"
   },
   "config": {
     "static_dir": "./dist/"
