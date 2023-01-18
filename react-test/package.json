@@ -8,7 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
-    "@ampproject/toolbox-core": "^2.7.4",
+    "@ampproject/toolbox-core": "^2.9.0",
     "@strivve/strivve-sdk": "^2.6.17",
     "next": "^12.1.0",
     "node-fetch": "^2.6.7",
