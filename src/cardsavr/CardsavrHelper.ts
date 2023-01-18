@@ -55,16 +55,9 @@ interface createCardParams {
     safe_key? : string
 }
 
-interface postTFAParams {
-    username: string, 
-    tfa: string, 
-    job_id: number, 
-    envelope_id: string
-}
-
 interface postCredsParams {
     username: string, 
-    merchant_creds: any, 
+    account_link: {[k: string]: string}, 
     job_id: number, 
     envelope_id: string,
     safe_key?: string
@@ -351,23 +344,13 @@ export class CardsavrHelper {
         }
     }
 
-    public async postTFA(post_tfa_config : postTFAParams) : Promise<void> {
-        const { username, tfa, job_id, envelope_id } = post_tfa_config;
-        try {
-            const session = this.getSession(username); //session should already be loaded
-            session.sendJobInformation(job_id, envelope_id, "tfa_response", tfa);
-        } catch(err) {
-            this.handleError(err);
-        }
-    }
-
     public async postCreds(post_creds_config : postCredsParams) : Promise<void> {
-        const { username, merchant_creds, job_id, envelope_id, safe_key = undefined } = post_creds_config;
+        const { username, account_link, job_id, envelope_id, safe_key = undefined } = post_creds_config;
         try {
             const session = this.getSession(username);
             session.updateSingleSiteJob( 
                 job_id,
-                { account : {...merchant_creds} }, 
+                { account : { account_link } }, 
                 safe_key,
                 envelope_id ? { "x-cardsavr-envelope-id" : envelope_id } : undefined
         );
@@ -418,12 +401,13 @@ export class CardholderQuery {
     }
 
     private async credsRequestHandler(message : jobMessage) {
-        if (message.message?.status.startsWith("PENDING_NEWCREDS") || message.message?.status.startsWith("PENDING_TFA")) {
+        if (message.message?.status.startsWith("PENDING")) {
             let tries = 2;
             while (tries-- >= 0) {
                 const job = await this.session.getSingleSiteJobs(message.job_id, {}, {"x-cardsavr-hydration" : JSON.stringify(["credential_requests"]) });
                 if (job.body.credential_requests[0]) {
                     this.event_emitter.emit(`${message.job_id}:${message.message?.status.toLowerCase()}`, job.body.credential_requests[0]);
+                    this.event_emitter.emit(`${message.job_id}:pending`, job.body.credential_requests[0]);
                     this.event_emitter.emit(`${message.job_id}:}`, job.body.credential_requests[0]);
                     break;
                 } else if (tries == 1) {
