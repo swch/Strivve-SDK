@@ -406,7 +406,9 @@ export class CardholderQuery {
             while (tries-- >= 0) {
                 const job = await this.session.getSingleSiteJobs(message.job_id, {}, {"x-cardsavr-hydration" : JSON.stringify(["credential_requests"]) });
                 if (job.body.credential_requests[0]) {
-                    this.event_emitter.emit(`${message.job_id}:${message.message?.status.toLowerCase()}`, job.body.credential_requests[0]);
+                    if (message.message?.status.toLowerCase() !== "pending") {
+                        this.event_emitter.emit(`${message.job_id}:${message.message?.status.toLowerCase()}`, job.body.credential_requests[0]);
+                    }
                     this.event_emitter.emit(`${message.job_id}:pending`, job.body.credential_requests[0]);
                     this.event_emitter.emit(`${message.job_id}:}`, job.body.credential_requests[0]);
                     break;
