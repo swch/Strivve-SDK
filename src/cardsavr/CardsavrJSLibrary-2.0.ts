@@ -374,7 +374,10 @@ export class CardsavrSession {
         return await this.post("/cardsavr_cards", body, headersToAdd);
     };
 
-    updateCard = async(id: number, body: any, safe_key: string | null, headersToAdd = {}): Promise < any > => {
+    updateCard = async(id: number, body: any, safeKey: string | null, headersToAdd = {}): Promise < any > => {
+        if (safeKey) {
+            Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+        }
         return await this.put("/cardsavr_cards", id, body, headersToAdd);
     };
 

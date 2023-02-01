@@ -70,7 +70,7 @@ async function placeCard() {
                 vbs_start = new Date().getTime();
                 console.log("VBS startup: " + Math.round(((vbs_start - job_start) / 1000)) + " seconds");
             }
-            console.log(`${update.status} ${update.percent_complete}% - ${message.job_id}, Time remaining: ${update.job_timeout}`);
+            console.log(`${update.status} ${update.percent_complete}% - ${message.job_id} ${JSON.stringify(message)}, Time remaining: ${update.job_timeout}`);
             if (update.termination_type) {
                 console.log("TERMINATE WITH: " + update.termination_type);
                 query.removeListeners(job.id);
@@ -82,10 +82,13 @@ async function placeCard() {
         const creds_handler = async (message) => {
             console.log(message);
             const account_link = { };
-            message.account_link.forEach(item => {
-                account_link[item.key_name] = rl.question(`Please enter your ${item.key_name} - (${item.label}):`);
-            });
-            console.log(account_link);
+            if (message.type === "tfa_message") {
+                account_link.tfa_message = "ack";
+            } else {
+                message.account_link.forEach(item => {
+                    account_link[item.key_name] = rl.question(`Please enter your ${item.key_name} - (${item.label}):`);
+                });
+            }
             await ch.postCreds({username: app_username, account_link, job_id: message.job_id, envelope_id: message.envelope_id});
         }
 
