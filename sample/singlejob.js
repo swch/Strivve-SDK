@@ -56,6 +56,7 @@ async function placeCard() {
                 cardholder: cardholder_data, 
                 account: creds_data, 
                 card: card_data,
+                queue_name_override: "vbs_localstack_queue"
                 //type_override: "RPA_LOOPBACK:CARD_PLACEMENT"
             },
             safe_key
@@ -70,7 +71,7 @@ async function placeCard() {
                 vbs_start = new Date().getTime();
                 console.log("VBS startup: " + Math.round(((vbs_start - job_start) / 1000)) + " seconds");
             }
-            console.log(`${update.status} ${update.percent_complete}% - ${message.job_id} ${JSON.stringify(message)}, Time remaining: ${update.job_timeout}`);
+            console.log(`${update.status} ${update.status_message ?? "(quick start)"} ${update.percent_complete}% - ${message.job_id} }, Time remaining: ${update.job_timeout}`);
             if (update.termination_type) {
                 console.log("TERMINATE WITH: " + update.termination_type);
                 query.removeListeners(job.id);
@@ -80,7 +81,8 @@ async function placeCard() {
         }
 
         const creds_handler = async (message) => {
-            console.log(message);
+            if (message.message)
+                console.log(message.message.status_message);
             const account_link = { };
             if (message.type === "tfa_message") {
                 account_link.tfa_message = "ack";

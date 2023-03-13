@@ -1,6 +1,6 @@
 {
   "name": "@strivve/strivve-sdk",
-  "version": "2.11.2",
+  "version": "2.12.0",
   "description": "",
   "directories": {
     "src": "src",
@@ -11,7 +11,7 @@
     "dev": "webpack --mode development",
     "prod": "webpack --mode production",
     "build": "tsc --build src",
-    "start": "npm run build && node --unhandled-rejections=strict sample/singlejob.js",
+    "start": "npm run build && node --unhandled-rejections=strict sample/webserver.js",
     "lint": "eslint ./src --ext .js,.ts --fix",
     "singlejob": "npm run build && node --unhandled-rejections=strict sample/singlejob.js",
     "prepublishOnly": "npm run build"

@@ -35,13 +35,16 @@ interface jobMessage {
     message?: {
         status : string, 
         percent_complete : number, 
-        termination_type? : string
+        termination_type? : string,
+        status_message : string,
+        job_duration : number
     },
-    error_message? : string
+    error_message? : string,
+    account_link?: { key_name : string, type : string, secret : string, label : string }[]
 }
 
 interface placeCardOnSiteParams extends placeCardParams {
-    job_data : job_data,
+    job_data : job_data
 }
 
 interface placeCardOnSitesParams extends placeCardParams {
@@ -401,7 +404,7 @@ export class CardholderQuery {
     }
 
     private async credsRequestHandler(message : jobMessage) {
-        if (message.message?.status.startsWith("PENDING")) {
+        if (message.message?.status.startsWith("PENDING") && !message.account_link) {
             let tries = 2;
             while (tries-- >= 0) {
                 const job = await this.session.getSingleSiteJobs(message.job_id, {}, {"x-cardsavr-hydration" : JSON.stringify(["credential_requests"]) });
