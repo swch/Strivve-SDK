@@ -118,12 +118,12 @@ export class CardsavrSession {
             }
         }
 
-        let csr : CardsavrSessionResponse;
         let config = {
             headers,
             method,
             body : requestBody ? JSON.stringify(requestBody) : undefined
         };
+        let response : any;
         if (typeof window === "undefined") {
             //node
             const agent = (this._proxy) ?
@@ -135,30 +135,25 @@ export class CardsavrSession {
                 agent,
                 timeout : 10000
             });
-            csr = await fetch(new URL(path, this._baseUrl).toString(), config)
-            .then(async res => new CardsavrSessionResponse(
-                res.status, 
-                res.statusText, 
-                res.headers, 
-                res.headers.get("content-type")?.startsWith("application/json") ? 
-                    await CardsavrCrypto.Encryption.decryptResponse(sessionKey, await res.json()) : {}, 
-                path))
-            .catch(err => {
-                throw err;
-            });
+            response = await fetch(new URL(path, this._baseUrl).toString(), config);
         } else {
-            csr = await window.fetch(new URL(path, this._baseUrl).toString(), config)
-            .then(async res => new CardsavrSessionResponse(
-                res.status, 
-                res.statusText, 
-                res.headers, 
-                res.headers.get("content-type")?.startsWith("application/json") ? 
-                    await CardsavrCrypto.Encryption.decryptResponse(sessionKey, await res.json()) : {}, 
-                path))
-            .catch(err => {
-                throw err;
-            });
+            response = await window.fetch(new URL(path, this._baseUrl).toString(), config);
         }
+
+        const body = await response.json();
+        const response_headers : {[k: string]: string} = {};
+        Object.entries(headers).forEach(([key, val]) => response_headers[key] = val);
+        
+        CardsavrCrypto.Signing.verifySignature(response_headers, path, this._appName, [sessionKey], body);
+
+        const csr = new CardsavrSessionResponse(
+            response.status, 
+            response.statusText, 
+            response.headers, 
+            response.headers.get("content-type")?.startsWith("application/json") ? 
+                await CardsavrCrypto.Encryption.decryptResponse(sessionKey, body) : {}, 
+            path);
+
         if (csr.statusCode >= 400) { 
             throw new CardsavrRestError(csr); 
         }

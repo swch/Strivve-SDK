@@ -205,14 +205,13 @@ export class Signing {
         }
     }
 
-    static async signRequest(path: string, appName: string, sessionKey: string, body ? : any) {
+    static async signRequest(path: string, appName: string, sessionKey: string, body? : string) : Promise<{[k: string]: string}> {
 
         const date = new Date();
         const nonce = date.getTime().toString(10);
         const authorization = "SWCH-HMAC-SHA256 Credentials=" + appName;
 
-        const bodyString = body ? JSON.stringify(body) : "";
-        const stringToSign = decodeURIComponent(path) + authorization + nonce + bodyString;
+        const stringToSign = decodeURIComponent(path) + authorization + nonce + (body ? JSON.stringify(body) : "");
 
         const signature = await this.hmacSign(stringToSign, sessionKey);
 
@@ -223,12 +222,35 @@ export class Signing {
         };
     }
 
-    static async signSaltWithPasswordKey(sessionSalt: string, passwordKey: string) {
+    static async verifySignature(headers: {[k: string]: string}, path: string, appName: string, keys: string[], body? : string) : Promise<boolean> {
+
+        const authorization = headers["x-cardsavr-authorization"];
+        console.log(headers);
+        if ("SWCH-HMAC-SHA256 Credentials=" + appName !== authorization) {
+            throw new Error("Authorization header not passed properly, should be: \"SWCH-HMAC-SHA256 Credentials=\"" + appName);
+        }
+        const nonce = headers["x-cardsavr-nonce"];
+        if (!nonce) {
+            throw new Error("No nonce header provided.");
+        }
+        const signature = headers["x-cardsavr-nonce"];
+        if (!signature) {
+            throw new Error("No signature header provided.");
+        }
+
+        const stringToSign = decodeURIComponent(path) + authorization + nonce + (body ? JSON.stringify(body) : "");
+        if (!keys.some(async (key: string) => signature === (await this.hmacSign(stringToSign, key)))) {
+            throw new Error("Invalid signature.");
+        }
+        return true;
+    }
+
+    static async signSaltWithPasswordKey(sessionSalt: string, passwordKey: string) : Promise<string> {
 
         return await this.hmacSign(sessionSalt, passwordKey, true);
     }
 
-    static async hmacSign(inputString: any, b64Key: string, b64InputString = false) {
+    static async hmacSign(inputString: string, b64Key: string, b64InputString = false) : Promise<string> {
 
         if (!browserCrypto) {
 
