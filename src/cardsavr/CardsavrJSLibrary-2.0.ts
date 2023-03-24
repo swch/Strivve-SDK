@@ -140,7 +140,7 @@ export class CardsavrSession {
             response = await window.fetch(new URL(path, this._baseUrl).toString(), config);
         }
 
-        const body = await response.json();
+        const body = response.headers.get("content-type")?.startsWith("application/json") ? (await response.json()) : null;
         const response_headers : {[k: string]: string} = {};
         Object.entries(headers).forEach(([key, val]) => response_headers[key] = val);
         
@@ -150,8 +150,7 @@ export class CardsavrSession {
             response.status, 
             response.statusText, 
             response.headers, 
-            response.headers.get("content-type")?.startsWith("application/json") ? 
-                await CardsavrCrypto.Encryption.decryptResponse(sessionKey, body) : {}, 
+            await CardsavrCrypto.Encryption.decryptResponse(sessionKey, body), 
             path);
 
         if (csr.statusCode >= 400) { 
