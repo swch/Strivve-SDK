@@ -225,7 +225,6 @@ export class Signing {
     static async verifySignature(headers: {[k: string]: string}, path: string, appName: string, keys: string[], body? : string) : Promise<boolean> {
 
         const authorization = headers["x-cardsavr-authorization"];
-        console.log(headers);
         if ("SWCH-HMAC-SHA256 Credentials=" + appName !== authorization) {
             throw new Error("Authorization header not passed properly, should be: \"SWCH-HMAC-SHA256 Credentials=\"" + appName);
         }
