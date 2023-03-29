@@ -36,7 +36,7 @@ export const generateTraceValue = (bytes? : number) : string => {
   
 const stringIdPaths = ["/card_placement_results","/merchant_sites"];
 
-export type APIFilter = number | {[key: string]: string | string[]} | null;
+export type APIFilter = number | {[key: string]: number [] | number | string | string[]} | null;
 
 export const formatPath = (path : string, filter : APIFilter) : string => {
 
