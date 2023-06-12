@@ -62,7 +62,84 @@
 			"response": []
 		},
 		{
-			"name": "2 Create Card",
+			"name": "2.1.1 Upsert Cardholder (PUT)",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"//pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"{{$timestamp}}\");",
+							"pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"1234123421\");",
+							"pm.collectionVariables.set(\"CARDHOLDER_SAFE_KEY\", \"MBNL8Chib96EYdXNt3+etblMg2RAHUYM1d7ScSd8nf8=\");",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = JSON.parse(responseBody)",
+							"pm.collectionVariables.set(\"CARDHOLDER_ID\", response.cardholder_id);",
+							"pm.collectionVariables.set(\"GRANT\", response.cardholder.grant);",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "x-cardsavr-trace",
+						"value": "{\"key\": \"my_trace\"}"
+					},
+					{
+						"key": "x-cardsavr-session-jwt",
+						"value": "{{JWT_TOKEN}}",
+						"type": "text"
+					},
+					{
+						"key": "x-cardsavr-hydration",
+						"value": "[\"cardholder\"]",
+						"type": "text"
+					},
+					{
+						"key": "x-cardsavr-cardholder-safe-key",
+						"value": "{{CARDHOLDER_SAFE_KEY}}",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"cuid\":\"{{CARDHOLDER_CUID}}\",\n    \"custom_data\": {\"my_token\": \"token2\" }\n}\n"
+				},
+				"url": {
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/cardsavr_cards",
+					"protocol": "https",
+					"host": [
+						"api",
+						"{{CARDSAVR-INSTANCE}}",
+						"cardsavr",
+						"io"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"cardsavr_cards"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2.1.2 Upsert Card (PUT)",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -140,7 +217,163 @@
 			"response": []
 		},
 		{
-			"name": "2.1 Lookup Card",
+			"name": "2.2 Create Card (POST w/hydration)",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"//pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"{{$timestamp}}\");",
+							"pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"1234123421\");",
+							"pm.collectionVariables.set(\"CARDHOLDER_SAFE_KEY\", \"MBNL8Chib96EYdXNt3+etblMg2RAHUYM1d7ScSd8nf8=\");",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = JSON.parse(responseBody)",
+							"pm.collectionVariables.set(\"CARD_ID\", response.id);",
+							"pm.collectionVariables.set(\"CARDHOLDER_ID\", response.cardholder_id);",
+							"pm.collectionVariables.set(\"GRANT\", response.cardholder.grant);",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "x-cardsavr-trace",
+						"value": "{\"key\": \"my_trace\"}"
+					},
+					{
+						"key": "x-cardsavr-session-jwt",
+						"value": "{{JWT_TOKEN}}",
+						"type": "text"
+					},
+					{
+						"key": "x-cardsavr-hydration",
+						"value": "[\"cardholder\"]",
+						"type": "text"
+					},
+					{
+						"key": "x-cardsavr-cardholder-safe-key",
+						"value": "{{CARDHOLDER_SAFE_KEY}}",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"cardholder\": {\n        \"cuid\":\"{{CARDHOLDER_CUID}}\",\n        \"custom_data\": {\"my_token\": \"token2\" }\n    },\n    \"par\":\"0000000000000000000{{CARDHOLDER_CUID}}\",\n    \"pan\":\"000000{{CARDHOLDER_CUID}}\",\n    \"cvv\":\"124\",\n    \"expiration_month\":\"12\",\n    \"expiration_year\":\"24\",\n    \"name_on_card\":\"FirstName LastName\",\n    \"address\": {\n        \"cardholder_ref\": {\n            \"cuid\": \"{{CARDHOLDER_CUID}}\"\n        },\n        \"address1\":\"SGTClNSCCMqlfjuzTmJuepDyFgvWhlCMRycXlKGiRIooOJJkoXeObOcAwJMGeqjSDWfhTHobAWMimcCynMIQcvlBFSbMQlwUFyJ\",\n        \"address2\":\"AyFgoCTjCLXUQVylBAfkHJOtqkkKJjuaLHnmJpSctqBOQueIvciyAUPqYoFpkiAPlkGjgPuabhAPCHFPvaxciObOmIBvBUWpngD\",\n        \"city\":\"Seattle\",\n        \"subnational\":\"WA\",\n        \"postal_code\":\"98177\",\n        \"postal_other\":\"98177-0124\",\n        \"country\":\"USA\",\n        \"email\": \"foo@foo.com\",\n        \"is_primary\": true\n    }\n}\n"
+				},
+				"url": {
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/cardsavr_cards",
+					"protocol": "https",
+					"host": [
+						"api",
+						"{{CARDSAVR-INSTANCE}}",
+						"cardsavr",
+						"io"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"cardsavr_cards"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2.3 Upsert Card & Cardholder (PUT w/hydratiion)",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"//pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"{{$timestamp}}\");",
+							"pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"1234123421\");",
+							"pm.collectionVariables.set(\"CARDHOLDER_SAFE_KEY\", \"MBNL8Chib96EYdXNt3+etblMg2RAHUYM1d7ScSd8nf8=\");",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = JSON.parse(responseBody)",
+							"pm.collectionVariables.set(\"CARD_ID\", response.id);",
+							"pm.collectionVariables.set(\"CARDHOLDER_ID\", response.cardholder_id);",
+							"pm.collectionVariables.set(\"GRANT\", response.cardholder.grant);",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "x-cardsavr-trace",
+						"value": "{\"key\": \"my_trace\"}"
+					},
+					{
+						"key": "x-cardsavr-session-jwt",
+						"value": "{{JWT_TOKEN}}",
+						"type": "text"
+					},
+					{
+						"key": "x-cardsavr-hydration",
+						"value": "[\"cardholder\"]",
+						"type": "text"
+					},
+					{
+						"key": "x-cardsavr-cardholder-safe-key",
+						"value": "{{CARDHOLDER_SAFE_KEY}}",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"cardholder\": {\n        \"cuid\":\"{{CARDHOLDER_CUID}}\",\n        \"custom_data\": {\"my_token\": \"token2\" }\n    },\n    \"par\":\"0000000000000000000{{CARDHOLDER_CUID}}\",\n    \"pan\":\"000000{{CARDHOLDER_CUID}}\",\n    \"cvv\":\"124\",\n    \"expiration_month\":\"12\",\n    \"expiration_year\":\"24\",\n    \"name_on_card\":\"FirstName LastName\",\n    \"address\": {\n        \"cardholder_ref\": {\n            \"cuid\": \"{{CARDHOLDER_CUID}}\"\n        },\n        \"address1\":\"SGTClNSCCMqlfjuzTmJuepDyFgvWhlCMRycXlKGiRIooOJJkoXeObOcAwJMGeqjSDWfhTHobAWMimcCynMIQcvlBFSbMQlwUFyJ\",\n        \"address2\":\"AyFgoCTjCLXUQVylBAfkHJOtqkkKJjuaLHnmJpSctqBOQueIvciyAUPqYoFpkiAPlkGjgPuabhAPCHFPvaxciObOmIBvBUWpngD\",\n        \"city\":\"Seattle\",\n        \"subnational\":\"WA\",\n        \"postal_code\":\"98177\",\n        \"postal_other\":\"98177-0124\",\n        \"country\":\"USA\",\n        \"email\": \"foo@foo.com\",\n        \"is_primary\": true\n    }\n}\n"
+				},
+				"url": {
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/cardsavr_cards",
+					"protocol": "https",
+					"host": [
+						"api",
+						"{{CARDSAVR-INSTANCE}}",
+						"cardsavr",
+						"io"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"cardsavr_cards"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3.1 Lookup Card",
 			"event": [
 				{
 					"listen": "test",
@@ -195,7 +428,7 @@
 			"response": []
 		},
 		{
-			"name": "2.2 Lookup Cardholder",
+			"name": "3.2 Lookup Cardholder",
 			"event": [
 				{
 					"listen": "test",
@@ -250,7 +483,7 @@
 			"response": []
 		},
 		{
-			"name": "3 Session Login (switch to cardholder agent!)",
+			"name": "4 Session Login (switch to cardholder agent!)",
 			"event": [
 				{
 					"listen": "test",
@@ -305,7 +538,7 @@
 			"response": []
 		},
 		{
-			"name": "4 Authorize Cardholder",
+			"name": "5 Authorize Cardholder",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -362,6 +595,84 @@
 					]
 				},
 				"description": "\t"
+			},
+			"response": []
+		},
+		{
+			"name": "6 Add CVV",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"//pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"{{$timestamp}}\");",
+							"pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"1234123421\");",
+							"pm.collectionVariables.set(\"CARDHOLDER_SAFE_KEY\", \"MBNL8Chib96EYdXNt3+etblMg2RAHUYM1d7ScSd8nf8=\");",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = JSON.parse(responseBody)",
+							"pm.collectionVariables.set(\"CARD_ID\", response.id);",
+							"pm.collectionVariables.set(\"CARDHOLDER_ID\", response.cardholder_id);",
+							"pm.collectionVariables.set(\"GRANT\", response.cardholder.grant);",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "x-cardsavr-trace",
+						"value": "{\"key\": \"my_trace\"}"
+					},
+					{
+						"key": "x-cardsavr-session-jwt",
+						"value": "{{JWT_TOKEN}}",
+						"type": "text"
+					},
+					{
+						"key": "x-cardsavr-hydration",
+						"value": "[\"cardholder\"]",
+						"type": "text"
+					},
+					{
+						"key": "x-cardsavr-cardholder-safe-key",
+						"value": "{{CARDHOLDER_SAFE_KEY}}",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"cardholder\": {\n        \"cuid\":\"{{CARDHOLDER_CUID}}\",\n        \"custom_data\": {\"my_token\": \"token2\" }\n    },\n    \"par\":\"0000000000000000000{{CARDHOLDER_CUID}}\",\n    \"pan\":\"000000{{CARDHOLDER_CUID}}\",\n    \"cvv\":\"124\",\n    \"expiration_month\":\"12\",\n    \"expiration_year\":\"24\",\n    \"name_on_card\":\"FirstName LastName\",\n    \"address\": {\n        \"cardholder_ref\": {\n            \"cuid\": \"{{CARDHOLDER_CUID}}\"\n        },\n        \"address1\":\"SGTClNSCCMqlfjuzTmJuepDyFgvWhlCMRycXlKGiRIooOJJkoXeObOcAwJMGeqjSDWfhTHobAWMimcCynMIQcvlBFSbMQlwUFyJ\",\n        \"address2\":\"AyFgoCTjCLXUQVylBAfkHJOtqkkKJjuaLHnmJpSctqBOQueIvciyAUPqYoFpkiAPlkGjgPuabhAPCHFPvaxciObOmIBvBUWpngD\",\n        \"city\":\"Seattle\",\n        \"subnational\":\"WA\",\n        \"postal_code\":\"98177\",\n        \"postal_other\":\"98177-0124\",\n        \"country\":\"USA\",\n        \"email\": \"foo@foo.com\",\n        \"is_primary\": true\n    }\n}\n"
+				},
+				"url": {
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/cardsavr_cards",
+					"protocol": "https",
+					"host": [
+						"api",
+						"{{CARDSAVR-INSTANCE}}",
+						"cardsavr",
+						"io"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"cardsavr_cards"
+					]
+				}
 			},
 			"response": []
 		}
