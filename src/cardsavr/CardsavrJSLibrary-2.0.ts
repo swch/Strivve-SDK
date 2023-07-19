@@ -511,7 +511,7 @@ export class CardsavrSession {
         return await this.post("/cardholders/authorize", { grant }, headersToAdd);
     };
 
-    updateCardholderSession = async( filter: APIFilter, body : { clickstream : { url : string, timestamp : string }[]} ): Promise < any > => {
+    updateCardholderSession = async( filter: APIFilter, body : { cuid : string, clickstream : { url : string, timestamp : string }[]} ): Promise < any > => {
         return await this.put("/cardholder_sessions", filter, body);
     };
 
