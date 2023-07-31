@@ -205,7 +205,7 @@ export class Signing {
         }
     }
 
-    static async signRequest(path: string, appName: string, sessionKey: string, body? : string) : Promise<{[k: string]: string}> {
+    static async signRequest(path: string, appName: string, sessionKey: string, body? : { [key: string] : unknown }) : Promise<{[k: string]: string}> {
 
         const date = new Date();
         const nonce = date.getTime().toString(10);

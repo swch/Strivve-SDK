@@ -95,7 +95,7 @@ export class CardsavrSession {
         });
     }
 
-    sendRequest = async(path: string, method: "get" | "GET" | "delete" | "DELETE" | "head" | "HEAD" | "options" | "OPTIONS" | "post" | "POST" | "put" | "PUT" | "patch" | "PATCH" | undefined, requestBody ? : any, headersToAdd = {}): Promise < any > => {
+    sendRequest = async(path: string, method: "get" | "GET" | "delete" | "DELETE" | "head" | "HEAD" | "options" | "OPTIONS" | "post" | "POST" | "put" | "PUT" | "patch" | "PATCH" | undefined, requestBody ? : { [key: string] : unknown }, headersToAdd = {}): Promise < any > => {
 
         const headers = Object.assign({}, this._headers, headersToAdd);
         const unencryptedBody = requestBody;
@@ -173,7 +173,7 @@ export class CardsavrSession {
 
         path = formatPath(path, filter);
 
-        return await this.sendRequest(path, "GET", null, headersToAdd);
+        return await this.sendRequest(path, "GET", undefined, headersToAdd);
     };
 
     post = async(path: string, body: any, headersToAdd = {}): Promise < any > => {
@@ -194,7 +194,7 @@ export class CardsavrSession {
 
         path = formatPath(path, filter);
 
-        return await this.sendRequest(path, "DELETE", null, headersToAdd);
+        return await this.sendRequest(path, "DELETE", undefined, headersToAdd);
     };
 
     private _login = async(username: string, password : string): Promise <unknown> => {
@@ -219,7 +219,7 @@ export class CardsavrSession {
             throw new CardsavrSDKError([], "Must include password to initialize session.");
         }
 
-        const loginResponse = await this.sendRequest("/session/login", "post", encrypted_login_body);
+        const loginResponse = await this.sendRequest("/session/login", "post", encrypted_login_body as unknown as { [key: string]: unknown; });
         this._sessionData.sessionKey = await CardsavrCrypto.Keys.makeECDHSecretKey(loginResponse.body.server_public_key, key_pair);
         this._sessionData.userId = loginResponse.body.user_id;
         this.setSessionToken(loginResponse.body.session_token);
