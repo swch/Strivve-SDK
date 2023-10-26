@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "webhook": "node test.js",
     "start": "node webserver.js"
   },
   "author": "Strivve <mbudos@strivve.com> (https://www.strivve.com/)",
