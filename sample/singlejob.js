@@ -48,7 +48,7 @@ async function placeCard() {
         }
 
         card_data.address = address_data;
-        const safe_key = cardholder_data.type === "persistent" ? "MBNL8Chib96EYdXNt3+etblMg2RAHUYM1d7ScSd8nf8=" : "";
+        const safe_key = cardholder_data.type.startsWith("persistent") ? "MBNL8Chib96EYdXNt3+etblMg2RAHUYM1d7ScSd8nf8=" : "";
 
         const job = await ch.placeCardOnSiteSingleCall({ 
             username: app_username, 
