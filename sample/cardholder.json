@@ -1,3 +1,5 @@
 {
-    "email" : "receives_email_updates@jobcompletion.com"
+    "email" : "receives_email_updates@jobcompletion.com",
+    "webhook_url1" : "",
+    "integrator_id1" : 0
 }
