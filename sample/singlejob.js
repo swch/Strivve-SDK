@@ -34,7 +34,7 @@ const creds_data = getFromEnv(require("./account.json"), process.env);
 async function placeCard() {
     const ch = CardsavrHelper.getInstance();
     //Setup the settings for the application
-    ch.setAppSettings(cardsavr_server, app_name, app_key, false, null, process.env.HTTP_PROXY, false);
+    ch.setAppSettings(cardsavr_server, app_name, app_key, false, null, process.env.HTTP_PROXY, true);
 
     const merchant_site = rl.question("Merchant hostname: ");
 
@@ -48,7 +48,7 @@ async function placeCard() {
         }
 
         card_data.address = address_data;
-        const safe_key = cardholder_data.type === "persistent" ? "MBNL8Chib96EYdXNt3+etblMg2RAHUYM1d7ScSd8nf8=" : "";
+        const safe_key = cardholder_data.type.startsWith("persistent") ? "MBNL8Chib96EYdXNt3+etblMg2RAHUYM1d7ScSd8nf8=" : "";
 
         const job = await ch.placeCardOnSiteSingleCall({ 
             username: app_username, 

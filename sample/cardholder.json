@@ -1,5 +1,6 @@
 {
     "email" : "receives_email_updates@jobcompletion.com",
+    "type" : "persistent_all",
     "webhook_url1" : "",
     "integrator_id1" : 0
 }
