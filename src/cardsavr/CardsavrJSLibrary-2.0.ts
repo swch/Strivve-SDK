@@ -88,6 +88,19 @@ export class CardsavrSession {
         });
     }
 
+    checkForExpiredSessionToken = () : boolean => {
+        try {
+            // JWT RFC-7519 formatted token
+            // Note: Can't verify the token signature as client does not have the secret
+            const parsedToken = this._sessionData.sessionToken.split(".");
+            const claims = JSON.parse((Buffer.from(parsedToken[1],"base64")).toString("utf8"));
+            return (claims.exp > ~~(Date.now() / 1000) ? false : true);
+        } catch (e) {
+            // Not proper JWT
+            return (true);
+        }
+    }
+
     private setSessionToken = (key: string): void  => {
         this._sessionData.sessionToken = key;
         this.setSessionHeaders({
