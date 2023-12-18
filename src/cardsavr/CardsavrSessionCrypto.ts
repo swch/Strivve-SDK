@@ -79,7 +79,7 @@ export class Encryption {
 
             // Create new body to be placed in request payload (with $IV appended for additional uniqueness)
             const newBody = {
-                "encrypted_body" : encryptedJSON.toString("base64") + auth_tag.toString("base64") + "$" + IV.toString("base64") + "$aes-256-gcm" 
+                "encrypted_body" : Buffer.concat([encryptedJSON, auth_tag]).toString("base64") + "$" + IV.toString("base64") + "$aes-256-gcm" 
             };
 
             return newBody;
@@ -160,9 +160,11 @@ export class Encryption {
             const binaryEncryptionKey = Buffer.alloc(32);
             binaryEncryptionKey.write(b64Key, "base64");
 
+            const encrypted_buf = Buffer.from(b64cipherText, "base64");
+
             const [encoded, auth_tag] = [
-                Buffer.from(b64cipherText.substring(0, b64cipherText.length - 24), "base64"), 
-                Buffer.from(b64cipherText.substring(b64cipherText.length - 24), "base64")];
+                encrypted_buf.subarray(0, encrypted_buf.length - 16), 
+                encrypted_buf.subarray(encrypted_buf.length - 16, encrypted_buf.length)];
 
             const iv = Buffer.from(b64IV, "base64");
 
