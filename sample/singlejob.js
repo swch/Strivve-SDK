@@ -34,7 +34,7 @@ const creds_data = getFromEnv(require("./account.json"), process.env);
 async function placeCard() {
     const ch = CardsavrHelper.getInstance();
     //Setup the settings for the application
-    ch.setAppSettings(cardsavr_server, app_name, app_key, false, null, process.env.HTTP_PROXY, false);
+    ch.setAppSettings(cardsavr_server, app_name, app_key, false, null, process.env.HTTP_PROXY, true);
 
     const merchant_site = rl.question("Merchant hostname: ");
 
