@@ -56,7 +56,7 @@ async function placeCard() {
                 cardholder: cardholder_data, 
                 account: creds_data, 
                 card: card_data,
-                queue_name_override: "vbs_localstack_queue"
+                queue_name_override1: "vbs_localstack_queue"
                 //type_override: "RPA_LOOPBACK:CARD_PLACEMENT"
             },
             safe_key
