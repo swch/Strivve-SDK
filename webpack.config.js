@@ -1,7 +1,12 @@
 const path = require("path");
 
+const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
+
 module.exports = {
     entry : "./src/cardsavr/CardsavrHelper.ts",
+	plugins: [
+		new NodePolyfillPlugin()
+	],
     module : {
         rules : [
             {
