@@ -48,7 +48,7 @@ async function placeCard() {
         }
 
         card_data.address = address_data;
-        const safe_key = cardholder_data.type.startsWith("persistent") ? "MBNL8Chib96EYdXNt3+etblMg2RAHUYM1d7ScSd8nf8=" : "";
+        const safe_key = cardholder_data.type?.startsWith("persistent") ? "MBNL8Chib96EYdXNt3+etblMg2RAHUYM1d7ScSd8nf8=" : "";
 
         const job = await ch.placeCardOnSiteSingleCall({ 
             username: app_username, 
@@ -56,7 +56,7 @@ async function placeCard() {
                 cardholder: cardholder_data, 
                 account: creds_data, 
                 card: card_data,
-                queue_name_override: "vbs_localstack_queue"
+                queue_name_override1: "vbs_localstack_queue"
                 //type_override: "RPA_LOOPBACK:CARD_PLACEMENT"
             },
             safe_key

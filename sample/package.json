@@ -5,12 +5,13 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "webhook": "node test.js",
     "start": "node webserver.js"
   },
   "author": "Strivve <mbudos@strivve.com> (https://www.strivve.com/)",
   "license": "ISC",
   "dependencies": {
-    "@strivve/strivve-sdk": "^2.12.5",
+    "@strivve/strivve-sdk": "^3.0.0",
     "@types/source-map-support": "^0.5.3",
     "body-parser": "*",
     "express": "^4.17.3",

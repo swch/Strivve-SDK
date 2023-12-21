@@ -1,6 +1,6 @@
 import * as crypto from "crypto";
 
-//browserCrypto will be false for both node AND IE11 AND Advancial because they are destroying window.crypto contents
+//browserCrypto will be false for both node AND IE11 AND systems that destroy window.crypto contents
 const browserCrypto = (typeof window === "undefined" || !window.crypto?.subtle) ? false : window.crypto;
 
 class WebConversions {
@@ -59,59 +59,66 @@ export class Encryption {
 
         if (!browserCrypto) {
 
-            const binaryEncryptionKey = Buffer.alloc(32);
-            binaryEncryptionKey.write(b64Key, "base64");
+            const binaryEncryptionKey = Buffer.from(b64Key, "base64");
 
-            //  Create an Initialization Vector (IV) for encryption
-            const IV = crypto.randomBytes(16);
+            const IV = (() => {
+                const buf = Buffer.alloc(12);
+                crypto.randomBytes(4).copy(buf);
+                buf.writeBigInt64BE(BigInt(Date.now()), 4);
+                return buf;
+            })();
 
             // Create buffer out of clear text for use in encryption
-            //let bufferJSON = Buffer.alloc(clearText.length);
-            //bufferJSON.write(clearText, 'utf8');
             const bufferJSON = Buffer.from(clearText, "utf8");
 
             // Encrypt body using shared secret key and IV
-            const encryptor = crypto.createCipheriv("aes-256-cbc", binaryEncryptionKey, IV);
+            const encryptor = crypto.createCipheriv("aes-256-gcm", binaryEncryptionKey, IV);
 
             const encryptedJSON = Buffer.concat([encryptor.update(bufferJSON), encryptor.final()]);
+            const auth_tag = encryptor.getAuthTag();
 
             // Create new body to be placed in request payload (with $IV appended for additional uniqueness)
             const newBody = {
-                "encrypted_body" : encryptedJSON.toString("base64") + "$" + IV.toString("base64")
+                "encrypted_body" : Buffer.concat([encryptedJSON, auth_tag]).toString("base64") + "$" + IV.toString("base64") + "$aes-256-gcm" 
             };
 
             return newBody;
         } else {
 
             // Generate an Initialization Vector
-            const iv = new Uint8Array(16);
+            const iv = new Uint8Array(12);
             browserCrypto.getRandomValues(iv);
-
+            let ts = Date.now();
+            for ( let index = 4; index < iv.length; index ++ ) {
+              iv [ index ] = ts & 0xff;
+              ts = (ts - iv [ index ]) / 256 ;
+            }
+      
             // Convert the encryption key from base64 and import it
             const encryptionKey = await browserCrypto.subtle.importKey(
-                "raw",
-                WebConversions.base64ToArrayBuffer(b64Key),
-                "AES-CBC",
-                false, // Not extractable
-                ["encrypt"]
+              "raw",
+              WebConversions.base64ToArrayBuffer(b64Key),
+              "AES-GCM",
+              false, // Not extractable
+              ["encrypt"]
             );
-
-            // Encrypt the password key using the secret key
-            const encryptedKey = await browserCrypto.subtle.encrypt({
-                    name : "AES-CBC",
-                    iv : iv
-                },
-                encryptionKey,
-                WebConversions.stringToArrayBuffer(clearText)
+      
+            // Encrypt the text using the secret key
+            const encrypted = await browserCrypto.subtle.encrypt({
+                name : "AES-GCM",
+                iv : iv
+              },
+              encryptionKey,
+              WebConversions.stringToArrayBuffer(clearText)
             );
-
+      
             // Create new body to be placed in request payload (with $IV appended for additional uniqueness)
             const newBody = {
-                "encrypted_body" : WebConversions.arrayBufferToBase64(encryptedKey) + "$" + WebConversions.arrayBufferToBase64(iv)
+              "encrypted_body" : 
+                WebConversions.arrayBufferToBase64(encrypted) + "$" + WebConversions.arrayBufferToBase64(iv) + "$aes-256-gcm"
             };
-
+            
             return newBody;
-
         }
  
     }
@@ -138,7 +145,7 @@ export class Encryption {
 
         // Parse tuple string into encrypted body and IV components
         const stringParts = body.encrypted_body.split("$");
-        if (stringParts[1].length != 24) {
+        if (stringParts[1].length != 16) {
             // Not a proper 16-byte base64-encoded IV
             throw new Error("Response body is not properly encrypted.");
         }
@@ -153,18 +160,17 @@ export class Encryption {
             const binaryEncryptionKey = Buffer.alloc(32);
             binaryEncryptionKey.write(b64Key, "base64");
 
-            const n = b64cipherText.length;
-            const l = (n / 4) * 3;
-            const equalsIndex = b64cipherText.indexOf("=");
-            const length = equalsIndex > -1 ? l - (b64cipherText.length - equalsIndex) : l;
+            const encrypted_buf = Buffer.from(b64cipherText, "base64");
 
-            const bodyBuffer = Buffer.alloc(length);
-            bodyBuffer.write(b64cipherText, "base64");
+            const [encoded, auth_tag] = [
+                encrypted_buf.subarray(0, encrypted_buf.length - 16), 
+                encrypted_buf.subarray(encrypted_buf.length - 16, encrypted_buf.length)];
 
             const iv = Buffer.from(b64IV, "base64");
 
-            const decryptor = crypto.createDecipheriv("aes-256-cbc", binaryEncryptionKey, iv);
-            const decryptedJSON = Buffer.concat([decryptor.update(bodyBuffer), decryptor.final()]);
+            const decryptor = crypto.createDecipheriv("aes-256-gcm", binaryEncryptionKey, iv);
+            decryptor.setAuthTag(auth_tag);
+            const decryptedJSON = Buffer.concat([decryptor.update(encoded), decryptor.final()]);
             const decryptedString = decryptedJSON.toString("utf8");
 
             return JSON.parse(decryptedString);
@@ -173,18 +179,19 @@ export class Encryption {
             const decryptKey = await browserCrypto.subtle.importKey(
                 "raw",
                 WebConversions.base64ToArrayBuffer(b64Key),
-                "AES-CBC",
+                "AES-GCM",
                 false, ["decrypt"]
             );
-
+    
             const clearTextBuffer = await browserCrypto.subtle.decrypt({
-                    name : "AES-CBC",
+                    name : "AES-GCM",
                     iv : WebConversions.base64ToArrayBuffer(b64IV)
                 },
                 decryptKey,
+                // auth tag is automatically appended to the ciphertext
                 WebConversions.base64ToArrayBuffer(b64cipherText)
             );
-
+    
             const clearText = new TextDecoder().decode(clearTextBuffer);
             return JSON.parse(clearText);
         }
