@@ -24,12 +24,14 @@
     <script>
 
 
-      async function session(app_name, app_key, cardsavr_server) {
+      var username = null;
+
+      async function session(app_name, app_key, cardsavr_server, app_username, app_password) {
         var cardsavr_helper = strivvesdk.CardsavrHelper.getInstance();
         cardsavr_helper.setAppSettings(cardsavr_server, app_name, app_key);
-        var result = get_hash_key_values();
         try {
-          var session = await cardsavr_helper.loginAndCreateSession(result.username, undefined, result.grant);
+          username = app_username;
+          var session = await cardsavr_helper.loginAndCreateSession(app_username, app_password);
         } catch (err) {
           //handle the case where the API session is no longer valid, or it's a refresh in incognito
           console.log(err);
@@ -49,11 +51,9 @@
         status.innerHTML = "WAITING FOR JOB TO START";
         
         var cardsavr_helper = strivvesdk.CardsavrHelper.getInstance();
-        var result = get_hash_key_values();
         //not used, but could be used to pick a site
-        const sites = await (await cardsavr_helper.getSession(result.username)).getSites({ "tags": "prod" }, { page_length : 200, sort: "name" });
-
-        cardsavr_helper.placeCardOnSiteAndPoll({username: result.username, merchant_creds: creds, callback: (message) => {
+        const sites = await (await cardsavr_helper.getSession(username)).getSites({ "tags": "prod" }, { page_length : 200, sort: "name" });
+        cardsavr_helper.placeCardOnSiteAndPoll({username: username, merchant_creds: creds, callback: (message) => {
           console.log(message);
           if (message.type == 'job_status') { //status updates
             status.innerHTML = message.message.status + ": " + message.message.percent_complete + "%";
@@ -78,9 +78,8 @@
       }
  
       async function post_tfa(event) {
-        result = get_hash_key_values();
         var cardsavr_helper = strivvesdk.CardsavrHelper.getInstance();
-        await cardsavr_helper.postTFA({username: result.username, 
+        await cardsavr_helper.postTFA({username, 
                                        tfa: getFormValue(event, 'tfa'), 
                                        job_id: getFormValue(event, 'job_id'), 
                                        envelope_id: getFormValue(event, 'envelope_id')});
@@ -92,19 +91,29 @@
                  password: getFormValue(event, 'password')} //can't update site_hostname
 
         var cardsavr_helper = strivvesdk.CardsavrHelper.getInstance();
-        await cardsavr_helper.postCreds({username: get_hash_key_values().username, 
+        await cardsavr_helper.postCreds({username, 
                                          merchant_creds: creds, 
                                          job_id: getFormValue(event, 'job_id'), 
                                          envelope_id: getFormValue(event, 'envelope_id')});
         toggle_element(["username", "password"], "none");
       }
 
+      function getFromEnv(top_config, env) {
+          console.log(env);
+          return Object.fromEntries(Object.entries(top_config).map(([key, value]) => env[key] ? [key, env[key]] : [key, value]));
+      }
+
       window.onload = function() {
         fetch('strivve_creds.json')
           .then(async response => {
             const global_config = (await response.json());
-            const config = global_config[global_config.instance];
-            session(config.app_name, config.app_key, config.cardsavr_server);
+
+            const {app_name, app_key, app_username, app_password, cardsavr_server, financial_institution } = 
+              getFromEnv(global_config.instance && global_config.instances ? 
+                global_config.instances.find(item => (item.instance == global_config.instance)) : 
+                global_config, {});
+
+            session(app_name, app_key, cardsavr_server, app_username, app_password);
           });
 
         var form = document.querySelector('#job_form');

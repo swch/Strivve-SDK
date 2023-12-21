@@ -145,46 +145,48 @@ export class Encryption {
 
         // Parse tuple string into encrypted body and IV components
         const stringParts = body.encrypted_body.split("$");
-        if (stringParts[1].length != 16) {
-            // Not a proper 16-byte base64-encoded IV
-            throw new Error("Response body is not properly encrypted.");
-        }
-        const req = this.decryptAES256(stringParts[0], stringParts[1], key);
+        const req = this.decryptAES256(stringParts[0], stringParts[1], key, stringParts[2]);
         return await req;
     }
 
-    static async decryptAES256(b64cipherText: string, b64IV: string, b64Key: string) {
+    static async decryptAES256(b64cipherText: string, b64IV: string, b64Key: string, alg?: string) {
+
+        const predicted_alg = b64IV.length === 16 ? "aes-256-gcm" : (b64IV.length === 24 ? "aes-256-cbc" : undefined);
+        if (!predicted_alg || (alg && alg != predicted_alg)) {
+            // Not a proper length for base64-encoded IV, doesn't care about alg, not supported except in-browser
+            throw new Error("Response body is not properly encrypted.");
+        }
 
         if (!browserCrypto) {
 
-            const binaryEncryptionKey = Buffer.alloc(32);
-            binaryEncryptionKey.write(b64Key, "base64");
-
+            // decryption has support for both gcm and cdc for backward compatibility (CU config.json)
+            const binaryEncryptionKey = Buffer.from(b64Key, "base64");
+            const iv = Buffer.from(b64IV, "base64");
             const encrypted_buf = Buffer.from(b64cipherText, "base64");
 
             const [encoded, auth_tag] = [
                 encrypted_buf.subarray(0, encrypted_buf.length - 16), 
                 encrypted_buf.subarray(encrypted_buf.length - 16, encrypted_buf.length)];
 
-            const iv = Buffer.from(b64IV, "base64");
-
-            const decryptor = crypto.createDecipheriv("aes-256-gcm", binaryEncryptionKey, iv);
-            decryptor.setAuthTag(auth_tag);
+            const decryptor = crypto.createDecipheriv(predicted_alg, binaryEncryptionKey, iv);
+            (decryptor as crypto.DecipherGCM).setAuthTag(auth_tag);
+            
             const decryptedJSON = Buffer.concat([decryptor.update(encoded), decryptor.final()]);
             const decryptedString = decryptedJSON.toString("utf8");
 
             return JSON.parse(decryptedString);
         } else {
 
+            const ALG = predicted_alg.replace("-256-", "-").toUpperCase();
             const decryptKey = await browserCrypto.subtle.importKey(
                 "raw",
                 WebConversions.base64ToArrayBuffer(b64Key),
-                "AES-GCM",
+                ALG,
                 false, ["decrypt"]
             );
     
             const clearTextBuffer = await browserCrypto.subtle.decrypt({
-                    name : "AES-GCM",
+                    name : ALG,
                     iv : WebConversions.base64ToArrayBuffer(b64IV)
                 },
                 decryptKey,
