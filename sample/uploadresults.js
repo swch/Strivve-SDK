@@ -6,7 +6,7 @@ require('log-timestamp');
 
 const config = require("./strivve_creds.json");
 
-const instance = "varomoney";
+const instance = "acmebank";
 
 const {app_name, app_key, app_username, app_password,  cardsavr_server, financial_institution } = 
     getFromEnv(instance && config.instances ? 
