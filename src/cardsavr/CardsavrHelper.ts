@@ -1,6 +1,6 @@
 "use strict";
 
-import { CardsavrSession } from "./CardsavrJSLibrary-2.0";
+import { CardsavrSession, paging_header } from "./CardsavrJSLibrary-2.0";
 import CardsavrSessionResponse from "./CardsavrSessionResponse";
 import { generateRandomPar, localStorageAvailable, generateUniqueUsername } from "./CardsavrSessionUtilities";
 import CardsavrSDKError from "./CardsavrSDKError";
@@ -185,7 +185,7 @@ export class CardsavrHelper {
             }
 
             const card_response = await agent_session.createCard(card_data_copy, safe_key, headers);     
-     
+
             return card_response.body;
     
         } catch(err) {
@@ -407,7 +407,7 @@ export class CardholderQuery {
         if (message.message?.status.startsWith("PENDING") && !message.account_link) {
             let tries = 2;
             while (tries-- >= 0) {
-                const job = await this.session.getSingleSiteJobs(message.job_id, {}, {"x-cardsavr-hydration" : JSON.stringify(["credential_requests"]) });
+                const job = await this.session.getSingleSiteJobs(message.job_id, {} as paging_header, {"x-cardsavr-hydration" : JSON.stringify(["credential_requests"]) });
                 if (job.body.credential_requests[0]) {
                     if (message.message?.status.toLowerCase() !== "pending") {
                         this.event_emitter.emit(`${message.job_id}:${message.message?.status.toLowerCase()}`, job.body.credential_requests[0]);
@@ -482,6 +482,9 @@ export class CardholderQuery {
         let tries = 0;
         this._user_probe = setInterval(async () => { 
             try {
+                //if (!this.event_emitter.callbacks?.legnth) {
+                //    return;
+                //}
                 const messages = await this.session.getCardholderMessages(this.cardholder_id);
                 // if there's an error, we should say so, stop the probe, and send a status message that says the message channel is no longer available.
                 tries = 0;

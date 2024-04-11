@@ -1,6 +1,6 @@
 {
   "name": "@strivve/strivve-sdk",
-  "version": "2.12.6",
+  "version": "3.1.2",
   "description": "",
   "directories": {
     "src": "src",
@@ -13,7 +13,7 @@
     "build": "tsc --build src",
     "start": "npm run build && node --unhandled-rejections=strict sample/webserver.js",
     "lint": "eslint ./src --ext .js,.ts --fix",
-    "singlejob": "npm run build && node --unhandled-rejections=strict sample/singlejob.js",
+    "singlejob": "npm run build && node --enable-source-maps --unhandled-rejections=strict sample/singlejob.js",
     "prepublishOnly": "npm run build"
   },
   "config": {

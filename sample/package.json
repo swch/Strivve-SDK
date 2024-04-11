@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node webserver.js"
+    "webhook": "node --enable-source-maps test.js",
+    "start": "node --enable-source-maps webserver.js"
   },
   "author": "Strivve <mbudos@strivve.com> (https://www.strivve.com/)",
   "license": "ISC",

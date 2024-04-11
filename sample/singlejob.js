@@ -34,7 +34,7 @@ const creds_data = getFromEnv(require("./account.json"), process.env);
 async function placeCard() {
     const ch = CardsavrHelper.getInstance();
     //Setup the settings for the application
-    ch.setAppSettings(cardsavr_server, app_name, app_key, false, null, process.env.HTTP_PROXY, true);
+    ch.setAppSettings(cardsavr_server, app_name, app_key, false, null, process.env.HTTP_PROXY, false);
 
     const merchant_site = rl.question("Merchant hostname: ");
 
@@ -48,7 +48,7 @@ async function placeCard() {
         }
 
         card_data.address = address_data;
-        const safe_key = cardholder_data.type.startsWith("persistent") ? "MBNL8Chib96EYdXNt3+etblMg2RAHUYM1d7ScSd8nf8=" : "";
+        const safe_key = cardholder_data.type?.startsWith("persistent") ? "MBNL8Chib96EYdXNt3+etblMg2RAHUYM1d7ScSd8nf8=" : "";
 
         const job = await ch.placeCardOnSiteSingleCall({ 
             username: app_username, 
@@ -56,7 +56,7 @@ async function placeCard() {
                 cardholder: cardholder_data, 
                 account: creds_data, 
                 card: card_data,
-                queue_name_override: "vbs_localstack_queue"
+                queue_name_override1: "vbs_localstack_queue"
                 //type_override: "RPA_LOOPBACK:CARD_PLACEMENT"
             },
             safe_key
@@ -66,23 +66,30 @@ async function placeCard() {
         const query = ch.createCardholderQuery(app_username, job.cardholder_id);
 
         const status_handler = async (message) => {
-            const update = message.message;
-            if (!vbs_start) {
-                vbs_start = new Date().getTime();
-                console.log("VBS startup: " + Math.round(((vbs_start - job_start) / 1000)) + " seconds");
-            }
-            console.log(`${update.status} ${update.status_message ?? "(quick start)"} ${update.percent_complete}% - ${message.job_id} }, Time remaining: ${update.job_timeout}`);
-            if (update.termination_type) {
-                console.log("TERMINATE WITH: " + update.termination_type);
-                query.removeListeners(job.id);
-                await new Promise(resolve => setTimeout(resolve, 5000));
-                placeCard();
+            if (message.type === "error") {
+                console.log("DISCONNECTION ERROR, EXIT");
+                query.removeAll();
+            } else {
+                const update = message.message;
+                if (!vbs_start) {
+                    vbs_start = new Date().getTime();
+                    console.log("VBS startup: " + Math.round(((vbs_start - job_start) / 1000)) + " seconds");
+                }
+                console.log(`${update.status} ${update.status_message ?? "(quick start)"} ${update.percent_complete}% - ${message.job_id} }, Time remaining: ${update.job_timeout}`);
+                if (update.termination_type) {
+                    console.log("TERMINATE WITH: " + update.termination_type);
+                    query.removeListeners(job.id);
+                    await new Promise(resolve => setTimeout(resolve, 5000));
+                    placeCard();
+                }
             }
         }
 
         const creds_handler = async (message) => {
-            if (message.message)
-                console.log(message.message.status_message);
+            if (message.type === "error") {
+                query.removeAll();
+                return;
+            }
             const account_link = { };
             if (message.type === "tfa_message") {
                 account_link.tfa_message = "ack";
