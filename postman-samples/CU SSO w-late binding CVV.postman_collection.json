@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "7a96a8a6-bc13-497e-ae07-e22ec4b15989",
-		"name": "CU SSO",
+		"name": "CU SSO w/late binding CVV",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "8696428"
 	},
@@ -62,7 +62,7 @@
 			"response": []
 		},
 		{
-			"name": "2.1.2 Upsert Card (PUT)",
+			"name": "2.1 Upsert Card (PUT)",
 			"event": [
 				{
 					"listen": "test",
@@ -70,22 +70,24 @@
 						"exec": [
 							"const response = JSON.parse(responseBody)",
 							"pm.collectionVariables.set(\"CARD_ID\", response.id);",
-							"",
+							"pm.collectionVariables.set(\"CARDHOLDER_ID\", response.cardholder_id);",
+							"pm.collectionVariables.set(\"GRANT\", response.cardholder.grant);",
 							""
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				},
 				{
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"//pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"{{$timestamp}}\");",
-							"pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"1234123421\");",
+							"pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"{{$timestamp}}\");",
 							"pm.collectionVariables.set(\"CARDHOLDER_SAFE_KEY\", \"MBNL8Chib96EYdXNt3+etblMg2RAHUYM1d7ScSd8nf8=\");",
 							""
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				}
 			],
@@ -108,17 +110,18 @@
 					{
 						"key": "x-cardsavr-cardholder-safe-key",
 						"value": "{{CARDHOLDER_SAFE_KEY}}",
-						"type": "text"
+						"type": "text",
+						"disabled": true
 					},
 					{
 						"key": "x-cardsavr-hydration",
-						"value": "[\"cardholder\",\"address.cardholder\"]",
+						"value": "[\"cardholder\",\"address.cardholder\",\"cardholder.grant\"]",
 						"type": "text"
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"cardholder\" : {\n        \"cuid\" : \"{{CARDHOLDER_CUID}}\"\n    },\n    \"customer_key\":\"0000000000000000000{{CARDHOLDER_CUID}}\",\n    \"pan\":\"000000{{CARDHOLDER_CUID}}\",\n    \"cvv\":\"124\",\n    \"expiration_month\":\"12\",\n    \"expiration_year\":\"24\",\n    \"name_on_card\":\"FirstName LastName\",\n    \"address\": {\n        \"cardholder_ref\" : {\n            \"cuid\" : \"{{CARDHOLDER_CUID}}\"\n        },\n        \"address1\":\"SGTClNSCCMqlfjuzTmJuepDyFgvWhlCMRycXlKGiRIooOJJkoXeObOcAwJMGeqjSDWfhTHobAWMimcCynMIQcvlBFSbMQlwUFyJ\",\n        \"address2\":\"AyFgoCTjCLXUQVylBAfkHJOtqkkKJjuaLHnmJpSctqBOQueIvciyAUPqYoFpkiAPlkGjgPuabhAPCHFPvaxciObOmIBvBUWpngD\",\n        \"city\":\"Seattle\",\n        \"subnational\":\"WA\",\n        \"postal_code\":\"98177\",\n        \"postal_other\":\"98177-0124\",\n        \"country\":\"USA\",\n        \"email\": \"foo@foo.com\",\n        \"is_primary\": true,\n        \"phone_number\": \"5555555555\",\n        \"first_name\": \"Jane\",\n        \"last_name\": \"Smith\"\n    }\n}\n"
+					"raw": "{\n    \"cardholder\" : {\n        \"cuid\" : \"{{CARDHOLDER_CUID}}\"\n    },\n    \"customer_key\":\"0000000000000000000{{CARDHOLDER_CUID}}\",\n    \"pan\":\"000000{{CARDHOLDER_CUID}}\",\n    \"expiration_month\":\"12\",\n    \"expiration_year\":\"24\",\n    \"name_on_card\":\"FirstName LastName\",\n    \"address\": {\n        \"cardholder_ref\" : {\n            \"cuid\" : \"{{CARDHOLDER_CUID}}\"\n        },\n        \"address1\":\"SGTClNSCCMqlfjuzTmJuepDyFgvWhlCMRycXlKGiRIooOJJkoXeObOcAwJMGeqjSDWfhTHobAWMimcCynMIQcvlBFSbMQlwUFyJ\",\n        \"address2\":\"AyFgoCTjCLXUQVylBAfkHJOtqkkKJjuaLHnmJpSctqBOQueIvciyAUPqYoFpkiAPlkGjgPuabhAPCHFPvaxciObOmIBvBUWpngD\",\n        \"city\":\"Seattle\",\n        \"subnational\":\"WA\",\n        \"postal_code\":\"98177\",\n        \"postal_other\":\"98177-0124\",\n        \"country\":\"USA\",\n        \"email\": \"foo@foo.com\",\n        \"is_primary\": true,\n        \"phone_number\": \"5555555555\",\n        \"first_name\": \"Jane\",\n        \"last_name\": \"Smith\"\n    }\n}\n"
 				},
 				"url": {
 					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/cardsavr_cards",
@@ -144,12 +147,13 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"//pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"{{$timestamp}}\");",
-							"pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"1134123421\");",
+							"pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"{{$timestamp}}\");",
+							"//pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"1134123421\");",
 							"pm.collectionVariables.set(\"CARDHOLDER_SAFE_KEY\", \"MBNL8Chib96EYdXNt3+etblMg2RAHUYM1d7ScSd8nf8=\");",
 							""
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				},
 				{
@@ -162,7 +166,8 @@
 							"pm.collectionVariables.set(\"GRANT\", response.cardholder.grant);",
 							""
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				}
 			],
@@ -190,7 +195,8 @@
 					{
 						"key": "x-cardsavr-cardholder-safe-key",
 						"value": "{{CARDHOLDER_SAFE_KEY}}",
-						"type": "text"
+						"type": "text",
+						"disabled": true
 					}
 				],
 				"body": {
@@ -226,7 +232,8 @@
 							"pm.collectionVariables.set(\"CARDHOLDER_SAFE_KEY\", \"MBNL8Chib96EYdXNt3+etblMg2RAHUYM1d7ScSd8nf8=\");",
 							""
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				},
 				{
@@ -239,7 +246,8 @@
 							"pm.collectionVariables.set(\"GRANT\", response.cardholder.grant);",
 							""
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				}
 			],
@@ -267,12 +275,13 @@
 					{
 						"key": "x-cardsavr-cardholder-safe-key",
 						"value": "{{CARDHOLDER_SAFE_KEY}}",
-						"type": "text"
+						"type": "text",
+						"disabled": true
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"cardholder\": {\n        \"cuid\":\"{{CARDHOLDER_CUID}}\",\n        \"custom_data\": {\"my_token\": \"token2\" },\n        \"type1\" : \"persistent_creds\"\n    },\n    \"customer_key\":\"0000000000000000000{{CARDHOLDER_CUID}}\",\n    \"pan\":\"000000{{CARDHOLDER_CUID}}\",\n    \"expiration_month\":\"12\",\n    \"expiration_year\":\"24\",\n    \"name_on_card\":\"FirstName LastName\",\n    \"address\": {\n        \"cardholder_ref\": {\n            \"cuid\": \"{{CARDHOLDER_CUID}}\"\n        },\n        \"address1\":\"SGTClNSCCMqlfjuzTmJuepDyFgvWhlCMRycXlKGiRIooOJJkoXeObOcAwJMGeqjSDWfhTHobAWMimcCynMIQcvlBFSbMQlwUFyJ\",\n        \"address2\":\"AyFgoCTjCLXUQVylBAfkHJOtqkkKJjuaLHnmJpSctqBOQueIvciyAUPqYoFpkiAPlkGjgPuabhAPCHFPvaxciObOmIBvBUWpngD\",\n        \"city\":\"Seattle\",\n        \"subnational\":\"OR\",\n        \"postal_code\":\"98177\",\n        \"postal_other\":\"98177-0124\",\n        \"country\":\"USA\",\n        \"email\": \"foo@foo.com\",\n        \"is_primary\": true,\n        \"phone_number\": \"5555555555\",\n        \"first_name\": \"Jane\",\n        \"last_name\": \"Smith\"\n    }\n}\n"
+					"raw": "{\n    \"cardholder\": {\n        \"cuid\":\"{{CARDHOLDER_CUID}}\",\n        \"custom_data\": {\"my_token\": \"token2\" }\n    },\n    \"customer_key\":\"0000000000000000000{{CARDHOLDER_CUID}}\",\n    \"pan\":\"000000{{CARDHOLDER_CUID}}\",\n    \"expiration_month\":\"12\",\n    \"expiration_year\":\"24\",\n    \"name_on_card\":\"FirstName LastName\",\n    \"address\": {\n        \"cardholder_ref\": {\n            \"cuid\": \"{{CARDHOLDER_CUID}}\"\n        },\n        \"address1\":\"SGTClNSCCMqlfjuzTmJuepDyFgvWhlCMRycXlKGiRIooOJJkoXeObOcAwJMGeqjSDWfhTHobAWMimcCynMIQcvlBFSbMQlwUFyJ\",\n        \"address2\":\"AyFgoCTjCLXUQVylBAfkHJOtqkkKJjuaLHnmJpSctqBOQueIvciyAUPqYoFpkiAPlkGjgPuabhAPCHFPvaxciObOmIBvBUWpngD\",\n        \"city\":\"Seattle\",\n        \"subnational\":\"OR\",\n        \"postal_code\":\"98177\",\n        \"postal_other\":\"98177-0124\",\n        \"country\":\"USA\",\n        \"email\": \"foo@foo.com\",\n        \"is_primary\": true,\n        \"phone_number\": \"5555555555\",\n        \"first_name\": \"Jane\",\n        \"last_name\": \"Smith\"\n    }\n}\n"
 				},
 				"url": {
 					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/cardsavr_cards/",
