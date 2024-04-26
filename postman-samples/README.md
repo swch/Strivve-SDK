@@ -6,6 +6,44 @@ This directory contains a Postman collection of sample requests.  It can be impo
 
 The CardSavr Environment Instance must configured to allow unsigned REST requests and responses in addition to signed REST requests and responses.  Stivve can enable this upon request for non production environments.
 
+## Set up a cardsavr enironments
+
+Environment specific settings can be attained from support@strivve.com.  
+
+- USERNAME
+- PASSWORD
+- CARDSAVR-INSTANCE (i.e. customer-dev)
+- PORT (almost always 443)
+
+## Global settings
+
+- SITE_ID (You can use 1 for the easy synthetic site, but you can use any site available in the directory)
+- SITE_USERNAME 
+- SITE_PASSWORD
+- SITE_USERNAME_2  (Feel free to set SITE_USERNAME / SITE_PASSWORD to incorrect values to test out credential resubmission)
+- SITE_PASSWORD_2
+- CARDHOLDER_CUID  (This can be used to override the cuid when testing persistent cardholders - the cuid is a unique identifier that can be used to reference a cardholder.  Ephemeral cardholders are deleted, but they can be correlated using their cuid)
+
+## Single Job (Simple)
+
+Pushng a card requires a few steps.  You must first let CardSavr know what card and billing information you would like to push.  Then you need to create the jobs for the merchants you would like to push.  Finally, you need to monitor that job to ensure that all the necessary credentials have been provided, but also report back to the cardholder with the necessary requests for that additional information.
+
+Import the postman collection:
+
+File->Import->Files or Folders->Single Job (simple).postman_collection.json
+
+1. Log into CardSavr with the username and password provided by the Strivve support team
+2. Select the merchants and find an active one where you'd like to place your card
+3. Upsert a cardholder (cuid is used as a remote identifier for this cardholder - like a member_id).  Why upsert?  Upserts are very useful when you are unsure if the cardholder already exists.  Since cardholders have customer_keys (cuid), new cuids will cause cardholders to be created, and existing cuids will be updated and returned.
+4. Upsert the card using the carholder id from #3 (note that the card has a child "address".  Although addresses can be shared between cards, it's often easier just to add a new one every time)
+5. Create an account using the merchant id and cardholder id from #3.  For this example, the creds are supplied when creating the account (it is possible to start the job without credentials).  To know which credentials are required initially, check the account_link attributes in the merchant site -- the initial credentials have a type of "initial_account_link".
+6. Post the job using the cardholder id, card id, and account id. 
+7-0. By polling the cardholder or the job (job in this example), you can determine if new credentials are required.  All jobs should be monitored until a termination type is set.  All statuses that start with "PENDING" will be accompanied with a credential request.  These credential requests include what parameters are required, along with an envelope_id.
+7-1. If initial credentials are incorrect, the envelope_id and new credentials must be supplied in the subsequent response.
+7-2. In the case where additional information is required (like a one-time-passcode), once again the appriate prompt must be made to the cardholder and the values must be submitted with envelope_id.
+8. When polling the job returns a termination type, the session can be closed.  
+
+
 ## SSO Cardupdatr sample usage
 
 SSO w/CardUpdatr is the easiest way to get CardSavr up and running.  You only need to build a simple CardSavr applciation that logs in, and then creates a card.  The creation of the card creates the necessary entities, and an authorization grant that can be used to run jobs within CardUpdatr.  This avoids your users having to enter their card, address, and other info.
