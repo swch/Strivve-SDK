@@ -639,6 +639,10 @@
 		{
 			"key": "CARDHOLDER_SAFE_KEY",
 			"value": ""
+		},
+		{
+			"key": "FI_LOOKUP_KEY",
+			"value": ""
 		}
 	]
 }

@@ -677,7 +677,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"account\": {\r\n        \"account_link\": {\r\n            \"username\":\"{{SITE_USERNAME_1}}\",\r\n            \"password\":\"{{SITE_PASSWORD_1}}\"\r\n        }\r\n    }\r\n}"
+					"raw": "{\r\n    \"account\": {\r\n        \"account_link\": {\r\n            \"username\":\"{{SITE_USERNAME}}\",\r\n            \"password\":\"{{SITE_PASSWORD}}\"\r\n        }\r\n    }\r\n}"
 				},
 				"url": {
 					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/place_card_on_single_site_jobs/{{JOB_ID}}",
