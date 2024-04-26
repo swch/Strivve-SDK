@@ -38,9 +38,10 @@ File->Import->Files or Folders->Single Job (simple).postman_collection.json
 4. Upsert the card using the carholder id from #3 (note that the card has a child "address".  Although addresses can be shared between cards, it's often easier just to add a new one every time)
 5. Create an account using the merchant id and cardholder id from #3.  For this example, the creds are supplied when creating the account (it is possible to start the job without credentials).  To know which credentials are required initially, check the account_link attributes in the merchant site -- the initial credentials have a type of "initial_account_link".
 6. Post the job using the cardholder id, card id, and account id. 
-7-0. By polling the cardholder or the job (job in this example), you can determine if new credentials are required.  All jobs should be monitored until a termination type is set.  All statuses that start with "PENDING" will be accompanied with a credential request.  These credential requests include what parameters are required, along with an envelope_id.
-7-1. If initial credentials are incorrect, the envelope_id and new credentials must be supplied in the subsequent response.
-7-2. In the case where additional information is required (like a one-time-passcode), once again the appriate prompt must be made to the cardholder and the values must be submitted with envelope_id.
+7. Polling the cardholder or job.
+    0. By polling the cardholder or the job (job in this example), you can determine if new credentials are required.  All jobs should be monitored until a termination type is set.  All statuses that start with "PENDING" will be accompanied with a credential request.  These credential requests include what parameters are required, along with an envelope_id.
+    1. If initial credentials are incorrect, the envelope_id and new credentials must be supplied in the subsequent response.
+    2. In the case where additional information is required (like a one-time-passcode), once again the appriate prompt must be made to the cardholder and the values must be submitted with envelope_id.
 8. When polling the job returns a termination type, the session can be closed.  
 
 
