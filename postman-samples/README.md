@@ -50,18 +50,35 @@ File->Import->Files or Folders->Single Job (simple).postman_collection.json
 
 ## Single Job
 
-Now that you are familiar with how to run a simple job, let's explore some more efficient and advanced techniques for 
+Now that you are familiar with how to run a simple job, let's explore some more efficient and advanced techniques for placing cards on merchant sites.
 
-Import CU SSO.postman_collection.json
+Import Single Job.postman_collection.json
 
-- Create (or reuse) and enviornment in Postman
-- Add a variable CARDSAVR-INSTANCE (this is the instance part of your API URL: api.CARDSAVR-INSTANCE.cardsavr.io)
-- Add a variable for USERNAME (contact your account manager if you do not have the username)
-- Add a variable for PASSWORD (contact your account manager if you do not have the password)
-- Add a variable for TRACE with a value of {"key": "postman_test"}
-- Add a variable for FINANCIAL_INSTITUTION with a value of "default" (this may be provided by Strivve as well)
-- Run step 1 to login
-- Run step 2 to create a card, cardholder and address
+1. Log into CardSavr
+2. Find a merchant
+3. Post the job as a full hydrated body. This way you can post the cardholder, card, account and job in one call. 
+    1. Default cardholders are ephemeral.  All cardholder data is purged upon completion of the session.
+    2. If a job is posted with a persistent cardholder, credentials can be saved for future jobs. You also must send a x-cardsavr-cardholder-safe-key when using peristent cardholders.  (This header is available in the calls, and can be toggled on and off)
+4. Poll the job
+    1. Using the job id. This queries the entire state of the job
+    2. Using the messages endpoint. This is handy for streaming status messages to the client
+    3. Using the cardholder endpoint. This way if a cardholder is running simultaneous jobs, the status messages are merged. 
+5. Credential requests
+    1. Resubmit credentials
+    2. Add Email and Phone if missing
+    3. Submit TFA
+    4. Submit Security Questions
+6. After jobs coomplete, you can query the card placement results.  Even though ephemeral cardholders are purged, the card placement results (with no identifiable information) remain.
+7. End the session
+
+## CardUpdatr simulation w/two jobs
+
+1. Log into Cardsavr
+2. Create Cardholder
+3. Upsert Card
+4. Post Job
+5. Save the credentials
+
 
 At this point, you've procured a cardholder with a card that contains an access grant that can be used by CardUpdatr.  CardUpdatr then runs the following steps:
 
