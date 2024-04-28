@@ -76,9 +76,11 @@ Import Single Job.postman_collection.json
 1. Log into Cardsavr
 2. Create Cardholder
 3. Upsert Card
-4. Post Job
-5. Save the credentials
-
+4. Authorize Cardholder
+5. Post Job
+6. Save the credentials
+7. Query job statuses
+8. Resubmit credentials
 
 At this point, you've procured a cardholder with a card that contains an access grant that can be used by CardUpdatr.  CardUpdatr then runs the following steps:
 

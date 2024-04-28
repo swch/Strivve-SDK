@@ -70,7 +70,7 @@
 						"exec": [
 							"//pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"{{$timestamp}}\");",
 							"pm.collectionVariables.set(\"CARDHOLDER_SAFE_KEY\", \"MBNL8Chib96EYdXNt3+etblMg2RAHUYM1d7ScSd8nf8=\");",
-							"pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"1234123422\");",
+							"pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"1234183422\");",
 							""
 						],
 						"type": "text/javascript",
@@ -275,7 +275,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"cardholder_id\": {{CARDHOLDER_ID}},\n    \"pan\":\"400000{{CARDHOLDER_CUID}}\",\n    \"customer_key\":\"1234123419\",\n    \"cvv\":\"467\",\n    \"expiration_month\":\"12\",\n    \"expiration_year\":\"24\",\n    \"name_on_card\":\"Mark Budos\",\n    \"first_name\":\"Mark\",\n    \"last_name\":\"Budos\",\n    \"address\": {\n        \"cardholder_id\": {{CARDHOLDER_ID}},\n        \"address1\":\"5619 165th Pl SE\",\n        \"address2\":\"\",\n        \"city\":\"Bellevue\",\n        \"subnational\":\"WA\",\n        \"postal_code\":\"98006\",\n        \"postal_other\":\"\",\n        \"country\":\"USA\",\n        \"email\" : \"test@test.com\",\n        \"phone_number\" : \"5555555555\",\n        \"first_name\" : \"test\",\n        \"last_name\" : \"testerson\",\n        \"is_primary\": true\n    }\n}\n"
+					"raw": "{\n    \"cardholder_id\": {{CARDHOLDER_ID}},\n    \"pan\":\"400000{{CARDHOLDER_CUID}}\",\n    \"customer_key\":\"1234123419\",\n    \"cvv\":\"467\",\n    \"expiration_month\":\"12\",\n    \"expiration_year\":\"24\",\n    \"name_on_card\":\"Test Testerson\",\n    \"address\": {\n        \"cardholder_id\": {{CARDHOLDER_ID}},\n        \"address1\":\"123 45th St\",\n        \"address2\":\"\",\n        \"city\":\"Bellevue\",\n        \"subnational\":\"WA\",\n        \"postal_code\":\"98006\",\n        \"postal_other\":\"\",\n        \"country\":\"USA\",\n        \"email\" : \"test@test.com\",\n        \"phone_number\" : \"5555555555\",\n        \"first_name\" : \"test\",\n        \"last_name\" : \"testerson\",\n        \"is_primary\": true\n    }\n}\n"
 				},
 				"url": {
 					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/cardsavr_cards",
@@ -377,7 +377,7 @@
 			"response": []
 		},
 		{
-			"name": "6 PUT Account w/creds",
+			"name": "5 PUT Account w/creds",
 			"event": [
 				{
 					"listen": "test",
@@ -454,7 +454,7 @@
 			"response": []
 		},
 		{
-			"name": "7 Get Cardholder Jobs Status (messages endpoint)",
+			"name": "6.1 Get Cardholder Jobs Status (messages endpoint)",
 			"event": [
 				{
 					"listen": "test",
@@ -504,7 +504,7 @@
 			"response": []
 		},
 		{
-			"name": "7.1 Get Job",
+			"name": "6.2 Get Job",
 			"event": [
 				{
 					"listen": "test",

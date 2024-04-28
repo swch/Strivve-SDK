@@ -317,7 +317,7 @@
 			"response": []
 		},
 		{
-			"name": "2.3 Authorize Cardholder (for switching agents)",
+			"name": "3 Authorize Cardholder (for switching agents)",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -378,7 +378,7 @@
 			"response": []
 		},
 		{
-			"name": "3 Upsert Card",
+			"name": "4 Upsert Card",
 			"event": [
 				{
 					"listen": "test",
@@ -454,7 +454,7 @@
 			"response": []
 		},
 		{
-			"name": "4 POST Job",
+			"name": "5.1 POST Job",
 			"event": [
 				{
 					"listen": "test",
@@ -537,7 +537,7 @@
 			"response": []
 		},
 		{
-			"name": "4.1 POST Job (second one)",
+			"name": "5.2 POST Job (second one)",
 			"event": [
 				{
 					"listen": "test",
@@ -619,7 +619,7 @@
 			"response": []
 		},
 		{
-			"name": "5 PUT Job /w creds",
+			"name": "6.1 PUT Job /w creds",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -698,7 +698,7 @@
 			"response": []
 		},
 		{
-			"name": "5.1 PUT Job w/creds 2",
+			"name": "6.2 PUT Job w/creds 2",
 			"event": [
 				{
 					"listen": "test",
@@ -777,7 +777,7 @@
 			"response": []
 		},
 		{
-			"name": "6 Get Cardholder Jobs Status (messages endpoint)",
+			"name": "7.1 Get Cardholder Jobs Status (messages endpoint)",
 			"event": [
 				{
 					"listen": "test",
@@ -827,7 +827,7 @@
 			"response": []
 		},
 		{
-			"name": "6.1 Get Job",
+			"name": "7.2 Get Job",
 			"event": [
 				{
 					"listen": "test",
@@ -891,7 +891,7 @@
 			"response": []
 		},
 		{
-			"name": "6.1 Get Job 2",
+			"name": "7.3 Get Job 2",
 			"event": [
 				{
 					"listen": "test",
@@ -960,7 +960,7 @@
 			"response": []
 		},
 		{
-			"name": "6.2 Resubmit Credentials",
+			"name": "8.1 Resubmit Credentials",
 			"request": {
 				"method": "PUT",
 				"header": [
@@ -1012,7 +1012,7 @@
 			"response": []
 		},
 		{
-			"name": "6.2 Resubmit Credentials 2",
+			"name": "8.2 Resubmit Credentials 2",
 			"request": {
 				"method": "PUT",
 				"header": [
@@ -1064,7 +1064,7 @@
 			"response": []
 		},
 		{
-			"name": "6.3 Submit TFA",
+			"name": "8.3 Submit TFA",
 			"request": {
 				"method": "PUT",
 				"header": [
@@ -1116,7 +1116,7 @@
 			"response": []
 		},
 		{
-			"name": "6.3 Submit TFA 2",
+			"name": "6.4 Submit TFA 2",
 			"request": {
 				"method": "PUT",
 				"header": [
