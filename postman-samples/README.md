@@ -24,11 +24,15 @@ Environment specific settings can be attained from support@strivve.com.
 - SITE_PASSWORD_2
 - CARDHOLDER_CUID  (This can be used to override the cuid when testing persistent cardholders - the cuid is a unique identifier that can be used to reference a cardholder.  Ephemeral cardholders are deleted, but they can be correlated using their cuid)
 
+## Synthetic sites
+
+All postman scripts will work with actual merchant sites, but they are configured to work with Strivve's [synthetic sites](https://developers.strivve.com/testing/site-testing#user-experience-testing-synthetic-sites).  They behave like real sites, but respond to different usernames and passwords to simulate real site behavior.
+
 ## Single Job (Simple)
 
 Pushng a card requires a few steps.  You must first let CardSavr know what card and billing information you would like to push.  Then you need to create the jobs for the merchants you would like to push.  Finally, you need to monitor that job to ensure that all the necessary credentials have been provided, but also report back to the cardholder with the necessary requests for that additional information.
 
-Import the postman collection:
+Import "Single Job (simple)":
 
 File->Import->Files or Folders->Single Job (simple).postman_collection.json
 
@@ -39,15 +43,14 @@ File->Import->Files or Folders->Single Job (simple).postman_collection.json
 5. Create an account using the merchant id and cardholder id from #3.  For this example, the creds are supplied when creating the account (it is possible to start the job without credentials).  To know which credentials are required initially, check the account_link attributes in the merchant site -- the initial credentials have a type of "initial_account_link".
 6. Post the job using the cardholder id, card id, and account id. 
 7. Polling the cardholder or job.
-    0. By polling the cardholder or the job (job in this example), you can determine if new credentials are required.  All jobs should be monitored until a termination type is set.  All statuses that start with "PENDING" will be accompanied with a credential request.  These credential requests include what parameters are required, along with an envelope_id.
-    1. If initial credentials are incorrect, the envelope_id and new credentials must be supplied in the subsequent response.
-    2. In the case where additional information is required (like a one-time-passcode), once again the appriate prompt must be made to the cardholder and the values must be submitted with envelope_id.
+    1. By polling the cardholder or the job (job in this example), you can determine if new credentials are required.  All jobs should be monitored until a termination type is set.  All statuses that start with "PENDING" will be accompanied with a credential request.  These credential requests include what parameters are required, along with an envelope_id.
+    2. If initial credentials are incorrect, the envelope_id and new credentials must be supplied in the subsequent response.
+    3. In the case where additional information is required (like a one-time-passcode), once again the appriate prompt must be made to the cardholder and the values must be submitted with envelope_id.
 8. When polling the job returns a termination type, the session can be closed.  
 
+## Single Job
 
-## SSO Cardupdatr sample usage
-
-SSO w/CardUpdatr is the easiest way to get CardSavr up and running.  You only need to build a simple CardSavr applciation that logs in, and then creates a card.  The creation of the card creates the necessary entities, and an authorization grant that can be used to run jobs within CardUpdatr.  This avoids your users having to enter their card, address, and other info.
+Now that you are familiar with how to run a simple job, let's explore some more efficient and advanced techniques for 
 
 Import CU SSO.postman_collection.json
 

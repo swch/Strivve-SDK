@@ -109,7 +109,7 @@
 			"response": []
 		},
 		{
-			"name": "2 PUT Cardholder",
+			"name": "3 PUT Cardholder",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -247,7 +247,7 @@
 			"response": []
 		},
 		{
-			"name": "6 PUT Account w/creds",
+			"name": "5 PUT Account w/creds",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -315,7 +315,7 @@
 			"response": []
 		},
 		{
-			"name": "3 POST Job",
+			"name": "6 POST Job",
 			"event": [
 				{
 					"listen": "test",
@@ -394,7 +394,7 @@
 			"response": []
 		},
 		{
-			"name": "4-0 Get Job",
+			"name": "7-0 Get Job",
 			"event": [
 				{
 					"listen": "test",
@@ -458,7 +458,7 @@
 			"response": []
 		},
 		{
-			"name": "4-1 Resubmit Credentials (via account)",
+			"name": "7-1 Resubmit Credentials (via account)",
 			"request": {
 				"method": "PUT",
 				"header": [
@@ -504,7 +504,7 @@
 			"response": []
 		},
 		{
-			"name": "4-2 Submit TFA",
+			"name": "7-2 Submit TFA",
 			"request": {
 				"method": "PUT",
 				"header": [
@@ -555,7 +555,7 @@
 			"response": []
 		},
 		{
-			"name": "5 End Session",
+			"name": "8 End Session",
 			"request": {
 				"method": "GET",
 				"header": [

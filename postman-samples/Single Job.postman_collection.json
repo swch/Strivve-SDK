@@ -74,73 +74,6 @@
 			"response": []
 		},
 		{
-			"name": "1.1 Logging",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"//pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"{{$timestamp}}\");",
-							"pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"1234123416\");",
-							"",
-							"pm.collectionVariables.set(\"CARDHOLDER_SAFE_KEY\", \"MBNL8Chib96EYdXNt3+etblMg2RAHUYM1d7ScSd8nf8=\");"
-						],
-						"type": "text/javascript"
-					}
-				},
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"const response = JSON.parse(responseBody)",
-							"pm.collectionVariables.set(\"JWT_TOKEN\", response.session_token);",
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					},
-					{
-						"key": "x-cardsavr-trace",
-						"value": "{\"key\": \"my_trace\"}"
-					},
-					{
-						"key": "x-cardsavr-session-jwt",
-						"value": "null",
-						"type": "text",
-						"disabled": true
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"error\" : {\n        \"stack\" : \"foo\",\n        \"message\" : \"blah\"\n    }\n}"
-				},
-				"url": {
-					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/session/login",
-					"protocol": "https",
-					"host": [
-						"api",
-						"{{CARDSAVR-INSTANCE}}",
-						"cardsavr",
-						"io"
-					],
-					"port": "{{PORT}}",
-					"path": [
-						"session",
-						"login"
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "2 Merchants",
 			"request": {
 				"method": "GET",
@@ -196,7 +129,7 @@
 			"response": []
 		},
 		{
-			"name": "3 POST Job",
+			"name": "3.1 POST Job",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -292,7 +225,7 @@
 			"response": []
 		},
 		{
-			"name": "3 POST Job w/pesistent creds",
+			"name": "3.2 POST Job w/pesistent creds",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -377,7 +310,7 @@
 			"response": []
 		},
 		{
-			"name": "4-0 Get Job",
+			"name": "4-1 Get Job",
 			"event": [
 				{
 					"listen": "test",
@@ -442,7 +375,7 @@
 			"response": []
 		},
 		{
-			"name": "4-1 Get Job Status (messages endpoint)",
+			"name": "4-2 Get Job Status (messages endpoint)",
 			"event": [
 				{
 					"listen": "test",
@@ -507,7 +440,7 @@
 			"response": []
 		},
 		{
-			"name": "4-1-1 Get Cardholder Jobs Status (messages endpoint)",
+			"name": "4-3 Get Cardholder Jobs Status (messages endpoint)",
 			"event": [
 				{
 					"listen": "test",
@@ -572,7 +505,7 @@
 			"response": []
 		},
 		{
-			"name": "4-2 Resubmit Credentials",
+			"name": "5-1 Resubmit Credentials",
 			"request": {
 				"method": "PUT",
 				"header": [
@@ -624,7 +557,7 @@
 			"response": []
 		},
 		{
-			"name": "4-2-1 Resubmit Credentials (via account)",
+			"name": "5-2 Resubmit Credentials (via account)",
 			"request": {
 				"method": "PUT",
 				"header": [
@@ -675,7 +608,7 @@
 			"response": []
 		},
 		{
-			"name": "4-2-2 Resubmit Email & Phone",
+			"name": "5-3 Resubmit Email & Phone",
 			"request": {
 				"method": "PUT",
 				"header": [
@@ -721,7 +654,7 @@
 			"response": []
 		},
 		{
-			"name": "4-3 Submit TFA",
+			"name": "5-4 Submit TFA",
 			"request": {
 				"method": "PUT",
 				"header": [
@@ -773,7 +706,7 @@
 			"response": []
 		},
 		{
-			"name": "4-4 Submit Security Questions",
+			"name": "5-5 Submit Security Questions",
 			"request": {
 				"method": "PUT",
 				"header": [
@@ -824,7 +757,7 @@
 			"response": []
 		},
 		{
-			"name": "4-6 Get Card Placement Result by cardholder cuid",
+			"name": "6 Get Card Placement Result by cardholder cuid",
 			"event": [
 				{
 					"listen": "test",
@@ -884,7 +817,7 @@
 			"response": []
 		},
 		{
-			"name": "6 End Session",
+			"name": "7 End Session",
 			"request": {
 				"method": "GET",
 				"header": [
