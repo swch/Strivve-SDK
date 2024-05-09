@@ -147,6 +147,29 @@ export const getCardBrand = function(pan:string) {
     throw new CardsavrSDKError(validationErrors);
 };
 
+export const get_host_config = function get_host_config(fi_override: string = "", api_port_override : string = "", api_instance_override = null) {
+    const hostname = window.location.hostname;
+    let fi_lookup;
+    let instance_root;
+    let instance;
+    if (!hostname.endsWith(".cardupdatr.app")) {
+        //varomoney garbage which we don't even use anymore -- csapi.varomoney.com and updatecard.varomoney.com
+        instance_root = hostname.replace(/^\w+\./, "");
+        fi_lookup = hostname;
+    } else {
+        const nodes = hostname.split(".");
+        if (nodes.length === 4) {
+            fi_lookup = fi_override ?? nodes[0];
+            nodes.shift();
+        } else {
+            fi_lookup = fi_override ?? "default";
+        }
+        instance = nodes[0] = api_instance_override || nodes[0];
+        instance_root = nodes.join(".");
+    }
+    return { api_url : `https://csapi.${instance_root}${api_port_override ? `:${api_port_override}` : ""}/`, instance, fi_lookup };
+};
+
 export const localStorageAvailable = function() : boolean {
     if (typeof window === "undefined") {
         return false;
