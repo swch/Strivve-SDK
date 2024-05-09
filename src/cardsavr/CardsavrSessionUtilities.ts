@@ -147,7 +147,7 @@ export const getCardBrand = function(pan:string) {
     throw new CardsavrSDKError(validationErrors);
 };
 
-export const get_host_config = function get_host_config(fi_override: string = "", api_port_override : string = "", api_instance_override = null) {
+export const get_host_config = function get_host_config(fi_override?: string, api_port_override? : string, api_instance_override? : string) {
     const hostname = window.location.hostname;
     let fi_lookup;
     let instance_root;
