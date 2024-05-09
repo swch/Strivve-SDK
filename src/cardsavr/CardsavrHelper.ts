@@ -425,6 +425,7 @@ export class CardholderQuery {
             }
         } else if (message.message?.termination_type && this.creds_callbacks[message.job_id]) {
             this.removeListener(message.job_id,  this.creds_callbacks[message.job_id], "job_status");
+            this.stopProbe();   // TODO: Make sure we truly need this ... brought from the CX code
             delete this.creds_callbacks[message.job_id];
         }
     }
