@@ -349,17 +349,13 @@ export class CardsavrHelper {
 
     public async postCreds(post_creds_config : postCredsParams) : Promise<void> {
         const { username, account_link, job_id, envelope_id, safe_key = undefined } = post_creds_config;
-        try {
-            const session = this.getSession(username);
-            session.updateSingleSiteJob( 
-                job_id,
-                { account : { account_link } }, 
-                safe_key,
-                envelope_id ? { "x-cardsavr-envelope-id" : envelope_id } : undefined
+        const session = this.getSession(username);
+        return await session.updateSingleSiteJob( 
+            job_id,
+            { account : { account_link } }, 
+            safe_key,
+            envelope_id ? { "x-cardsavr-envelope-id" : envelope_id } : undefined
         );
-        } catch(err) {
-            this.handleError(err);
-        }
     }
 
     public async deleteAccount (agent_username: string, cardholder_id: number) : Promise<void> {
