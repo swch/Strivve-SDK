@@ -163,9 +163,10 @@ export class CardsavrSession {
 
         const body = response.headers.get("content-type")?.startsWith("application/json") ? (await response.json()) : null;
         const response_headers : {[k: string]: string} = {};
-        Object.entries(headers).forEach(([key, val]) => response_headers[key] = val);
-        
-        CardsavrCrypto.Signing.verifySignature(response_headers, path, this._appName, [sessionKey], body);
+        response_headers["x-cardsavr-authorization"] = response.headers.get("x-cardsavr-authorization");
+        response_headers["x-cardsavr-nonce"] = response.headers.get("x-cardsavr-nonce");
+        response_headers["x-cardsavr-signature"] = response.headers.get("x-cardsavr-signature");
+        await CardsavrCrypto.Signing.verifySignature(response_headers, path, this._appName, [sessionKey], body);
 
         const csr = new CardsavrSessionResponse(
             response.status, 

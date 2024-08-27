@@ -212,7 +212,6 @@ export class Signing {
         const authorization = "SWCH-HMAC-SHA256 Credentials=" + appName;
 
         const stringToSign = decodeURIComponent(path) + authorization + nonce + (body ? JSON.stringify(body) : "");
-
         const signature = await this.hmacSign(stringToSign, sessionKey);
 
         return {
@@ -222,7 +221,7 @@ export class Signing {
         };
     }
 
-    static async verifySignature(headers: {[k: string]: string}, path: string, appName: string, keys: string[], body? : string) : Promise<boolean> {
+    static async verifySignature(headers: {[k: string]: string}, path: string, appName: string, keys: string[], body? : object) : Promise<boolean> {
 
         const authorization = headers["x-cardsavr-authorization"];
         if ("SWCH-HMAC-SHA256 Credentials=" + appName !== authorization) {
@@ -232,16 +231,18 @@ export class Signing {
         if (!nonce) {
             throw new Error("No nonce header provided.");
         }
-        const signature = headers["x-cardsavr-nonce"];
+        const signature = headers["x-cardsavr-signature"];
         if (!signature) {
             throw new Error("No signature header provided.");
         }
-
+    
         const stringToSign = decodeURIComponent(path) + authorization + nonce + (body ? JSON.stringify(body) : "");
-        if (!keys.some(async (key: string) => signature === (await this.hmacSign(stringToSign, key)))) {
-            throw new Error("Invalid signature.");
+        for (const key of keys) {
+            if ((await Signing.hmacSign(stringToSign, key)) === signature) {
+                return true;
+            }
         }
-        return true;
+        throw new Error("Invalid signature.");
     }
 
     static async signSaltWithPasswordKey(sessionSalt: string, passwordKey: string) : Promise<string> {
@@ -252,7 +253,6 @@ export class Signing {
     static async hmacSign(inputString: string, b64Key: string, b64InputString = false) : Promise<string> {
 
         if (!browserCrypto) {
-
             let stringToSign;
 
             if (b64InputString) {
@@ -267,7 +267,6 @@ export class Signing {
 
             const hmac = crypto.createHmac("sha256", binaryKey);
             hmac.update(stringToSign);
-
             return hmac.digest("base64");
         } else {
 
