@@ -225,7 +225,7 @@ export class Signing {
 
         const authorization = headers["x-cardsavr-authorization"];
         if ("SWCH-HMAC-SHA256 Credentials=" + appName !== authorization) {
-            throw new Error("Authorization header not passed properly, should be: \"SWCH-HMAC-SHA256 Credentials=" + appName + "\"");
+            throw new Error(`Authorization header not passed properly, should be: "SWCH-HMAC-SHA256 Credentials=${appName}" not "${authorization}"`);
         }
         const nonce = headers["x-cardsavr-nonce"];
         if (!nonce) {
