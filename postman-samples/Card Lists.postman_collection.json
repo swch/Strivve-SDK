@@ -14,7 +14,9 @@
 					"script": {
 						"exec": [
 							"const response = JSON.parse(responseBody)",
-							"pm.collectionVariables.set(\"JWT_TOKEN\", response.session_token);"
+							"pm.collectionVariables.set(\"JWT_TOKEN\", response.session_token);",
+							"pm.collectionVariables.set(\"CARDHOLDER_SAFE_KEY\", \"MBNL8Chib96EYdXNt3+etblMg2RAHUYM1d7ScSd8nf8=\");",
+							"pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"12341834227\");"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -65,6 +67,18 @@
 			"name": "2 Create Card List",
 			"event": [
 				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = JSON.parse(responseBody)",
+							"pm.collectionVariables.set(\"CARD_LIST_ID\", response.id);",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
 					"listen": "prerequest",
 					"script": {
 						"exec": [
@@ -73,20 +87,6 @@
 							"pm.collectionVariables.set(\"CARDHOLDER_CUID\", cuid);",
 							"pm.collectionVariables.set(\"CARDHOLDER_SAFE_KEY\", \"MBNL8Chib96EYdXNt3+etblMg2RAHUYM1d7ScSd8nf8=\");",
 							"//pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"1234929418\");",
-							""
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"const response = JSON.parse(responseBody)",
-							"pm.collectionVariables.set(\"CARDHOLDER_ID\", response.id);",
-							"pm.collectionVariables.set(\"GRANT\", response.grant);",
-							"pm.collectionVariables.set(\"CARDHOLDER_CUID\", response.cuid);",
 							""
 						],
 						"type": "text/javascript",
@@ -117,11 +117,16 @@
 						"key": "x-cardsavr-hydration",
 						"value": "[\"grant\"]",
 						"type": "text"
+					},
+					{
+						"key": "x-cardsavr-financial-institution",
+						"value": "default",
+						"type": "text"
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"cuid\" : \"{{CARDHOLDER_CUID}}\",\n    //\"integrator_id\" : 275\n}",
+					"raw": "{\n    \"name\" : \"my list\",\n    \"financial_institution_id\" : 1302\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -129,7 +134,7 @@
 					}
 				},
 				"url": {
-					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/cardholders",
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/card_lists",
 					"protocol": "https",
 					"host": [
 						"api",
@@ -139,7 +144,7 @@
 					],
 					"port": "{{PORT}}",
 					"path": [
-						"cardholders"
+						"card_lists"
 					]
 				},
 				"description": "\t"
@@ -148,176 +153,6 @@
 		},
 		{
 			"name": "2.1 Get Card List",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"const cuid = \"{{$timestamp}}\";",
-							"",
-							"pm.collectionVariables.set(\"CARDHOLDER_CUID\", cuid);",
-							"pm.collectionVariables.set(\"CARDHOLDER_SAFE_KEY\", \"MBNL8Chib96EYdXNt3+etblMg2RAHUYM1d7ScSd8nf8=\");",
-							"//pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"1234929418\");",
-							""
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"const response = JSON.parse(responseBody)",
-							"pm.collectionVariables.set(\"CARDHOLDER_ID\", response.id);",
-							"pm.collectionVariables.set(\"GRANT\", response.grant);",
-							"pm.collectionVariables.set(\"CARDHOLDER_CUID\", response.cuid);",
-							""
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "x-cardsavr-session-jwt",
-						"value": "{{JWT_TOKEN}}",
-						"type": "text"
-					},
-					{
-						"key": "x-cardsavr-trace",
-						"value": "{\"key\": \"my_trace\"}",
-						"type": "text"
-					},
-					{
-						"key": "x-cardsavr-cardholder-safe-key",
-						"value": "{{CARDHOLDER_SAFE_KEY}}",
-						"type": "text",
-						"disabled": true
-					},
-					{
-						"key": "x-cardsavr-hydration",
-						"value": "[\"grant\"]",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"cuid\" : \"{{CARDHOLDER_CUID}}\",\n    //\"integrator_id\" : 275\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/cardholders",
-					"protocol": "https",
-					"host": [
-						"api",
-						"{{CARDSAVR-INSTANCE}}",
-						"cardsavr",
-						"io"
-					],
-					"port": "{{PORT}}",
-					"path": [
-						"cardholders"
-					]
-				},
-				"description": "\t"
-			},
-			"response": []
-		},
-		{
-			"name": "3 Create Card Link",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"const cuid = \"{{$timestamp}}\";",
-							"",
-							"pm.collectionVariables.set(\"CARDHOLDER_CUID\", cuid);",
-							"pm.collectionVariables.set(\"CARDHOLDER_SAFE_KEY\", \"MBNL8Chib96EYdXNt3+etblMg2RAHUYM1d7ScSd8nf8=\");",
-							"//pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"1234929418\");",
-							""
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"const response = JSON.parse(responseBody)",
-							"pm.collectionVariables.set(\"CARDHOLDER_ID\", response.id);",
-							"pm.collectionVariables.set(\"GRANT\", response.grant);",
-							"pm.collectionVariables.set(\"CARDHOLDER_CUID\", response.cuid);",
-							""
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "x-cardsavr-session-jwt",
-						"value": "{{JWT_TOKEN}}",
-						"type": "text"
-					},
-					{
-						"key": "x-cardsavr-trace",
-						"value": "{\"key\": \"my_trace\"}",
-						"type": "text"
-					},
-					{
-						"key": "x-cardsavr-cardholder-safe-key",
-						"value": "{{CARDHOLDER_SAFE_KEY}}",
-						"type": "text",
-						"disabled": true
-					},
-					{
-						"key": "x-cardsavr-hydration",
-						"value": "[\"grant\"]",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"card\" : {\n        \"card_list_id\": {{CARD_LIST_ID}},\n        \"cardholder\": {\n            \"cuid\": \"{{CARDHOLDER_CUID}}\",\n            \"type\": \"persistent_all\"\n        },\n        \"pan\":\"400000{{CARDHOLDER_CUID}}\",\n        \"customer_key\":\"1234123419\",\n        \"cvv\":\"467\",\n        \"expiration_month\":\"09\",\n        \"expiration_year\":\"24\",\n        \"name_on_card\":\"Test Testerson\",\n        \"address\": {\n            \"cardholder_ref\": {\n                \"cuid\": \"{{CARDHOLDER_CUID}}\"\n            },\n            \"address1\":\"123 45th St\",\n            \"city\":\"Bellevue\",\n            \"subnational\":\"WA\",\n            \"postal_code\":\"98006\",\n            \"postal_other\":\"\",\n            \"country\":\"USA\",\n            \"email\" : \"test@test.com\",\n            \"phone_number\" : \"5555555555\",\n            \"first_name\" : \"test\",\n            \"last_name\" : \"testerson\",\n            \"is_primary\": true\n        }\n    }\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/card_links",
-					"protocol": "https",
-					"host": [
-						"api",
-						"{{CARDSAVR-INSTANCE}}",
-						"cardsavr",
-						"io"
-					],
-					"port": "{{PORT}}",
-					"path": [
-						"card_links"
-					]
-				},
-				"description": "\t"
-			},
-			"response": []
-		},
-		{
-			"name": "3.1 Get Card Link",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -368,7 +203,8 @@
 					{
 						"key": "x-cardsavr-cardholder-safe-key",
 						"value": "{{CARDHOLDER_SAFE_KEY}}",
-						"type": "text"
+						"type": "text",
+						"disabled": true
 					},
 					{
 						"key": "x-cardsavr-hydration",
@@ -386,7 +222,7 @@
 					}
 				},
 				"url": {
-					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/card_links/{{CARDLINK_ID}}",
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/card_lists/{{CARD_LIST_ID}}",
 					"protocol": "https",
 					"host": [
 						"api",
@@ -396,8 +232,8 @@
 					],
 					"port": "{{PORT}}",
 					"path": [
-						"card_links",
-						"{{CARDLINK_ID}}"
+						"card_lists",
+						"{{CARD_LIST_ID}}"
 					]
 				},
 				"description": "\t"
@@ -405,8 +241,22 @@
 			"response": []
 		},
 		{
-			"name": "4 Verify Card Link",
+			"name": "3 Create Card Link",
 			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = JSON.parse(responseBody)",
+							"pm.collectionVariables.set(\"CARD_LINK_ID\", response.id);",
+							"pm.collectionVariables.set(\"GRANT\", response.grant);",
+							"pm.collectionVariables.set(\"CARDHOLDER_LONG_TOKEN\", response.cardholder_long_token);",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
 				{
 					"listen": "prerequest",
 					"script": {
@@ -416,20 +266,6 @@
 							"pm.collectionVariables.set(\"CARDHOLDER_CUID\", cuid);",
 							"pm.collectionVariables.set(\"CARDHOLDER_SAFE_KEY\", \"MBNL8Chib96EYdXNt3+etblMg2RAHUYM1d7ScSd8nf8=\");",
 							"//pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"1234929418\");",
-							""
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"const response = JSON.parse(responseBody)",
-							"pm.collectionVariables.set(\"CARDHOLDER_ID\", response.id);",
-							"pm.collectionVariables.set(\"GRANT\", response.grant);",
-							"pm.collectionVariables.set(\"CARDHOLDER_CUID\", response.cuid);",
 							""
 						],
 						"type": "text/javascript",
@@ -453,18 +289,17 @@
 					{
 						"key": "x-cardsavr-cardholder-safe-key",
 						"value": "{{CARDHOLDER_SAFE_KEY}}",
-						"type": "text",
-						"disabled": true
+						"type": "text"
 					},
 					{
 						"key": "x-cardsavr-hydration",
-						"value": "[\"grant\"]",
+						"value": "[\"card\", \"grant\"]",
 						"type": "text"
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"cuid\" : \"{{CARDHOLDER_CUID}}\",\n    //\"integrator_id\" : 275\n}",
+					"raw": "{\n    \"card_list_id\": {{CARD_LIST_ID}},\n    \"card1\" : {\n        \"cardholder\": {\n            \"cuid\": \"{{CARDHOLDER_CUID}}\",\n            \"type\": \"persistent_all\"\n        },\n        \"pan\":\"400000{{CARDHOLDER_CUID}}\",\n        \"customer_key\":\"1234123419\",\n        \"cvv\":\"467\",\n        \"expiration_month\":\"09\",\n        \"expiration_year\":\"24\",\n        \"name_on_card\":\"Test Testerson\",\n        \"address\": {\n            \"cardholder_ref\": {\n                \"cuid\": \"{{CARDHOLDER_CUID}}\"\n            },\n            \"address1\":\"123 45th St\",\n            \"city\":\"Bellevue\",\n            \"subnational\":\"WA\",\n            \"postal_code\":\"98006\",\n            \"postal_other\":\"\",\n            \"country\":\"USA\",\n            \"email\" : \"test@test.com\",\n            \"phone_number\" : \"5555555555\",\n            \"first_name\" : \"test\",\n            \"last_name\" : \"testerson\",\n            \"is_primary\": true\n        }\n    }\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -472,7 +307,7 @@
 					}
 				},
 				"url": {
-					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/cardholders",
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/card_links",
 					"protocol": "https",
 					"host": [
 						"api",
@@ -482,7 +317,166 @@
 					],
 					"port": "{{PORT}}",
 					"path": [
-						"cardholders"
+						"card_links"
+					]
+				},
+				"description": "\t"
+			},
+			"response": []
+		},
+		{
+			"name": "3.1 Get Card Link",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = JSON.parse(responseBody)",
+							"pm.collectionVariables.set(\"CARDHOLDER_LONG_TOKEN\", response.cardholder_long_token);",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const cuid = \"{{$timestamp}}\";",
+							"",
+							"pm.collectionVariables.set(\"CARDHOLDER_CUID\", cuid);",
+							"pm.collectionVariables.set(\"CARDHOLDER_SAFE_KEY\", \"MBNL8Chib96EYdXNt3+etblMg2RAHUYM1d7ScSd8nf8=\");",
+							"//pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"1234929418\");",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-cardsavr-session-jwt",
+						"value": "{{JWT_TOKEN}}",
+						"type": "text"
+					},
+					{
+						"key": "x-cardsavr-trace",
+						"value": "{\"key\": \"my_trace\"}",
+						"type": "text"
+					},
+					{
+						"key": "x-cardsavr-cardholder-safe-key",
+						"value": "{{CARDHOLDER_SAFE_KEY}}",
+						"type": "text"
+					},
+					{
+						"key": "x-cardsavr-hydration",
+						"value": "[\"card.cardholder\", \"card\"]",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/card_links/{{CARD_LINK_ID}}",
+					"protocol": "https",
+					"host": [
+						"api",
+						"{{CARDSAVR-INSTANCE}}",
+						"cardsavr",
+						"io"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"card_links",
+						"{{CARD_LINK_ID}}"
+					]
+				},
+				"description": "\t"
+			},
+			"response": []
+		},
+		{
+			"name": "4 Verify Card Link",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = JSON.parse(pm.response.text())",
+							"pm.collectionVariables.set(\"CARDHOLDER_SHORT_TOKEN\", response.cardholder_short_token);",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const cuid = \"{{$timestamp}}\";",
+							"",
+							"pm.collectionVariables.set(\"CARDHOLDER_CUID\", cuid);",
+							"pm.collectionVariables.set(\"CARDHOLDER_SAFE_KEY\", \"MBNL8Chib96EYdXNt3+etblMg2RAHUYM1d7ScSd8nf8=\");",
+							"//pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"1234929418\");",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-cardsavr-trace",
+						"value": "{\"key\": \"key\"}",
+						"type": "text"
+					},
+					{
+						"key": "x-cardsavr-session-jwt",
+						"value": "{{JWT_TOKEN}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"cardholder_long_token\" : \"{{CARDHOLDER_LONG_TOKEN}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/card_links/verify",
+					"protocol": "https",
+					"host": [
+						"api",
+						"{{CARDSAVR-INSTANCE}}",
+						"cardsavr",
+						"io"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"card_links",
+						"verify"
 					]
 				},
 				"description": "\t"
@@ -536,20 +530,14 @@
 						"type": "text"
 					},
 					{
-						"key": "x-cardsavr-cardholder-safe-key",
-						"value": "{{CARDHOLDER_SAFE_KEY}}",
-						"type": "text",
-						"disabled": true
-					},
-					{
 						"key": "x-cardsavr-hydration",
-						"value": "[\"grant\"]",
+						"value": "[\"cardholder\", \"cardholder.grant\"]",
 						"type": "text"
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"cuid\" : \"{{CARDHOLDER_CUID}}\",\n    //\"integrator_id\" : 275\n}",
+					"raw": "{\n    \"cardholder_short_token\" : \"{{CARDHOLDER_SHORT_TOKEN}}\",\n    \"cvv\" : \"467\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -557,7 +545,7 @@
 					}
 				},
 				"url": {
-					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/cardholders",
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/card_links/verify",
 					"protocol": "https",
 					"host": [
 						"api",
@@ -567,7 +555,8 @@
 					],
 					"port": "{{PORT}}",
 					"path": [
-						"cardholders"
+						"card_links",
+						"verify"
 					]
 				},
 				"description": "\t"
