@@ -79,6 +79,7 @@ export class CardsavrHelper {
     private proxy?: string;
     private reject_unauthorized = true;
     private debug = false;
+    private cardholder_query?: CardholderQuery = undefined;
 
     public setAppSettings(cardsavr_server: string, app_name: string, app_key: string, reject_unauthorized = true, cert?: string, proxy?: string, debug = false) : CardsavrHelper {
         this.cardsavr_server = cardsavr_server;
@@ -372,7 +373,13 @@ export class CardsavrHelper {
 
     public createCardholderQuery(username: string, cardholder_id : number) : CardholderQuery {
         const session = this.getSession(username);
-        return new CardholderQuery(cardholder_id, session);
+        if ( !this.cardholder_query ) {
+            this.cardholder_query = new CardholderQuery(cardholder_id, session);
+            return this.cardholder_query;
+        } else {
+            // throw an error if this function is called again after a query has been created
+            throw new CardsavrSDKError([], "Cannot create multiple CardholderQuery objects.");
+        }
     }
 
 } 
