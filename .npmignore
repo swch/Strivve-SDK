@@ -4,3 +4,4 @@ webpack.config.json
 dist
 sample
 react-test
+.npmrc

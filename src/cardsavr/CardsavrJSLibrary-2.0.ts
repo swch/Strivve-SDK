@@ -163,7 +163,7 @@ export class CardsavrSession {
 
         const body = response.headers.get("content-type")?.startsWith("application/json") ? (await response.json()) : null;
 
-        if (response.status <= 400) {
+        if (response.status <= 400 && response.headers.get("x-cardsavr-authorization")) {
             const response_headers : {[k: string]: string} = {};
             response_headers["x-cardsavr-authorization"] = response.headers.get("x-cardsavr-authorization");
             response_headers["x-cardsavr-nonce"] = response.headers.get("x-cardsavr-nonce");

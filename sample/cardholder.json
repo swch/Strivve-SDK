@@ -4,7 +4,6 @@
     "webhook_url1" : "https://synthetic-sites-server.vercel.app/webhook/DXM_Integrator_Webhook/Qr56Rs5zwlY+58Ayyl5H1DK0P520ZcYBKdFVIbYy0kz=",
     "webhook_url" : "https://cardOnFileDXMPROD:uN1Lzyk3bOIs4F1An8sj@cofwebhook.pscu.com/dxmprod",
     "webhook_url2" : "https://cardOnFileDXMPROD:uN1Lzyk3bOIs4F1An8sj@cofwebhook.pscu.com/dxmprod",
-    "integrator_id" : 14,
     "integrator_id1" : 13,
     "custom_data" : {
         "SPA_PAR_ID" : "827640004000",
