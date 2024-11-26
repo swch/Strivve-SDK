@@ -5,10 +5,8 @@ import CardsavrRestError from "./CardsavrRestError";
 import CardsavrSessionResponse from "./CardsavrSessionResponse";
 import { formatPath, APIFilter, generateUniqueUsername }  from "./CardsavrSessionUtilities";
 import * as CardsavrCrypto from "./CardsavrSessionCrypto";
-import fetch from "node-fetch";
-import { Agent as HTTPSAgent } from "https";
 import {version} from "../../package.json";
-import { HttpsProxyAgent } from "https-proxy-agent";
+import { Agent, ProxyAgent } from 'undici';
 
 type http_method =
     "get" | "GET" | "delete" | "DELETE" | "head" | "HEAD" | "options" | "OPTIONS" | "post" | "POST" | "put" | "PUT" | "patch" | "PATCH"
@@ -147,16 +145,21 @@ export class CardsavrSession {
         let response : any;
         if (typeof window === "undefined") {
             //node
-            const agent = (this._proxy) ?
-                new HttpsProxyAgent(this._proxy) :
-                new HTTPSAgent({
+            const agent_config = { 
+                connectTimeout : 10000,
+                connect : {
                     rejectUnauthorized : this._rejectUnauthorized,
-                    ...(this._cardsavrCert && {ca : this._cardsavrCert})});
-            config = Object.assign(config, {
-                agent,
-                timeout : 10000
-            });
-            response = await fetch(new URL(path, this._baseUrl).toString(), config);
+                    ...(this._cardsavrCert && {ca : this._cardsavrCert})
+                }};
+
+            const dispatcher = this._proxy ?  
+                new ProxyAgent({ uri : this._proxy, ...agent_config}) :
+                new Agent(agent_config);
+
+            response = await fetch(new URL(path, this._baseUrl).toString(), { 
+                    dispatcher,
+                    ...config
+                } as any);
         } else {
             response = await window.fetch(new URL(path, this._baseUrl).toString(), config);
         }
