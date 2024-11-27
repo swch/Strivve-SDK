@@ -1,6 +1,6 @@
 {
   "name": "@strivve/strivve-sdk",
-  "version": "3.4.1",
+  "version": "3.4.2",
   "description": "",
   "directories": {
     "src": "src",
@@ -35,14 +35,18 @@
   },
   "devDependencies": {
     "@types/node": "^22.9.1",
-    "source-map-support": "^0.5.19"
+    "@types/node-fetch": "^2.6.12",
+    "https": "^1.0.0",
+    "source-map-support": "^0.5.19",
+    "typescript": "^5.7.2"
   },
   "dependencies": {
     "@strivve/strivve-sdk": "^3.4.1",
+    "@types/isomorphic-fetch": "^0.0.39",
     "eslint": "^9.15.0",
+    "https-proxy-agent": "^7.0.5",
     "log-timestamp": "^0.3.0",
-    "readline-sync": "^1.4.10",
-    "typescript": "5.4",
-    "undici": "^6.21.0"
+    "node-fetch": "^2.7.0",
+    "readline-sync": "^1.4.10"
   }
 }
