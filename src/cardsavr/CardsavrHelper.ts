@@ -409,7 +409,7 @@ export class CardholderQuery {
                         this.event_emitter.emit(`${message.job_id}:${message.message?.status.toLowerCase()}`, job.body.credential_requests[0]);
                     }
                     this.event_emitter.emit(`${message.job_id}:pending`, job.body.credential_requests[0]);
-                    this.event_emitter.emit(`${message.job_id}:}`, job.body.credential_requests[0]);
+                    this.event_emitter.emit(`${message.job_id}:`, job.body.credential_requests[0]);
                     break;
                 } else if (tries == 1) {
                     await new Promise(resolve => setTimeout(resolve, 2000));

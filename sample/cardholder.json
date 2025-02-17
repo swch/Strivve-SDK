@@ -5,6 +5,7 @@
     "webhook_url" : "https://cardOnFileDXMPROD:uN1Lzyk3bOIs4F1An8sj@cofwebhook.pscu.com/dxmprod",
     "webhook_url2" : "https://cardOnFileDXMPROD:uN1Lzyk3bOIs4F1An8sj@cofwebhook.pscu.com/dxmprod",
     "integrator_id1" : 13,
+    "cuid" : "lak5uv83sjpmu8cg1r9s",
     "custom_data" : {
         "SPA_PAR_ID" : "827640004000",
         "applicationid" : "5003",

@@ -1,6 +1,6 @@
 {
   "name": "@strivve/strivve-sdk",
-  "version": "3.4.2",
+  "version": "3.5.0",
   "description": "",
   "directories": {
     "src": "src",
@@ -41,9 +41,8 @@
     "typescript": "^5.7.2"
   },
   "dependencies": {
-    "@strivve/strivve-sdk": "^3.4.1",
     "@types/isomorphic-fetch": "^0.0.39",
-    "eslint": "^9.15.0",
+    "eslint": "^9.20.1",
     "https-proxy-agent": "^7.0.5",
     "log-timestamp": "^0.3.0",
     "node-fetch": "^2.7.0",

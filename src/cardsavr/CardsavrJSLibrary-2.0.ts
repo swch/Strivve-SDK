@@ -20,7 +20,7 @@ export type paging_key =
 export type paging_header = { [key in paging_key]?: string | number | boolean }
 
 interface session_data {
-    sessionToken : string,
+    sessionToken? : string,
     sessionKey : string,
     userId : number
 }
@@ -95,10 +95,10 @@ export class CardsavrSession {
     };
 
     deserializeSessionData = (json: string) : void => {
-        if (json) {
+        if (json && this._sessionData.sessionToken) {
             this._sessionData = JSON.parse(json);
             this.setSessionHeaders({
-                "x-cardsavr-session-jwt" : this._sessionData.sessionToken
+                "x-cardsavr-session-jwt" : this._sessionData.sessionToken as string
             });
         }
     };
@@ -285,6 +285,35 @@ export class CardsavrSession {
         this.setTrace(username, trace);
         return await this._login(username, password);
     };
+
+    assume = async(username : string, trace ? : {[k: string]: unknown}): Promise <any> => {
+
+        const test_user = (await this.getUsers({username}))?.body?.[0];
+
+        if (!test_user) {
+            throw new CardsavrSDKError([], `username ${username} cannot be assumed.`);
+        }
+
+        interface EncryptedLoginBody {
+            client_public_key: string,
+        }
+
+        const key_pair = await CardsavrCrypto.Keys.makeECDHkeyPair();
+        const client_public_key = await CardsavrCrypto.Keys.makeECDHPublicKey(key_pair);
+        const encrypted_login_body : EncryptedLoginBody = {
+            client_public_key
+        };
+
+        const loginResponse = await this.sendRequest(`/session/assume/${test_user.id}`, "post", encrypted_login_body as { [key: string]: any; });
+        const assumed_session = new CardsavrSession(this._baseUrl, "", this._appName, this._rejectUnauthorized, this._cardsavrCert, this._proxy, this._debug);
+        assumed_session._sessionData = {
+            sessionKey : await CardsavrCrypto.Keys.makeECDHSecretKey(loginResponse.body.server_public_key, key_pair),
+            userId : loginResponse.body.user_id,
+        };
+        assumed_session.setTrace(username);
+        assumed_session.setSessionToken(loginResponse.body.session_token);
+        return assumed_session;
+    }
 
     end = async(): Promise < any > => {
 
