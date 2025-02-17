@@ -310,7 +310,7 @@ export class CardsavrSession {
             sessionKey : await CardsavrCrypto.Keys.makeECDHSecretKey(loginResponse.body.server_public_key, key_pair),
             userId : loginResponse.body.user_id,
         };
-        assumed_session.setTrace(username);
+        assumed_session.setTrace(username, trace);
         assumed_session.setSessionToken(loginResponse.body.session_token);
         return assumed_session;
     }
