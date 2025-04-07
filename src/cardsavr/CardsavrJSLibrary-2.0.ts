@@ -578,8 +578,8 @@ export class CardsavrSession {
         return await this.delete("/cardsavr_users", id, headersToAdd);
     };
 
-    authorizeCardholder = async(grant: string, headersToAdd = {}): Promise < any > => {
-        return await this.post("/cardholders/authorize", { grant }, headersToAdd);
+    authorizeCardholder = async(grant: string, source : { type : string, category : string, device : string, integration : string, sub_category? : string}, headersToAdd = {}): Promise < any > => {
+        return await this.post("/cardholders/authorize", { grant, source }, headersToAdd);
     };
 
     updateCardholderSession = async( filter: APIFilter, body : { cuid : string, clickstream : { url : string, timestamp : string }[]} ): Promise < any > => {
