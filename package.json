@@ -1,6 +1,6 @@
 {
   "name": "@strivve/strivve-sdk",
-  "version": "3.6.0",
+  "version": "3.6.1",
   "description": "",
   "directories": {
     "src": "src",
@@ -38,7 +38,12 @@
     "@types/node-fetch": "^2.6.12",
     "https": "^1.0.0",
     "source-map-support": "^0.5.19",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "mocha": "^11.7.1",
+    "chai": "^6.0.1",
+    "webpack": "^5.101.3",
+    "webpack-cli": "^6.0.1",
+    "ts-loader": "^9.5.4"
   },
   "dependencies": {
     "@types/isomorphic-fetch": "^0.0.39",

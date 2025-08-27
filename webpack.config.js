@@ -12,7 +12,15 @@ module.exports = {
         ],
     },
     resolve : {
-        extensions : [".ts", ".js", ".json"]
+        extensions : [".ts", ".js", ".json"],
+        fallback: {
+            "http" : false,
+            "https" : false,
+            "net" : false,
+            "tls" : false,
+            "assert" : false,
+            "url" : false
+        }
     },
     output : {
         path : path.resolve(__dirname, "dist"),
