@@ -387,8 +387,7 @@
 					{
 						"key": "x-cardsavr-cardholder-safe-key",
 						"value": "{{CARDHOLDER_SAFE_KEY}}",
-						"type": "text",
-						"disabled": true
+						"type": "text"
 					}
 				],
 				"body": {
@@ -516,8 +515,7 @@
 					{
 						"key": "x-cardsavr-cardholder-safe-key",
 						"value": "{{CARDHOLDER_SAFE_KEY}}",
-						"type": "text",
-						"disabled": true
+						"type": "text"
 					},
 					{
 						"key": "x-cardsavr-hydration",
@@ -766,7 +764,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"cardholder_short_token\" : \"{{CARDHOLDER_SHORT_TOKEN}}\",\n    \"cvv\" : \"467\"\n}",
+					"raw": "{\n    \"cardholder_short_token\" : \"{{CARDHOLDER_SHORT_TOKEN}}\",\n    \"cvv\" : \"467\",\n    \"postal_code\" : \"98177\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
