@@ -152,11 +152,9 @@ export const get_host_config = function get_host_config(fi_override?: string, ap
     let fi_lookup;
     let instance_root;
     let instance;
-    if (!hostname.endsWith(".cardupdatr.app")) {
-        //varomoney garbage which we don't even use anymore -- csapi.varomoney.com and updatecard.varomoney.com
-        instance_root = hostname.replace(/^\w+\./, "");
-        fi_lookup = hostname;
-    } else {
+    let apiURL;
+
+    if ( hostname.endsWith("cardupdatr.app") ) {
         const nodes = hostname.split(".");
         if (nodes.length === 4) {
             fi_lookup = fi_override ?? nodes[0];
@@ -166,8 +164,28 @@ export const get_host_config = function get_host_config(fi_override?: string, ap
         }
         instance = nodes[0] = api_instance_override || nodes[0];
         instance_root = nodes.join(".");
+        apiURL = `https://csapi.${instance_root}${api_port_override ? `:${api_port_override}` : ""}/`
+    } else if ( hostname.endsWith("cardsavr.io") ) {
+        const nodes = hostname.split(".");
+        if ( nodes.length === 5 ) {
+            fi_lookup = fi_override ?? nodes[0];
+            nodes.shift();
+        } else {
+            fi_lookup = fi_override ?? "default";
+        }
+        nodes.shift();
+        instance = nodes[0] = api_instance_override || nodes[0];
+        instance_root = nodes.join(".");
+        apiURL = `https://api.${instance_root}${api_port_override ? `:${api_port_override}` : ""}/`
     }
-    return { api_url : `https://csapi.${instance_root}${api_port_override ? `:${api_port_override}` : ""}/`, instance, fi_lookup };
+    else {
+        //varomoney garbage which we don't even use anymore -- csapi.varomoney.com and updatecard.varomoney.com
+        instance_root = hostname.replace(/^\w+\./, "");
+        fi_lookup = hostname;
+        apiURL = `https://csapi.${instance_root}${api_port_override ? `:${api_port_override}` : ""}/`
+    }
+
+    return { api_url : apiURL, instance, fi_lookup };
 };
 
 export const localStorageAvailable = function() : boolean {

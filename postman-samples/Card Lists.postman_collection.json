@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "3163e6dc-8371-41e5-8dbc-37c2eadf7677",
+		"_postman_id": "0d95ecfb-88b5-4a9a-87d2-e9e75c5832bc",
 		"name": "Card Lists",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "8696428"
+		"_exporter_id": "2435167"
 	},
 	"item": [
 		{
@@ -126,7 +126,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"name\" : \"my list\",\n    \"financial_institution_id\" : 1302\n}",
+					"raw": "{\n    \"name\" : \"my list\",\n    \"financial_institution_id\" : 2\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -241,6 +241,232 @@
 			"response": []
 		},
 		{
+			"name": "2.1 Get FIs",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const cuid = \"{{$timestamp}}\";",
+							"",
+							"pm.collectionVariables.set(\"CARDHOLDER_CUID\", cuid);",
+							"pm.collectionVariables.set(\"CARDHOLDER_SAFE_KEY\", \"MBNL8Chib96EYdXNt3+etblMg2RAHUYM1d7ScSd8nf8=\");",
+							"//pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"1234929418\");",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = JSON.parse(responseBody)",
+							"pm.collectionVariables.set(\"CARDHOLDER_ID\", response.id);",
+							"pm.collectionVariables.set(\"GRANT\", response.grant);",
+							"pm.collectionVariables.set(\"CARDHOLDER_CUID\", response.cuid);",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-cardsavr-session-jwt",
+						"value": "{{JWT_TOKEN}}",
+						"type": "text"
+					},
+					{
+						"key": "x-cardsavr-trace",
+						"value": "{\"key\": \"my_trace\"}",
+						"type": "text"
+					},
+					{
+						"key": "x-cardsavr-cardholder-safe-key",
+						"value": "{{CARDHOLDER_SAFE_KEY}}",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "x-cardsavr-hydration",
+						"value": "[\"grant\"]",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/financial_institutions",
+					"protocol": "https",
+					"host": [
+						"api",
+						"{{CARDSAVR-INSTANCE}}",
+						"cardsavr",
+						"io"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"financial_institutions"
+					]
+				},
+				"description": "\t"
+			},
+			"response": []
+		},
+		{
+			"name": "2 Create Card",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"{{$timestamp}}\");",
+							"//pm.collectionVariables.set(\"CARDHOLDER_CUID\", \"1234123414\");",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = JSON.parse(responseBody)",
+							"pm.collectionVariables.set(\"CARD_ID\", response.id);",
+							"pm.collectionVariables.set(\"CARDHOLDER_ID\", response.cardholder_id);",
+							"pm.collectionVariables.set(\"GRANT\", response.cardholder.grant);",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "x-cardsavr-trace",
+						"value": "{\"key\": \"my_trace\"}"
+					},
+					{
+						"key": "x-cardsavr-session-jwt",
+						"value": "{{JWT_TOKEN}}",
+						"type": "text"
+					},
+					{
+						"key": "x-cardsavr-financial-institution",
+						"value": "default",
+						"type": "text"
+					},
+					{
+						"key": "x-cardsavr-hydration",
+						"value": "[\"cardholder\"]",
+						"type": "text"
+					},
+					{
+						"key": "x-cardsavr-cardholder-safe-key",
+						"value": "{{CARDHOLDER_SAFE_KEY}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"cardholder\": {\n        \"cuid\":\"{{CARDHOLDER_CUID}}\",\n        \"custom_data\": {\"my_token\": \"token2\" }\n    },\n    \"par\":\"0000000000000000000{{CARDHOLDER_CUID}}\",\n    \"pan\":\"000000{{CARDHOLDER_CUID}}\",\n    \"expiration_month\":\"12\",\n    \"expiration_year\":\"29\",\n    \"cvv\": \"467\",\n    \"name_on_card\":\"FirstName LastName\",\n    \"first_name\":\"FirstName\",\n    \"last_name\":\"LastName\",\n    \"address\": {\n        \"cardholder_ref\": {\n            \"cuid\": \"{{CARDHOLDER_CUID}}\"\n        },\n        \"address1\":\"SGTClNSCCMqlfjuzTmJuepDyFgvWhlCMRycXlKGiRIooOJJkoXeObOcAwJMGeqjSDWfhTHobAWMimcCynMIQcvlBFSbMQlwUFyJ\",\n        \"address2\":\"AyFgoCTjCLXUQVylBAfkHJOtqkkKJjuaLHnmJpSctqBOQueIvciyAUPqYoFpkiAPlkGjgPuabhAPCHFPvaxciObOmIBvBUWpngD\",\n        \"city\":\"Seattle\",\n        \"subnational\":\"WA\",\n        \"postal_code\":\"98177\",\n        \"postal_other\":\"98177-0124\",\n        \"country\":\"USA\",\n        \"is_primary\": true,\n        \"email\": \"pkumar@strivve.com\",\n        \"phone_number\": \"2069028712\",\n        \"first_name\": \"Jane\",\n        \"last_name\": \"Smith\"\n    }\n}\n"
+				},
+				"url": {
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/cardsavr_cards",
+					"protocol": "https",
+					"host": [
+						"api",
+						"{{CARDSAVR-INSTANCE}}",
+						"cardsavr",
+						"io"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"cardsavr_cards"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2.1 Get Card",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "x-cardsavr-trace",
+						"value": "{\"key\": \"my_trace\"}"
+					},
+					{
+						"key": "x-cardsavr-session-jwt",
+						"value": "{{JWT_TOKEN}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/cardsavr_cards/{{CARD_ID}}",
+					"protocol": "https",
+					"host": [
+						"api",
+						"{{CARDSAVR-INSTANCE}}",
+						"cardsavr",
+						"io"
+					],
+					"port": "{{PORT}}",
+					"path": [
+						"cardsavr_cards",
+						"{{CARD_ID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "3 Create Card Link",
 			"event": [
 				{
@@ -299,7 +525,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"card_list_id\": {{CARD_LIST_ID}},\n    \"card1\" : {\n        \"cardholder\": {\n            \"cuid\": \"{{CARDHOLDER_CUID}}\",\n            \"type\": \"persistent_all\"\n        },\n        \"pan\":\"400000{{CARDHOLDER_CUID}}\",\n        \"customer_key\":\"1234123419\",\n        \"cvv\":\"467\",\n        \"expiration_month\":\"09\",\n        \"expiration_year\":\"24\",\n        \"name_on_card\":\"Test Testerson\",\n        \"address\": {\n            \"cardholder_ref\": {\n                \"cuid\": \"{{CARDHOLDER_CUID}}\"\n            },\n            \"address1\":\"123 45th St\",\n            \"city\":\"Bellevue\",\n            \"subnational\":\"WA\",\n            \"postal_code\":\"98006\",\n            \"postal_other\":\"\",\n            \"country\":\"USA\",\n            \"email\" : \"test@test.com\",\n            \"phone_number\" : \"5555555555\",\n            \"first_name\" : \"test\",\n            \"last_name\" : \"testerson\",\n            \"is_primary\": true\n        }\n    }\n}",
+					"raw": "{\n    \"card_list_id\": {{CARD_LIST_ID}},\n    \"card_id\" : {{CARD_ID}}\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -374,7 +600,8 @@
 					{
 						"key": "x-cardsavr-cardholder-safe-key",
 						"value": "{{CARDHOLDER_SAFE_KEY}}",
-						"type": "text"
+						"type": "text",
+						"disabled": true
 					},
 					{
 						"key": "x-cardsavr-hydration",
@@ -537,7 +764,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"cardholder_short_token\" : \"{{CARDHOLDER_SHORT_TOKEN}}\",\n    \"cvv\" : \"467\"\n}",
+					"raw": "{\n    \"cardholder_short_token\" : \"{{CARDHOLDER_SHORT_TOKEN}}\",\n    \"cvv\" : \"467\",\n    \"postal_code\" : \"98177\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
