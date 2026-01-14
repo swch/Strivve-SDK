@@ -112,7 +112,7 @@ export class CardsavrSession {
         }
     };
 
-    sendRequest = async(path: string, method: http_method, requestBody ? : { [key: string] : unknown }, headersToAdd : { [key: string] : string } = {}): Promise < any > => {
+    sendRequest = async(path: string, method: http_method, requestBody ? : { [key: string] : unknown } | FormData, headersToAdd : { [key: string] : string } = {}): Promise < any > => {
 
         const headers = Object.assign({}, this._headers, headersToAdd);
         const unencryptedBody = requestBody;
@@ -125,25 +125,60 @@ export class CardsavrSession {
 
         // Encrypt the cardholder-safe-header(s) if they are in this request
         CardsavrCrypto.Encryption.encryptSafeKeys(headers, sessionKey);
-        if (requestBody) {
-            requestBody = await CardsavrCrypto.Encryption.encryptRequest(sessionKey, requestBody);
+        
+        // Check if requestBody is FormData (multipart/form-data)
+        // Check both instanceof and constructor name to handle different FormData implementations
+        const isFormData = requestBody && (
+            (typeof FormData !== "undefined" && requestBody instanceof FormData) ||
+            requestBody.constructor?.name === "FormData" ||
+            (typeof requestBody.append === "function" && typeof requestBody.get === "function")
+        );
+        
+        console.log("[SDK DEBUG] FormData detection:", {
+            hasRequestBody: !!requestBody,
+            isFormData,
+            constructorName: requestBody?.constructor?.name,
+            hasAppend: typeof requestBody?.append === "function",
+            hasGet: typeof requestBody?.get === "function",
+            path: path
+        });
+        
+        let bodyForSigning: { [key: string] : unknown } | undefined;
+        let bodyForRequest: string | FormData | undefined;
+        
+        if (isFormData) {
+            // FormData cannot be encrypted or stringified
+            // Sign without body (FormData can't be included in signature)
+            bodyForSigning = undefined;
+            bodyForRequest = requestBody as FormData;
+            // Don't set content-type for FormData - browser will set it with boundary
+            console.log("[SDK DEBUG] Detected FormData - bodyForSigning set to undefined, not setting content-type");
+        } else if (requestBody) {
+            // Regular JSON body - encrypt and stringify
+            bodyForSigning = await CardsavrCrypto.Encryption.encryptRequest(sessionKey, requestBody);
             headers["content-type"] = "application/json";
+            bodyForRequest = JSON.stringify(bodyForSigning);
+            console.log("[SDK DEBUG] Regular JSON body - bodyForSigning:", bodyForSigning);
+        } else {
+            console.log("[SDK DEBUG] No request body");
         }
-        const authHeaders = await CardsavrCrypto.Signing.signRequest(path, this._appName, sessionKey, requestBody);
+        
+        const authHeaders = await CardsavrCrypto.Signing.signRequest(path, this._appName, sessionKey, bodyForSigning);
+        console.log("[SDK DEBUG] signRequest called with bodyForSigning:", bodyForSigning, "authHeaders:", authHeaders);
         Object.assign(headers, authHeaders);
 
         if (this._debug) {
             console.log("REQUEST " + method + " " + path);
             console.log(headers);
-            if (requestBody) {
+            if (requestBody && !isFormData) {
                 console.log(unencryptedBody);
             }
         }
 
-        let config = {
+        let config: any = {
             headers,
             method : method as unknown as string,
-            body : requestBody ? JSON.stringify(requestBody) : undefined
+            body : bodyForRequest
         };
         let response : any;
         if (typeof window === "undefined") {
@@ -529,12 +564,13 @@ export class CardsavrSession {
         return await this.get(`/messages/place_card_on_single_site_jobs/${jobId}/credential_responses`, null, headersToAdd);
     };
 
-    requestJobInformation = async(jobId: number, type: string, message: string, account_link: { [key: string] : string|boolean }[], headersToAdd = {}): Promise < any > => {
+    requestJobInformation = async(jobId: number, type: string, message: string, account_link: { [key: string] : string|boolean }[],headersToAdd = {}, current_request_count:number = 0): Promise < any > => {
         const body = {
             jobId,
             type,
             message,
-            account_link
+            account_link,
+            current_request_count
         };
         return await this.post(`/messages/place_card_on_single_site_jobs/${jobId}/credential_requests`, body, headersToAdd);
     };
