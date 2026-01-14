@@ -225,6 +225,15 @@ export class CardsavrSession {
             throw new CardsavrRestError(csr); 
         }
 
+        if (this._debug) {
+            console.log("RESPONSE");
+            console.log(csr.statusCode);
+            console.log(csr.headers);
+            if (csr.body) {
+                console.log(csr.body);
+            }
+        }
+
         return csr;
     };
 
@@ -541,12 +550,13 @@ export class CardsavrSession {
         return await this.get(`/messages/place_card_on_single_site_jobs/${jobId}/credential_responses`, null, headersToAdd);
     };
 
-    requestJobInformation = async(jobId: number, type: string, message: string, account_link: { [key: string] : string|boolean }[],headersToAdd = {}): Promise < any > => {
+    requestJobInformation = async(jobId: number, type: string, message: string, account_link: { [key: string] : string|boolean }[],headersToAdd = {}, current_request_count:number = 0): Promise < any > => {
         const body = {
             jobId,
             type,
             message,
-            account_link
+            account_link,
+            current_request_count
         };
         return await this.post(`/messages/place_card_on_single_site_jobs/${jobId}/credential_requests`, body, headersToAdd);
     };
