@@ -134,15 +134,6 @@ export class CardsavrSession {
             (typeof requestBody.append === "function" && typeof requestBody.get === "function")
         );
         
-        console.log("[SDK DEBUG] FormData detection:", {
-            hasRequestBody: !!requestBody,
-            isFormData,
-            constructorName: requestBody?.constructor?.name,
-            hasAppend: typeof requestBody?.append === "function",
-            hasGet: typeof requestBody?.get === "function",
-            path: path
-        });
-        
         let bodyForSigning: { [key: string] : unknown } | undefined;
         let bodyForRequest: string | FormData | undefined;
         
@@ -152,28 +143,15 @@ export class CardsavrSession {
             bodyForSigning = undefined;
             bodyForRequest = requestBody as FormData;
             // Don't set content-type for FormData - browser will set it with boundary
-            console.log("[SDK DEBUG] Detected FormData - bodyForSigning set to undefined, not setting content-type");
         } else if (requestBody) {
             // Regular JSON body - encrypt and stringify
             bodyForSigning = await CardsavrCrypto.Encryption.encryptRequest(sessionKey, requestBody);
             headers["content-type"] = "application/json";
             bodyForRequest = JSON.stringify(bodyForSigning);
-            console.log("[SDK DEBUG] Regular JSON body - bodyForSigning:", bodyForSigning);
-        } else {
-            console.log("[SDK DEBUG] No request body");
         }
         
         const authHeaders = await CardsavrCrypto.Signing.signRequest(path, this._appName, sessionKey, bodyForSigning);
-        console.log("[SDK DEBUG] signRequest called with bodyForSigning:", bodyForSigning, "authHeaders:", authHeaders);
         Object.assign(headers, authHeaders);
-
-        if (this._debug) {
-            console.log("REQUEST " + method + " " + path);
-            console.log(headers);
-            if (requestBody && !isFormData) {
-                console.log(unencryptedBody);
-            }
-        }
 
         let config: any = {
             headers,
@@ -237,15 +215,6 @@ export class CardsavrSession {
                 this._sessionData = { sessionKey, sessionToken : "", userId : -1 }; 
             }
             throw new CardsavrRestError(csr); 
-        }
-
-        if (this._debug) {
-            console.log("RESPONSE");
-            console.log(csr.statusCode);
-            console.log(csr.headers);
-            if (csr.body) {
-                console.log(csr.body);
-            }
         }
 
         return csr;
@@ -564,13 +533,12 @@ export class CardsavrSession {
         return await this.get(`/messages/place_card_on_single_site_jobs/${jobId}/credential_responses`, null, headersToAdd);
     };
 
-    requestJobInformation = async(jobId: number, type: string, message: string, account_link: { [key: string] : string|boolean }[],headersToAdd = {}, current_request_count:number = 0): Promise < any > => {
+    requestJobInformation = async(jobId: number, type: string, message: string, account_link: { [key: string] : string|boolean }[],headersToAdd = {}): Promise < any > => {
         const body = {
             jobId,
             type,
             message,
-            account_link,
-            current_request_count
+            account_link
         };
         return await this.post(`/messages/place_card_on_single_site_jobs/${jobId}/credential_requests`, body, headersToAdd);
     };
