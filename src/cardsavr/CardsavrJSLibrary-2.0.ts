@@ -153,6 +153,14 @@ export class CardsavrSession {
         const authHeaders = await CardsavrCrypto.Signing.signRequest(path, this._appName, sessionKey, bodyForSigning);
         Object.assign(headers, authHeaders);
 
+        if (this._debug) {
+            console.log("REQUEST " + method + " " + path);
+            console.log(headers);
+            if (requestBody) {
+                console.log(unencryptedBody);
+            }
+        }
+
         let config: any = {
             headers,
             method : method as unknown as string,
