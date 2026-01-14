@@ -112,7 +112,7 @@ export class CardsavrSession {
         }
     };
 
-    sendRequest = async(path: string, method: http_method, requestBody ? : { [key: string] : unknown }, headersToAdd : { [key: string] : string } = {}): Promise < any > => {
+    sendRequest = async(path: string, method: http_method, requestBody ? : { [key: string] : unknown } | FormData, headersToAdd : { [key: string] : string } = {}): Promise < any > => {
 
         const headers = Object.assign({}, this._headers, headersToAdd);
         const unencryptedBody = requestBody;
@@ -125,11 +125,32 @@ export class CardsavrSession {
 
         // Encrypt the cardholder-safe-header(s) if they are in this request
         CardsavrCrypto.Encryption.encryptSafeKeys(headers, sessionKey);
-        if (requestBody) {
-            requestBody = await CardsavrCrypto.Encryption.encryptRequest(sessionKey, requestBody);
+        
+        // Check if requestBody is FormData (multipart/form-data)
+        // Check both instanceof and constructor name to handle different FormData implementations
+        const isFormData = requestBody && (
+            (typeof FormData !== "undefined" && requestBody instanceof FormData) ||
+            requestBody.constructor?.name === "FormData" ||
+            (typeof requestBody.append === "function" && typeof requestBody.get === "function")
+        );
+        
+        let bodyForSigning: { [key: string] : unknown } | undefined;
+        let bodyForRequest: string | FormData | undefined;
+        
+        if (isFormData) {
+            // FormData cannot be encrypted or stringified
+            // Sign without body (FormData can't be included in signature)
+            bodyForSigning = undefined;
+            bodyForRequest = requestBody as FormData;
+            // Don't set content-type for FormData - browser will set it with boundary
+        } else if (requestBody) {
+            // Regular JSON body - encrypt and stringify
+            bodyForSigning = await CardsavrCrypto.Encryption.encryptRequest(sessionKey, requestBody);
             headers["content-type"] = "application/json";
+            bodyForRequest = JSON.stringify(bodyForSigning);
         }
-        const authHeaders = await CardsavrCrypto.Signing.signRequest(path, this._appName, sessionKey, requestBody);
+        
+        const authHeaders = await CardsavrCrypto.Signing.signRequest(path, this._appName, sessionKey, bodyForSigning);
         Object.assign(headers, authHeaders);
 
         if (this._debug) {
@@ -140,10 +161,10 @@ export class CardsavrSession {
             }
         }
 
-        let config = {
+        let config: any = {
             headers,
             method : method as unknown as string,
-            body : requestBody ? JSON.stringify(requestBody) : undefined
+            body : bodyForRequest
         };
         let response : any;
         if (typeof window === "undefined") {
