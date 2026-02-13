@@ -1,0 +1,225 @@
+# Card Lists
+
+###
+# @name 1 Session Login
+POST https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/session/login
+Content-Type: application/json
+x-cardsavr-trace: {"key": "my_trace"}
+#x-cardsavr-session-jwt: null
+
+{
+    "password": "{{PASSWORD}}",
+    "username": "{{USERNAME}}"
+}
+
+> {%
+  // TODO: migrate to HTTP Client Response handler API
+  // const response = JSON.parse(responseBody)
+  // pm.collectionVariables.set("JWT_TOKEN", response.session_token);
+  // pm.collectionVariables.set("CARDHOLDER_SAFE_KEY", "MBNL8Chib96EYdXNt3+etblMg2RAHUYM1d7ScSd8nf8=");
+  // pm.collectionVariables.set("CARDHOLDER_CUID", "12341834227");
+%}
+
+###
+# @name 2 Create Card List
+# 	
+//< {%
+    // TODO: migrate to HTTP Client Pre-request handler API
+    // const cuid = "{{$timestamp}}";
+    //
+    // pm.collectionVariables.set("CARDHOLDER_CUID", cuid);
+    // pm.collectionVariables.set("CARDHOLDER_SAFE_KEY", "MBNL8Chib96EYdXNt3+etblMg2RAHUYM1d7ScSd8nf8=");
+    // //pm.collectionVariables.set("CARDHOLDER_CUID", "1234929418");
+    //
+//%}
+POST https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/card_lists
+x-cardsavr-session-jwt: {{JWT_TOKEN}}
+x-cardsavr-trace: {"key": "my_trace"}
+#x-cardsavr-cardholder-safe-key: {{CARDHOLDER_SAFE_KEY}}
+x-cardsavr-hydration: ["grant"]
+x-cardsavr-financial-institution: default
+Content-Type: application/json
+
+{
+  "name": "my list",
+  "financial_institution_id": 1302
+}
+
+> {%
+  // TODO: migrate to HTTP Client Response handler API
+  // const response = JSON.parse(responseBody)
+  // pm.collectionVariables.set("CARD_LIST_ID", response.id);
+  //
+%}
+
+###
+# @name 2.1 Get Card List
+# 	
+//< {%
+    // TODO: migrate to HTTP Client Pre-request handler API
+    // const cuid = "{{$timestamp}}";
+    //
+    // pm.collectionVariables.set("CARDHOLDER_CUID", cuid);
+    // pm.collectionVariables.set("CARDHOLDER_SAFE_KEY", "MBNL8Chib96EYdXNt3+etblMg2RAHUYM1d7ScSd8nf8=");
+    // //pm.collectionVariables.set("CARDHOLDER_CUID", "1234929418");
+    //
+//%}
+GET https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/card_lists/{{CARD_LIST_ID}}
+x-cardsavr-session-jwt: {{JWT_TOKEN}}
+x-cardsavr-trace: {"key": "my_trace"}
+#x-cardsavr-cardholder-safe-key: {{CARDHOLDER_SAFE_KEY}}
+x-cardsavr-hydration: ["grant"]
+
+> {%
+  // TODO: migrate to HTTP Client Response handler API
+  // const response = JSON.parse(responseBody)
+  // pm.collectionVariables.set("CARDHOLDER_ID", response.id);
+  // pm.collectionVariables.set("GRANT", response.grant);
+  // pm.collectionVariables.set("CARDHOLDER_CUID", response.cuid);
+  //
+%}
+
+###
+# @name 3 Create Card Link
+# 	
+//< {%
+    // TODO: migrate to HTTP Client Pre-request handler API
+    // const cuid = "{{$timestamp}}";
+    //
+    // pm.collectionVariables.set("CARDHOLDER_CUID", cuid);
+    // pm.collectionVariables.set("CARDHOLDER_SAFE_KEY", "MBNL8Chib96EYdXNt3+etblMg2RAHUYM1d7ScSd8nf8=");
+    // //pm.collectionVariables.set("CARDHOLDER_CUID", "1234929418");
+    //
+//%}
+POST https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/card_links
+x-cardsavr-session-jwt: {{JWT_TOKEN}}
+x-cardsavr-trace: {"key": "my_trace"}
+x-cardsavr-cardholder-safe-key: {{CARDHOLDER_SAFE_KEY}}
+x-cardsavr-hydration: ["card", "grant"]
+Content-Type: application/json
+
+{
+    "card_list_id": {{CARD_LIST_ID}},
+    "card1" : {
+        "cardholder": {
+            "cuid": "{{CARDHOLDER_CUID}}",
+            "type": "persistent_all"
+        },
+        "pan":"400000{{CARDHOLDER_CUID}}",
+        "customer_key":"1234123419",
+        "cvv":"467",
+        "expiration_month":"09",
+        "expiration_year":"24",
+        "name_on_card":"Test Testerson",
+        "address": {
+            "cardholder_ref": {
+                "cuid": "{{CARDHOLDER_CUID}}"
+            },
+            "address1":"123 45th St",
+            "city":"Bellevue",
+            "subnational":"WA",
+            "postal_code":"98006",
+            "postal_other":"",
+            "country":"USA",
+            "email" : "test@test.com",
+            "phone_number" : "5555555555",
+            "first_name" : "test",
+            "last_name" : "testerson",
+            "is_primary": true
+        }
+    }
+}
+
+> {%
+  // TODO: migrate to HTTP Client Response handler API
+  // const response = JSON.parse(responseBody)
+  // pm.collectionVariables.set("CARD_LINK_ID", response.id);
+  // pm.collectionVariables.set("GRANT", response.grant);
+  // pm.collectionVariables.set("CARDHOLDER_LONG_TOKEN", response.cardholder_long_token);
+  //
+%}
+
+###
+# @name 3.1 Get Card Link
+# 	
+//< {%
+    // TODO: migrate to HTTP Client Pre-request handler API
+    // const cuid = "{{$timestamp}}";
+    //
+    // pm.collectionVariables.set("CARDHOLDER_CUID", cuid);
+    // pm.collectionVariables.set("CARDHOLDER_SAFE_KEY", "MBNL8Chib96EYdXNt3+etblMg2RAHUYM1d7ScSd8nf8=");
+    // //pm.collectionVariables.set("CARDHOLDER_CUID", "1234929418");
+    //
+//%}
+GET https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/card_links/{{CARD_LINK_ID}}
+x-cardsavr-session-jwt: {{JWT_TOKEN}}
+x-cardsavr-trace: {"key": "my_trace"}
+x-cardsavr-cardholder-safe-key: {{CARDHOLDER_SAFE_KEY}}
+x-cardsavr-hydration: ["card.cardholder", "card"]
+
+> {%
+  // TODO: migrate to HTTP Client Response handler API
+  // const response = JSON.parse(responseBody)
+  // pm.collectionVariables.set("CARDHOLDER_LONG_TOKEN", response.cardholder_long_token);
+  //
+%}
+
+###
+# @name 4 Verify Card Link
+# 	
+//< {%
+    // TODO: migrate to HTTP Client Pre-request handler API
+    // const cuid = "{{$timestamp}}";
+    //
+    // pm.collectionVariables.set("CARDHOLDER_CUID", cuid);
+    // pm.collectionVariables.set("CARDHOLDER_SAFE_KEY", "MBNL8Chib96EYdXNt3+etblMg2RAHUYM1d7ScSd8nf8=");
+    // //pm.collectionVariables.set("CARDHOLDER_CUID", "1234929418");
+    //
+//%}
+POST https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/card_links/verify
+x-cardsavr-trace: {"key": "key"}
+x-cardsavr-session-jwt: {{JWT_TOKEN}}
+Content-Type: application/json
+
+{
+    "cardholder_long_token" : "{{CARDHOLDER_LONG_TOKEN}}"
+}
+
+> {%
+  // TODO: migrate to HTTP Client Response handler API
+  // const response = JSON.parse(pm.response.text())
+  // pm.collectionVariables.set("CARDHOLDER_SHORT_TOKEN", response.cardholder_short_token);
+  //
+%}
+
+###
+# @name 4 Verify Short Token
+# 	
+//< {%
+    // TODO: migrate to HTTP Client Pre-request handler API
+    // const cuid = "{{$timestamp}}";
+    //
+    // pm.collectionVariables.set("CARDHOLDER_CUID", cuid);
+    // pm.collectionVariables.set("CARDHOLDER_SAFE_KEY", "MBNL8Chib96EYdXNt3+etblMg2RAHUYM1d7ScSd8nf8=");
+    // //pm.collectionVariables.set("CARDHOLDER_CUID", "1234929418");
+    //
+//%}
+POST https://api.{{CARDSAVR-INSTANCE}}.cardsavr.io:{{PORT}}/card_links/verify
+x-cardsavr-session-jwt: {{JWT_TOKEN}}
+x-cardsavr-trace: {"key": "my_trace"}
+x-cardsavr-hydration: ["cardholder", "cardholder.grant"]
+Content-Type: application/json
+
+{
+    "cardholder_short_token" : "{{CARDHOLDER_SHORT_TOKEN}}",
+    "cvv" : "467"
+}
+
+> {%
+  // TODO: migrate to HTTP Client Response handler API
+  // const response = JSON.parse(responseBody)
+  // pm.collectionVariables.set("CARDHOLDER_ID", response.id);
+  // pm.collectionVariables.set("GRANT", response.grant);
+  // pm.collectionVariables.set("CARDHOLDER_CUID", response.cuid);
+  //
+%}
