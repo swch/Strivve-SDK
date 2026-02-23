@@ -242,7 +242,7 @@ export class CardsavrHelper {
         return CardsavrHelper.instance;
     }
 
-    public async createCard(create_card_config : createCardParams) : Promise<unknown> {
+    public async createCard(create_card_config : createCardParams) : Promise<any> {
         const { card, agent_username, financial_institution, safe_key = null } = create_card_config;
         try {
             //don't need the login data
