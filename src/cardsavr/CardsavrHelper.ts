@@ -66,6 +66,96 @@ interface postCredsParams {
     safe_key?: string
 }
 
+interface auth {
+    cardsavr_server: string;
+    app_name: string;
+    app_key: string;
+    username: string;
+    password: string;
+}
+
+interface cardholder {
+    cuid: string;
+    first_name: string;
+    last_name: string;
+}
+
+interface card {
+    card_id?: number;
+    pan: string;
+    expiration_month: number;
+    expiration_year: number;
+    cvv?: string;
+    name_on_card: string;
+    nickname: string;
+    address?: address;
+    cardholder?: cardholder;
+}
+
+interface address {
+    first_name?: string;
+    last_name?: string;
+    address1: string;
+    address2?: string;
+    city: string;
+    subnational: string;
+    postal_code: string;
+    country: string;
+    is_primary: boolean;
+    email: string;
+    phone_number: string;
+}
+
+export class CardLinksHelper {
+
+    public async createCardLink(auth: auth, cardholder: cardholder, card: card, address: address, fi_lookup_key: string ) {
+
+        const safe_key = "zbt1e7GnQWwU0TI8t9jvkTbr1K3EFZOBObgB7xl2kiE=";
+        const chHelper = CardsavrHelper.getInstance();
+        chHelper.setAppSettings( auth.cardsavr_server, auth.app_name, auth.app_key, false );
+
+        try {
+            const session = await chHelper.loginAndCreateSession( auth.username, auth.password);
+
+            card.cardholder = cardholder;
+            card.address = address;
+            const create_card_params = {agent_username : auth.username, financial_institution : fi_lookup_key, card : card, safe_key : safe_key};
+            const card_response = await chHelper.createCard(create_card_params);
+            if ( card_response ) {
+                console.log("Card created");
+
+                // get the FI ID
+                const financial_institution = await chHelper.getFinancialInstitution(auth.username, fi_lookup_key);
+
+                if ( financial_institution ) {
+                    // check if a ondemand card list already exists in the FI, if it doesn't create one
+                    let ondemand_cardlist = await chHelper.getOndemandCardList(auth.username, financial_institution.id);
+                    if ( !ondemand_cardlist ) {
+                        // we better create an ondemand card list for this FI. There can be only one and it is enforced in the DB
+                        console.log(`No ondemand card list found for FI - ${fi_lookup_key} - Creating new ondemand card list`);
+                        ondemand_cardlist = await chHelper.createOndemandCardList(auth.username, fi_lookup_key, financial_institution.id);
+                    }
+
+                    if ( ondemand_cardlist ) {
+                        const card_link_response = await chHelper.createOndemandCardLink(auth.username, ondemand_cardlist.id, card_response.id, fi_lookup_key, safe_key );
+
+                        if ( card_link_response && card_link_response.cardholder_long_token ) {
+                            const url_encoded_long_token = encodeURIComponent(card_link_response.cardholder_long_token);
+                            const hostname = auth.cardsavr_server.replace("api", "microservices");
+                            const card_link = `${hostname}/link/${url_encoded_long_token}`;
+
+                            console.log(`Ondemand Card Link = ${card_link}`);
+                            return card_link;
+                        }
+                    }
+                }
+            }
+        } catch (err) {
+            CardsavrHelper.handleError(err);
+        }
+    }
+}
+
 export class CardsavrHelper {
     
     private static instance: CardsavrHelper;
@@ -189,7 +279,7 @@ export class CardsavrHelper {
             return card_response.body;
     
         } catch(err) {
-            this.handleError(err);
+            CardsavrHelper.handleError(err);
         }
         return null;
     }
@@ -230,12 +320,62 @@ export class CardsavrHelper {
             const response = await agent_session.createSingleSiteJob(job_data_copy, safe_key, headers);
             return response.body;
         } catch(err) {
-            this.handleError(err);
+            CardsavrHelper.handleError(err);
         }
         return null;
     }
 
-    private crawlErrors(obj : any ) : string[] {
+    public async getFinancialInstitution(username: string, fi_lookup_key: string) {
+        const session = this.getSession(username);
+        const response = await session.sendRequest(`/financial_institutions?lookup_key=${fi_lookup_key}`, "get");
+        if ( response && Array.isArray(response.body) && response.body.length === 1 ) {
+            return response.body[0];
+        }
+        return null;
+    }
+
+    public async getOndemandCardList(username: string, fi_id: number) {
+        const session = this.getSession(username);
+        const response = await session.sendRequest(`/card_lists?ondemand=true&financial_institution_id=${fi_id}`, "get" );
+        if ( response && Array.isArray( response.body ) && response.body.length === 1 ) {
+            return response.body[0];
+        }
+        return null;
+    }
+
+    public async createOndemandCardList(username: string, fi_lookup_key: string, fi_id: number) {
+        const card_list_name = `${fi_lookup_key}_ondemand_cardlist`;
+        const session = this.getSession(username);
+        const body = {
+            name : card_list_name,
+            financial_institution_id : fi_id,
+            ondemand: true
+        }
+
+        const headers = {
+            "x-cardsavr-financial-institution" : fi_lookup_key
+        }
+
+        const response = await session.sendRequest(`/card_lists`, "post", body, headers);
+        return response.body;
+    }
+
+    public async createOndemandCardLink( username: string, card_list_id: number, card_id: number, fi_lookup_key: string, safe_key: string ) {
+        const session = this.getSession( username );
+        const body = {
+            card_list_id : card_list_id,
+            card_id : card_id
+        }
+        const headers = {
+            "x-cardsavr-cardholder-safe-key" : safe_key,
+            "x-cardsavr-hydration": "[\"card\", \"grant\"]",
+            "x-cardsavr-financial-institution" : fi_lookup_key
+        }
+        const response = await session.sendRequest(`/card_links/`, "post", body, headers);
+        return response.body;
+    }
+
+    static crawlErrors(obj : any ) : string[] {
         const ret: any[] = [];
         if (obj._errors) {
             obj._errors.map((error: any) => {
@@ -250,7 +390,7 @@ export class CardsavrHelper {
         return ret;
     }
 
-    private handleError(err: any) {
+    static handleError(err: any) {
         if (err instanceof CardsavrRestError || (err.type && err.type === "CardsavrRestError")) {
             //check for error object on response
             //if it's an array, walk each element
@@ -308,7 +448,7 @@ export class CardsavrHelper {
                 return await session.createSingleSiteJobs(jobs, safe_key, {"x-cardsavr-hydration" : JSON.stringify(["account"])});
             } catch(err) {
                 console.log("Exception(s) caught in placeCardOnSites");
-                this.handleError(err);
+                CardsavrHelper.handleError(err);
             }
         } else {
             throw new CardsavrSDKError([], `No session established for: ${username}.  Need to call loginAndCreateSession?`);
@@ -331,7 +471,7 @@ export class CardsavrHelper {
                 }
                 return await this.placeCardOnSites({username, jobs_data : [job_data], safe_key });
             } catch(err) {
-                this.handleError(err);
+                CardsavrHelper.handleError(err);
             }
         } else {
             throw new CardsavrSDKError([], `No session established for: ${username}.  Need to call loginAndCreateSession?`);
@@ -366,7 +506,7 @@ export class CardsavrHelper {
                 session.deleteUser(cardholder_id);
             }
         } catch(err) {
-            this.handleError(err);
+            CardsavrHelper.handleError(err);
         }
     }
 
