@@ -142,7 +142,7 @@ export class CardLinksHelper {
                         if ( card_link_response && card_link_response.cardholder_long_token ) {
                             const url_encoded_long_token = encodeURIComponent(card_link_response.cardholder_long_token);
                             const hostname = auth.cardsavr_server.replace("api", "microservices");
-                            const card_link = `${hostname}/link/${url_encoded_long_token}`;
+                            const card_link = `${hostname}/link/${url_encoded_long_token}?fi=${fi_lookup_key}`;
 
                             console.log(`Ondemand Card Link = ${card_link}`);
                             return card_link;
