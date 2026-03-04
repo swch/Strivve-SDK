@@ -152,8 +152,6 @@ export class CardLinksHelper {
             }
         } catch (err) {
             CardsavrHelper.handleError(err);
-        } finally {
-            chHelper.endSession(auth.username);
         }
     }
 }
