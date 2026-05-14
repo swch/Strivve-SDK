@@ -160,8 +160,6 @@ export class CardLinksHelper {
         const chHelper = CardsavrHelper.getInstance();
         chHelper.setAppSettings( auth.cardsavr_server, auth.app_name, auth.app_key, false );
 
-        console.log(auth);
-
         const body = {cardholder: cardholder, card: card, address: address};
 
         try {
