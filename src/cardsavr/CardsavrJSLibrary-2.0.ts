@@ -351,6 +351,19 @@ export class CardsavrSession {
         return await this.put("/session/refresh", null, {});
     };
 
+    createOnDemandCardLink = async(body: any, safeKey: string | null = null, financial_institution: string, headersToAdd = {}): Promise < any > => {
+
+        if (safeKey) {
+            Object.assign(headersToAdd, this._makeSafeKeyHeader(safeKey));
+        }
+
+        Object.assign(headersToAdd, {
+            "x-cardsavr-financial-institution" : financial_institution
+        });
+
+        return await this.post("/card_links/ondemand", body, headersToAdd);
+    };
+
     getAccounts = async(filter: APIFilter, pagingHeader : paging_header = {} as paging_header, headersToAdd = {}): Promise < any > => {
         
         if (Object.keys(pagingHeader).length > 0) {
