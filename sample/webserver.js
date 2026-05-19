@@ -2,9 +2,6 @@ const express = require('express');
 const { CardsavrHelper, CardLinksHelper } = require("@strivve/strivve-sdk/lib/cardsavr/CardsavrHelper");
 const { CardsavrSession } = require("@strivve/strivve-sdk/lib/cardsavr/CardsavrJSLibrary-2.0");
 
-console.log(CardLinksHelper)
-console.log(CardsavrHelper)
-
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -149,10 +146,7 @@ app.post("/card_links/ondemand", function (req, res) {
                 "last_name" : address_data.last_name
             }
 
-            console.log(auth)
-
             const response = await cl_helper.createCardLink(auth, cardholder, card, address, "whatever_fi");
-            console.log(response)
             res.status(200).send(response);
         } catch (err) {
             console.log(err);
