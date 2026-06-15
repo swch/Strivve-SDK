@@ -108,53 +108,6 @@ interface address {
 
 export class CardLinksHelper {
 
-    // public async createCardLinkManual(auth: auth, cardholder: cardholder, card: card, address: address, fi_lookup_key: string, safe_key: string | null ) {
-
-    //     const chHelper = CardsavrHelper.getInstance();
-    //     chHelper.setAppSettings( auth.cardsavr_server, auth.app_name, auth.app_key, false );
-
-    //     try {
-    //         const session = await chHelper.loginAndCreateSession( auth.username, auth.password);
-    //         await session.createOnDemandCardLink(auth.username, auth.password, body, safe_key, fi_lookup_key)
-
-    //         card.cardholder = cardholder;
-    //         card.address = address;
-    //         const create_card_params = {agent_username : auth.username, financial_institution : fi_lookup_key, card : card, safe_key : safe_key};
-    //         const card_response = await chHelper.createCard(create_card_params);
-    //         if ( card_response ) {
-    //             console.log("Card created");
-
-    //             // get the FI ID
-    //             const financial_institution = await chHelper.getFinancialInstitution(auth.username, fi_lookup_key);
-
-    //             if ( financial_institution ) {
-    //                 // check if a ondemand card list already exists in the FI, if it doesn't create one
-    //                 let ondemand_cardlist = await chHelper.getOndemandCardList(auth.username, financial_institution.id);
-    //                 if ( !ondemand_cardlist ) {
-    //                     // we better create an ondemand card list for this FI. There can be only one and it is enforced in the DB
-    //                     console.log(`No ondemand card list found for FI - ${fi_lookup_key} - Creating new ondemand card list`);
-    //                     ondemand_cardlist = await chHelper.createOndemandCardList(auth.username, fi_lookup_key, financial_institution.id);
-    //                 }
-
-    //                 if ( ondemand_cardlist ) {
-    //                     const card_link_response = await chHelper.createOndemandCardLink(auth.username, ondemand_cardlist.id, card_response.id, fi_lookup_key, safe_key );
-
-    //                     if ( card_link_response && card_link_response.cardholder_long_token ) {
-    //                         const url_encoded_long_token = encodeURIComponent(card_link_response.cardholder_long_token);
-    //                         const hostname = auth.cardsavr_server.replace("api", "microservices");
-    //                         const card_link = `${hostname}/link/${url_encoded_long_token}?fi=${fi_lookup_key}&card_id=${card_response.id}`;
-
-    //                         console.log(`Ondemand Card Link = ${card_link}`);
-    //                         return card_link;
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     } catch (err) {
-    //         CardsavrHelper.handleError(err);
-    //     }
-    // }
-
     public async createCardLink(auth: auth, cardholder: cardholder, card: card, address: address, fi_lookup_key: string, safe_key: string | null ) {
 
         const chHelper = CardsavrHelper.getInstance();
